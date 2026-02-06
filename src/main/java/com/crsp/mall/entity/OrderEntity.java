@@ -2,6 +2,7 @@ package com.crsp.mall.entity;
 
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 /**
  * 订单实体类
@@ -62,7 +63,8 @@ public class OrderEntity {
         createdAt = LocalDateTime.now();
         updatedAt = LocalDateTime.now();
         if (orderNo == null) {
-            orderNo = "ORD" + System.currentTimeMillis();
+            // Use UUID for guaranteed uniqueness
+            orderNo = "ORD" + UUID.randomUUID().toString().replace("-", "").substring(0, 16).toUpperCase();
         }
     }
     

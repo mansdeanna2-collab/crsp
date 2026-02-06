@@ -5,7 +5,11 @@ import com.crsp.mall.repository.AdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.nio.charset.StandardCharsets;
+import java.security.MessageDigest;
+import java.security.NoSuchAlgorithmException;
 import java.time.LocalDateTime;
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 
@@ -36,12 +40,15 @@ public class AdminService {
      * 管理员登录
      */
     public AdminEntity login(String username, String password) {
-        Optional<AdminEntity> adminOpt = adminRepository.findByUsernameAndPassword(username, password);
+        Optional<AdminEntity> adminOpt = adminRepository.findByUsername(username);
         if (adminOpt.isPresent()) {
             AdminEntity admin = adminOpt.get();
-            admin.setLastLogin(LocalDateTime.now());
-            adminRepository.save(admin);
-            return admin;
+            // Compare hashed passwords
+            if (admin.getPassword().equals(hashPassword(password))) {
+                admin.setLastLogin(LocalDateTime.now());
+                adminRepository.save(admin);
+                return admin;
+            }
         }
         return null;
     }
@@ -74,12 +81,26 @@ public class AdminService {
         if (!adminRepository.existsByUsername("admin")) {
             AdminEntity admin = new AdminEntity();
             admin.setUsername("admin");
-            admin.setPassword("admin123");
+            admin.setPassword(hashPassword("admin123")); // Store hashed password
             admin.setName("系统管理员");
             admin.setEmail("admin@mall.com");
             admin.setRole("super_admin");
             admin.setActive(true);
             adminRepository.save(admin);
+        }
+    }
+
+    /**
+     * Hash password using SHA-256
+     * Note: For production, consider using BCrypt with Spring Security
+     */
+    private String hashPassword(String password) {
+        try {
+            MessageDigest digest = MessageDigest.getInstance("SHA-256");
+            byte[] hash = digest.digest(password.getBytes(StandardCharsets.UTF_8));
+            return Base64.getEncoder().encodeToString(hash);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException("Failed to hash password", e);
         }
     }
 }
