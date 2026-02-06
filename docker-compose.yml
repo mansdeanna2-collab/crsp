@@ -11,9 +11,16 @@ services:
     restart: unless-stopped
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
+    volumes:
+      # Mount persistent volume for database to preserve data across restarts
+      - mall-data:/data
     healthcheck:
       test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1"]
       interval: 30s
       timeout: 10s
       retries: 3
       start_period: 60s
+
+volumes:
+  mall-data:
+    driver: local

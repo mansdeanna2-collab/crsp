@@ -42,17 +42,130 @@
             font-size: 18px;
         }
         
-        /* 商品主图 */
+        /* 商品主图轮播 */
         .product-main-image {
             height: 350px;
             display: flex;
             align-items: center;
             justify-content: center;
             margin-top: 50px;
+            position: relative;
+            overflow: hidden;
         }
         .product-main-image i {
             font-size: 100px;
             color: white;
+        }
+        .product-main-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .product-main-image video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        
+        /* 媒体轮播样式 */
+        .media-slider {
+            position: relative;
+            height: 350px;
+            margin-top: 50px;
+            background: #f5f5f5;
+        }
+        .media-slider-container {
+            display: flex;
+            transition: transform 0.3s ease;
+            height: 100%;
+        }
+        .media-slide {
+            min-width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .media-slide img {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .media-slide video {
+            max-width: 100%;
+            max-height: 100%;
+            object-fit: contain;
+        }
+        .media-slide .fallback-icon {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            width: 100%;
+            height: 100%;
+        }
+        .media-slide .fallback-icon i {
+            font-size: 100px;
+            color: white;
+        }
+        .media-indicators {
+            position: absolute;
+            bottom: 15px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 8px;
+        }
+        .media-indicator {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.5);
+            transition: all 0.3s;
+        }
+        .media-indicator.active {
+            background: white;
+            width: 20px;
+            border-radius: 4px;
+        }
+        .media-nav-btn {
+            position: absolute;
+            top: 50%;
+            transform: translateY(-50%);
+            background: rgba(0,0,0,0.3);
+            color: white;
+            border: none;
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+        }
+        .media-nav-btn.prev {
+            left: 10px;
+        }
+        .media-nav-btn.next {
+            right: 10px;
+        }
+        .media-nav-btn:hover {
+            background: rgba(0,0,0,0.5);
+        }
+        .video-play-btn {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            border: none;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            cursor: pointer;
+            font-size: 24px;
+            z-index: 5;
         }
         
         /* 商品信息 */
@@ -172,6 +285,36 @@
             font-size: 14px;
         }
         
+        /* 商品详情图片/视频区域 */
+        .detail-media-section {
+            background: white;
+            margin-top: 10px;
+            padding: 15px;
+        }
+        .detail-media-section .desc-title {
+            margin-bottom: 15px;
+        }
+        .detail-media-list {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        .detail-media-item {
+            width: 100%;
+        }
+        .detail-media-item img {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }
+        .detail-media-item video {
+            width: 100%;
+            height: auto;
+            display: block;
+            border-radius: 8px;
+        }
+        
         /* 规格选择 */
         .spec-section {
             background: white;
@@ -223,10 +366,16 @@
             display: flex;
             align-items: center;
             justify-content: center;
+            overflow: hidden;
         }
         .related-image i {
             font-size: 30px;
             color: white;
+        }
+        .related-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .related-info {
             padding: 8px 0;
@@ -312,9 +461,55 @@
                 <i class="fas fa-share-alt share-btn"></i>
             </div>
 
-            <!-- 商品主图 -->
-            <div class="product-main-image" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
-                <i th:class="'fas ' + ${product.icon}"></i>
+            <!-- 商品主图/媒体轮播 -->
+            <div class="media-slider" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'" id="mediaSlider">
+                <div class="media-slider-container" id="sliderContainer">
+                    <!-- 如果有展示媒体，则使用媒体，否则显示默认图标 -->
+                    <th:block th:if="${displayMediaList != null and !displayMediaList.isEmpty()}">
+                        <div th:each="media, iterStat : ${displayMediaList}" class="media-slide" th:data-type="${media.type}">
+                            <th:block th:if="${media.type == 'image'}">
+                                <img th:src="${media.url}" th:alt="${product.title + ' - 图片' + (iterStat.index + 1)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                                    <i th:class="'fas ' + ${product.icon}"></i>
+                                </div>
+                            </th:block>
+                            <th:block th:if="${media.type == 'video'}">
+                                <video th:src="${media.url}" controls playsinline preload="metadata" 
+                                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                    <p>您的浏览器不支持视频播放</p>
+                                </video>
+                                <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                                    <i th:class="'fas ' + ${product.icon}"></i>
+                                </div>
+                            </th:block>
+                        </div>
+                    </th:block>
+                    <!-- 如果没有媒体，显示默认图标 -->
+                    <th:block th:if="${displayMediaList == null or displayMediaList.isEmpty()}">
+                        <div class="media-slide">
+                            <div class="fallback-icon" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + '); width: 100%; height: 100%;'">
+                                <i th:class="'fas ' + ${product.icon}"></i>
+                            </div>
+                        </div>
+                    </th:block>
+                </div>
+                <!-- 轮播指示器 -->
+                <div class="media-indicators" id="mediaIndicators" th:if="${displayMediaList != null and displayMediaList.size() > 1}">
+                    <span th:each="media, iterStat : ${displayMediaList}" 
+                          class="media-indicator" 
+                          th:classappend="${iterStat.index == 0} ? ' active' : ''"
+                          th:data-index="${iterStat.index}">
+                    </span>
+                </div>
+                <!-- 导航按钮 -->
+                <th:block th:if="${displayMediaList != null and displayMediaList.size() > 1}">
+                    <button class="media-nav-btn prev" onclick="prevSlide()">
+                        <i class="fas fa-chevron-left"></i>
+                    </button>
+                    <button class="media-nav-btn next" onclick="nextSlide()">
+                        <i class="fas fa-chevron-right"></i>
+                    </button>
+                </th:block>
             </div>
 
             <!-- 商品信息 -->
@@ -373,6 +568,25 @@
                 <div class="desc-content" th:text="${product.description}">商品描述内容</div>
             </div>
 
+            <!-- 商品详情图片/视频 -->
+            <div class="detail-media-section" th:if="${detailMediaList != null and !detailMediaList.isEmpty()}">
+                <div class="desc-title">商品详情</div>
+                <div class="detail-media-list">
+                    <div th:each="media : ${detailMediaList}" class="detail-media-item">
+                        <th:block th:if="${media.type == 'image'}">
+                            <img th:src="${media.url}" alt="商品详情图" loading="lazy"
+                                 onerror="this.style.display='none';">
+                        </th:block>
+                        <th:block th:if="${media.type == 'video'}">
+                            <video th:src="${media.url}" controls playsinline preload="metadata"
+                                   onerror="this.style.display='none';">
+                                您的浏览器不支持视频播放
+                            </video>
+                        </th:block>
+                    </div>
+                </div>
+            </div>
+
             <!-- 相关推荐 -->
             <div class="related-section">
                 <div class="related-title">相关推荐</div>
@@ -414,5 +628,73 @@
             <button class="buy-now-btn" onclick="alert('前往结算页面')">立即购买</button>
         </div>
     </div>
+
+    <script>
+        // 轮播图功能
+        let currentSlide = 0;
+        const sliderContainer = document.getElementById('sliderContainer');
+        const indicators = document.querySelectorAll('.media-indicator');
+        const slides = sliderContainer ? sliderContainer.querySelectorAll('.media-slide') : [];
+        const totalSlides = slides.length;
+
+        function updateSlider() {
+            if (sliderContainer && totalSlides > 0) {
+                sliderContainer.style.transform = `translateX(-${currentSlide * 100}%)`;
+                // 更新指示器
+                indicators.forEach((ind, index) => {
+                    ind.classList.toggle('active', index === currentSlide);
+                });
+            }
+        }
+
+        function nextSlide() {
+            if (totalSlides > 1) {
+                currentSlide = (currentSlide + 1) % totalSlides;
+                updateSlider();
+            }
+        }
+
+        function prevSlide() {
+            if (totalSlides > 1) {
+                currentSlide = (currentSlide - 1 + totalSlides) % totalSlides;
+                updateSlider();
+            }
+        }
+
+        // 指示器点击
+        indicators.forEach((ind, index) => {
+            ind.addEventListener('click', () => {
+                currentSlide = index;
+                updateSlider();
+            });
+        });
+
+        // 触摸滑动支持
+        let touchStartX = 0;
+        let touchEndX = 0;
+
+        if (sliderContainer) {
+            sliderContainer.addEventListener('touchstart', (e) => {
+                touchStartX = e.changedTouches[0].screenX;
+            });
+
+            sliderContainer.addEventListener('touchend', (e) => {
+                touchEndX = e.changedTouches[0].screenX;
+                handleSwipe();
+            });
+        }
+
+        function handleSwipe() {
+            const swipeThreshold = 50;
+            const diff = touchStartX - touchEndX;
+            if (Math.abs(diff) > swipeThreshold) {
+                if (diff > 0) {
+                    nextSlide();
+                } else {
+                    prevSlide();
+                }
+            }
+        }
+    </script>
 </body>
 </html>
