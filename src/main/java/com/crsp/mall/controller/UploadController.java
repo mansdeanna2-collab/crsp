@@ -64,21 +64,26 @@ public class UploadController {
         try {
             // 确保上传目录存在
             File dir = new File(uploadDir);
-            if (!dir.exists()) {
-                dir.mkdirs();
+            if (!dir.exists() && !dir.mkdirs()) {
+                return ResponseEntity.internalServerError().body(Map.of("error", "无法创建上传目录"));
             }
 
             // 生成唯一文件名
             String originalFilename = file.getOriginalFilename();
             String extension = "";
             if (originalFilename != null && originalFilename.contains(".")) {
-                extension = originalFilename.substring(originalFilename.lastIndexOf("."));
+                extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+            }
+            // 验证文件扩展名
+            Set<String> allowedExtensions = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp", ".mp4", ".webm", ".ogg");
+            if (!allowedExtensions.contains(extension)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "不支持的文件扩展名"));
             }
             String filename = UUID.randomUUID().toString() + extension;
 
-            // 保存文件
+            // 保存文件（流式写入避免内存溢出）
             Path filePath = Paths.get(uploadDir, filename);
-            Files.write(filePath, file.getBytes());
+            file.transferTo(filePath.toFile());
 
             // 返回访问URL
             String url = "/uploads/" + filename;

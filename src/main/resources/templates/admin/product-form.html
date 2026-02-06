@@ -887,7 +887,7 @@
                     }
                 } else {
                     var err = '上传失败';
-                    try { err = JSON.parse(xhr.responseText).error || err; } catch(e) {}
+                    try { err = JSON.parse(xhr.responseText).error || err; } catch(e) { console.warn('Failed to parse error response:', e); }
                     showError(err);
                 }
             });

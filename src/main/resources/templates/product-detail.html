@@ -848,7 +848,7 @@
             const video = wrapper ? wrapper.querySelector('video') : null;
             if (video) {
                 if (video.paused) {
-                    video.play().catch(function(){});
+                    video.play().catch(function(e){ console.warn('Video play failed:', e); });
                     video.controls = true;
                     overlay.classList.add('hidden');
                 }
