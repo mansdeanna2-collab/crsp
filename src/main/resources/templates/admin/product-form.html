@@ -840,7 +840,7 @@
             })
             .catch(function(err) {
                 progressEl.style.display = 'none';
-                showError('下载文件失败，请检查链接是否有效');
+                showError('下载文件失败: ' + (err.message || '请检查链接是否有效和网络连接'));
             });
         }
 

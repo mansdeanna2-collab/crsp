@@ -16,7 +16,6 @@ import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
 import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
@@ -138,10 +137,7 @@ public class UploadController {
             return ResponseEntity.badRequest().body(Map.of("error", "无效的URL格式"));
         }
         String host = uri.getHost();
-        if (host == null || host.equals("localhost") || host.equals("127.0.0.1")
-                || host.startsWith("10.") || host.startsWith("192.168.")
-                || host.startsWith("172.16.") || host.equals("0.0.0.0")
-                || host.equals("[::1]")) {
+        if (host == null || isPrivateOrReservedHost(host)) {
             return ResponseEntity.badRequest().body(Map.of("error", "不允许访问内网地址"));
         }
 
@@ -180,7 +176,11 @@ public class UploadController {
             }
 
             // 使用UUID前缀+原始文件名以避免冲突，同时保留原始文件名信息
-            String safeFilename = originalFilename.replaceAll("[^a-zA-Z0-9._!-]", "_");
+            String safeFilename = originalFilename.replaceAll("[^a-zA-Z0-9._-]", "_");
+            // 防止以点或连字符开头
+            if (safeFilename.startsWith(".") || safeFilename.startsWith("-")) {
+                safeFilename = "_" + safeFilename;
+            }
             String filename = UUID.randomUUID().toString() + "_" + safeFilename;
             Path filePath = Paths.get(uploadDir, filename);
 
@@ -206,17 +206,26 @@ public class UploadController {
                 return ResponseEntity.badRequest().body(Map.of("error", "文件过大，最大支持50MB"));
             }
 
-            // 保存文件
+            // 使用有界流保存文件，防止超过大小限制
             try (InputStream is = response.body()) {
-                Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
+                long bytesWritten = 0;
+                byte[] buffer = new byte[8192];
+                try (var out = Files.newOutputStream(filePath)) {
+                    int read;
+                    while ((read = is.read(buffer)) != -1) {
+                        bytesWritten += read;
+                        if (bytesWritten > MAX_DOWNLOAD_SIZE) {
+                            out.close();
+                            Files.deleteIfExists(filePath);
+                            return ResponseEntity.badRequest().body(Map.of("error", "文件过大，最大支持50MB"));
+                        }
+                        out.write(buffer, 0, read);
+                    }
+                }
             }
 
             // 验证实际文件大小
             long fileSize = Files.size(filePath);
-            if (fileSize > MAX_DOWNLOAD_SIZE) {
-                Files.deleteIfExists(filePath);
-                return ResponseEntity.badRequest().body(Map.of("error", "文件过大，最大支持50MB"));
-            }
             if (fileSize == 0) {
                 Files.deleteIfExists(filePath);
                 return ResponseEntity.badRequest().body(Map.of("error", "下载的文件为空"));
@@ -270,5 +279,33 @@ public class UploadController {
         } catch (IOException e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "文件删除失败"));
         }
+    }
+
+    /**
+     * 检查主机名是否为私有或保留地址
+     */
+    private static boolean isPrivateOrReservedHost(String host) {
+        if (host == null) return true;
+        String h = host.toLowerCase().replaceAll("[\\[\\]]", "");
+        // 常见内网主机名
+        if (h.equals("localhost") || h.equals("0.0.0.0") || h.equals("::1")) {
+            return true;
+        }
+        // IPv4 私有/保留地址
+        if (h.startsWith("10.") || h.startsWith("192.168.") || h.startsWith("169.254.") || h.startsWith("127.")) {
+            return true;
+        }
+        // 172.16.0.0 - 172.31.255.255
+        if (h.startsWith("172.")) {
+            try {
+                int second = Integer.parseInt(h.split("\\.")[1]);
+                if (second >= 16 && second <= 31) return true;
+            } catch (NumberFormatException ignored) {}
+        }
+        // IPv6 私有地址
+        if (h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80")) {
+            return true;
+        }
+        return false;
     }
 }
