@@ -8,9 +8,16 @@ import org.springframework.web.multipart.MultipartFile;
 
 import java.io.File;
 import java.io.IOException;
+import java.io.InputStream;
+import java.net.URI;
+import java.net.http.HttpClient;
+import java.net.http.HttpRequest;
+import java.net.http.HttpResponse;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.time.Duration;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -94,6 +101,139 @@ public class UploadController {
             ));
         } catch (IOException e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "文件上传失败: " + e.getMessage()));
+        }
+    }
+
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
+    private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of(".mp4", ".webm", ".ogg");
+    private static final long MAX_DOWNLOAD_SIZE = 50L * 1024 * 1024; // 50MB
+    private static final Duration DOWNLOAD_TIMEOUT = Duration.ofSeconds(30);
+
+    /**
+     * 从URL下载图片或视频到服务器
+     */
+    @PostMapping("/upload/from-url")
+    public ResponseEntity<?> uploadFromUrl(@RequestBody Map<String, String> request,
+                                           HttpSession session) {
+        if (session.getAttribute("admin") == null) {
+            return ResponseEntity.status(401).body(Map.of("error", "未登录"));
+        }
+
+        String sourceUrl = request.get("url");
+        if (sourceUrl == null || sourceUrl.trim().isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "URL不能为空"));
+        }
+        sourceUrl = sourceUrl.trim();
+
+        // 验证URL格式
+        if (!sourceUrl.startsWith("http://") && !sourceUrl.startsWith("https://")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "仅支持http和https链接"));
+        }
+
+        // 解析URL，防止SSRF攻击：禁止访问内网地址
+        URI uri;
+        try {
+            uri = URI.create(sourceUrl);
+        } catch (IllegalArgumentException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "无效的URL格式"));
+        }
+        String host = uri.getHost();
+        if (host == null || host.equals("localhost") || host.equals("127.0.0.1")
+                || host.startsWith("10.") || host.startsWith("192.168.")
+                || host.startsWith("172.16.") || host.equals("0.0.0.0")
+                || host.equals("[::1]")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "不允许访问内网地址"));
+        }
+
+        // 从URL路径提取文件名
+        String urlPath = uri.getPath();
+        if (urlPath == null || urlPath.isEmpty() || urlPath.equals("/")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "无法从URL中提取文件名"));
+        }
+        String originalFilename = urlPath.substring(urlPath.lastIndexOf('/') + 1);
+        // 去掉查询参数
+        if (originalFilename.contains("?")) {
+            originalFilename = originalFilename.substring(0, originalFilename.indexOf('?'));
+        }
+
+        // 提取扩展名
+        String extension = "";
+        if (originalFilename.contains(".")) {
+            extension = originalFilename.substring(originalFilename.lastIndexOf(".")).toLowerCase();
+        }
+
+        // 验证扩展名并确定媒体类型
+        String mediaType;
+        if (ALLOWED_IMAGE_EXTENSIONS.contains(extension)) {
+            mediaType = "image";
+        } else if (ALLOWED_VIDEO_EXTENSIONS.contains(extension)) {
+            mediaType = "video";
+        } else {
+            return ResponseEntity.badRequest().body(Map.of("error", "不支持的文件类型，仅支持JPG/PNG/GIF/WEBP图片和MP4/WEBM/OGG视频"));
+        }
+
+        try {
+            // 确保上传目录存在
+            File dir = new File(uploadDir);
+            if (!dir.exists() && !dir.mkdirs()) {
+                return ResponseEntity.internalServerError().body(Map.of("error", "无法创建上传目录"));
+            }
+
+            // 使用UUID前缀+原始文件名以避免冲突，同时保留原始文件名信息
+            String safeFilename = originalFilename.replaceAll("[^a-zA-Z0-9._!-]", "_");
+            String filename = UUID.randomUUID().toString() + "_" + safeFilename;
+            Path filePath = Paths.get(uploadDir, filename);
+
+            // 下载文件
+            HttpClient client = HttpClient.newBuilder()
+                    .connectTimeout(DOWNLOAD_TIMEOUT)
+                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .build();
+            HttpRequest httpRequest = HttpRequest.newBuilder()
+                    .uri(uri)
+                    .timeout(DOWNLOAD_TIMEOUT)
+                    .GET()
+                    .build();
+            HttpResponse<InputStream> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+
+            if (response.statusCode() != 200) {
+                return ResponseEntity.badRequest().body(Map.of("error", "下载失败，远程服务器返回状态码: " + response.statusCode()));
+            }
+
+            // 检查Content-Length防止下载过大文件
+            long contentLength = response.headers().firstValueAsLong("Content-Length").orElse(-1);
+            if (contentLength > MAX_DOWNLOAD_SIZE) {
+                return ResponseEntity.badRequest().body(Map.of("error", "文件过大，最大支持50MB"));
+            }
+
+            // 保存文件
+            try (InputStream is = response.body()) {
+                Files.copy(is, filePath, StandardCopyOption.REPLACE_EXISTING);
+            }
+
+            // 验证实际文件大小
+            long fileSize = Files.size(filePath);
+            if (fileSize > MAX_DOWNLOAD_SIZE) {
+                Files.deleteIfExists(filePath);
+                return ResponseEntity.badRequest().body(Map.of("error", "文件过大，最大支持50MB"));
+            }
+            if (fileSize == 0) {
+                Files.deleteIfExists(filePath);
+                return ResponseEntity.badRequest().body(Map.of("error", "下载的文件为空"));
+            }
+
+            // 返回访问URL
+            String localUrl = "/uploads/" + filename;
+            return ResponseEntity.ok(Map.of(
+                "url", localUrl,
+                "type", mediaType,
+                "filename", filename
+            ));
+        } catch (IOException | InterruptedException e) {
+            if (e instanceof InterruptedException) {
+                Thread.currentThread().interrupt();
+            }
+            return ResponseEntity.internalServerError().body(Map.of("error", "下载文件失败: " + e.getMessage()));
         }
     }
 
