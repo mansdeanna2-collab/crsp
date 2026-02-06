@@ -15,10 +15,6 @@ import java.util.List;
 public interface ProductRepository extends JpaRepository<ProductEntity, Long> {
     
     List<ProductEntity> findByActiveTrue();
-    
-    List<ProductEntity> findByTitleContainingIgnoreCaseOrTagContainingIgnoreCase(String title, String tag);
-    
-    List<ProductEntity> findByTitleContainingIgnoreCaseAndActiveTrue(String title);
 
     @Query("""
         SELECT p FROM ProductEntity p

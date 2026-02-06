@@ -39,7 +39,8 @@ class ProductDbServiceTest {
         inactiveProduct.setDescription("超值优惠套餐");
         inactiveProduct.setSpec("粉色");
         inactiveProduct.setActive(false);
-        productRepository.save(inactiveProduct);
+        inactiveProduct = productRepository.save(inactiveProduct);
+        assertThat(inactiveProduct.getId()).isNotNull();
 
         List<ProductEntity> tagResults = productDbService.searchProducts("爆款");
         assertThat(tagResults)
@@ -50,11 +51,13 @@ class ProductDbServiceTest {
         List<ProductEntity> descriptionResults = productDbService.searchProducts("优惠");
         assertThat(descriptionResults)
                 .extracting(ProductEntity::getId)
-                .contains(activeProduct.getId());
+                .contains(activeProduct.getId())
+                .doesNotContain(inactiveProduct.getId());
 
         List<ProductEntity> specResults = productDbService.searchProducts("粉色");
         assertThat(specResults)
                 .extracting(ProductEntity::getId)
-                .contains(activeProduct.getId());
+                .contains(activeProduct.getId())
+                .doesNotContain(inactiveProduct.getId());
     }
 }
