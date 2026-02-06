@@ -88,7 +88,14 @@ public class ProductEntity {
     public void setIcon(String icon) { this.icon = icon; }
     
     public String getBgColor() { return bgColor; }
-    public void setBgColor(String bgColor) { this.bgColor = bgColor; }
+    public void setBgColor(String bgColor) {
+        // Sanitize bgColor to only allow hex colors and commas (prevent CSS injection)
+        if (bgColor != null && !bgColor.matches("^[#a-fA-F0-9, ]+$")) {
+            this.bgColor = "#ffecd2, #fcb69f";
+        } else {
+            this.bgColor = bgColor;
+        }
+    }
     
     public String getTag() { return tag; }
     public void setTag(String tag) { this.tag = tag; }
@@ -146,14 +153,38 @@ public class ProductEntity {
         return null;
     }
     
+    /**
+     * 获取第一个展示视频的URL
+     * @return 视频URL，如果没有则返回null
+     */
+    public String getFirstVideoUrl() {
+        if (displayMedia == null || displayMedia.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            java.util.List<java.util.Map<String, String>> mediaList = OBJECT_MAPPER.readValue(
+                displayMedia, 
+                new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, String>>>() {}
+            );
+            for (java.util.Map<String, String> media : mediaList) {
+                if ("video".equals(media.get("type")) && media.get("url") != null) {
+                    return media.get("url");
+                }
+            }
+        } catch (Exception e) {
+            // JSON解析失败，返回null
+        }
+        return null;
+    }
+    
     // 静态ObjectMapper实例，线程安全可复用
     private static final com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
     
     /**
-     * 检查是否有展示媒体
+     * 检查是否有展示媒体（图片或视频）
      * @return true如果有展示媒体
      */
     public boolean hasDisplayMedia() {
-        return getFirstImageUrl() != null;
+        return getFirstImageUrl() != null || getFirstVideoUrl() != null;
     }
 }

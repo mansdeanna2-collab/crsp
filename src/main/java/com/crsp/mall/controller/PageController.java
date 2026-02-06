@@ -22,6 +22,10 @@ import java.util.Optional;
 @Controller
 public class PageController {
 
+    private static final int MAX_RECOMMENDATIONS = 6;
+    private static final int MAX_CART_RECOMMENDATIONS = 4;
+    private static final int MAX_RELATED_PRODUCTS = 4;
+
     @Autowired
     private ProductDbService productDbService;
     
@@ -71,7 +75,7 @@ public class PageController {
         // 获取相关推荐商品
         List<ProductEntity> relatedProducts = productDbService.getActiveProducts().stream()
                 .filter(p -> !p.getId().equals(id))
-                .limit(4)
+                .limit(MAX_RELATED_PRODUCTS)
                 .toList();
         model.addAttribute("relatedProducts", relatedProducts);
         return "product-detail";
@@ -105,6 +109,11 @@ public class PageController {
      */
     @GetMapping("/cart")
     public String cart(Model model) {
+        // 添加推荐商品
+        List<ProductEntity> recommendProducts = productDbService.getActiveProducts().stream()
+                .limit(MAX_CART_RECOMMENDATIONS)
+                .toList();
+        model.addAttribute("recommendProducts", recommendProducts);
         return "cart";
     }
 
@@ -113,6 +122,11 @@ public class PageController {
      */
     @GetMapping("/profile")
     public String profile(Model model) {
+        // 添加推荐商品（猜你喜欢）
+        List<ProductEntity> recommendProducts = productDbService.getActiveProducts().stream()
+                .limit(MAX_RECOMMENDATIONS)
+                .toList();
+        model.addAttribute("recommendProducts", recommendProducts);
         return "profile";
     }
 }

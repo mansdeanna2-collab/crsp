@@ -6,6 +6,77 @@
     <title>我的 - 成人玩具商城</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .recommend-section {
+            background: white;
+            margin-top: 10px;
+            padding: 15px;
+        }
+        .recommend-section .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 15px;
+        }
+        .recommend-section .section-header span {
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .recommend-section .view-all {
+            color: #999;
+            font-size: 13px;
+            text-decoration: none;
+        }
+        .recommend-grid {
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 10px;
+        }
+        .recommend-card {
+            text-decoration: none;
+            color: inherit;
+            background: #f8f8f8;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+        .recommend-image {
+            height: 100px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .recommend-image i {
+            font-size: 30px;
+            color: white;
+        }
+        .recommend-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
+        }
+        .recommend-info {
+            padding: 8px;
+        }
+        .recommend-name {
+            font-size: 12px;
+            color: #333;
+            margin-bottom: 4px;
+            display: -webkit-box;
+            -webkit-line-clamp: 1;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .recommend-price {
+            color: #ff5722;
+            font-size: 14px;
+            font-weight: bold;
+        }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -138,6 +209,45 @@
                     </div>
                     <span>帮助与反馈</span>
                     <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+
+            <!-- 猜你喜欢 - 推荐商品 -->
+            <div class="recommend-section" th:if="${recommendProducts != null and !recommendProducts.isEmpty()}">
+                <div class="section-header">
+                    <span>猜你喜欢</span>
+                    <a th:href="@{/}" class="view-all">更多 <i class="fas fa-chevron-right"></i></a>
+                </div>
+                <div class="recommend-grid">
+                    <a th:each="product : ${recommendProducts}" 
+                       th:href="@{/product/{id}(id=${product.id})}" 
+                       class="recommend-card">
+                        <div class="recommend-image" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                            <th:block th:if="${product.hasDisplayMedia()}">
+                                <th:block th:if="${product.firstImageUrl != null}">
+                                    <img th:src="${product.firstImageUrl}" th:alt="${product.title}"
+                                         onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                    <i th:class="'fas ' + ${product.icon}" style="display: none;"></i>
+                                </th:block>
+                                <th:block th:if="${product.firstImageUrl == null and product.firstVideoUrl != null}">
+                                    <video th:src="${product.firstVideoUrl + '#t=0.5'}" muted preload="metadata" playsinline 
+                                           style="width: 100%; height: 100%; object-fit: cover; position: absolute; top: 0; left: 0; background: #000;"
+                                           onerror="this.style.display='none'; this.nextElementSibling.style.display='block';"></video>
+                                    <i th:class="'fas ' + ${product.icon}" style="display: none;"></i>
+                                    <span style="position: absolute; bottom: 4px; right: 4px; background: rgba(0,0,0,0.6); color: white; padding: 2px 4px; border-radius: 3px; font-size: 9px; z-index: 1;">
+                                        <i class="fas fa-play"></i>
+                                    </span>
+                                </th:block>
+                            </th:block>
+                            <th:block th:unless="${product.hasDisplayMedia()}">
+                                <i th:class="'fas ' + ${product.icon}"></i>
+                            </th:block>
+                        </div>
+                        <div class="recommend-info">
+                            <div class="recommend-name" th:text="${product.title}">商品名称</div>
+                            <div class="recommend-price" th:text="'¥' + ${product.price}">¥0</div>
+                        </div>
+                    </a>
                 </div>
             </div>
         </div>
