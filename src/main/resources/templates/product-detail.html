@@ -796,21 +796,21 @@
                         <div th:each="media, iterStat : ${displayMediaList}" class="media-slide" th:data-type="${media.type}">
                             <th:block th:if="${media.type == 'image'}">
                                 <img th:src="${media.url}" th:alt="${product.title + ' - 图片' + (iterStat.index + 1)}" onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='flex';">
-                                <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                                <div class="fallback-icon" th:style="'display: none; background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
                                     <i th:class="'fas ' + ${product.icon}"></i>
                                 </div>
                             </th:block>
                             <th:block th:if="${media.type == 'video'}">
                                 <div class="video-wrapper">
                                     <video playsinline preload="metadata">
-                                        <source th:src="${media.url}" type="video/mp4">
+                                        <source th:src="${media.url}">
                                         <p>您的浏览器不支持视频播放</p>
                                     </video>
                                     <div class="video-play-overlay" onclick="playVideo(this)">
                                         <i class="fas fa-play"></i>
                                     </div>
                                 </div>
-                                <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                                <div class="fallback-icon" th:style="'display: none; background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
                                     <i th:class="'fas ' + ${product.icon}"></i>
                                 </div>
                             </th:block>
@@ -958,7 +958,7 @@
                         <th:block th:if="${media.type == 'video'}">
                             <video controls playsinline preload="metadata"
                                    style="background: #000;">
-                                <source th:src="${media.url}" type="video/mp4">
+                                <source th:src="${media.url}">
                                 您的浏览器不支持视频播放
                             </video>
                         </th:block>
@@ -1143,6 +1143,7 @@
                         video.style.display = 'none';
                         var wrapper = video.closest('.video-wrapper');
                         if (wrapper) {
+                            wrapper.style.display = 'none';
                             var fallback = wrapper.nextElementSibling;
                             if (fallback && fallback.classList.contains('fallback-icon')) {
                                 fallback.style.display = 'flex';
