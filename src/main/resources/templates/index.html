@@ -118,6 +118,9 @@
                                 <i th:class="'fas ' + ${product.icon}"></i>
                             </th:block>
                             <span class="product-tag" th:classappend="${product.tag == '热卖' || product.tag == '爆款'} ? ' hot' : ''" th:text="${product.tag}">标签</span>
+                            <span class="stock-badge"
+                                  th:classappend="${!product.inStock} ? ' out-of-stock' : (${product.lowStock} ? ' low-stock' : '')"
+                                  th:text="${product.stockStatus}">有货</span>
                         </div>
                         <div class="product-info">
                             <h3 class="product-title" th:text="${product.title}">商品名称</h3>
