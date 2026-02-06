@@ -1,0 +1,615 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>淘宝商城</title>
+    <link rel="stylesheet" href="css/style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <!-- 主内容区域 -->
+    <div class="app-container">
+        <!-- 首页 -->
+        <div id="page-home" class="page active">
+            <!-- 顶部搜索栏 -->
+            <div class="header home-header">
+                <div class="location">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <span>北京</span>
+                    <i class="fas fa-chevron-down"></i>
+                </div>
+                <div class="search-bar">
+                    <i class="fas fa-search"></i>
+                    <input type="text" placeholder="搜索商品">
+                    <button class="search-btn">搜索</button>
+                </div>
+                <div class="header-icons">
+                    <i class="fas fa-camera"></i>
+                </div>
+            </div>
+
+            <!-- 分类导航 -->
+            <div class="category-nav">
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
+                        <i class="fas fa-tshirt"></i>
+                    </div>
+                    <span>女装</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <i class="fas fa-mobile-alt"></i>
+                    </div>
+                    <span>数码</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <i class="fas fa-couch"></i>
+                    </div>
+                    <span>家居</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                        <i class="fas fa-apple-alt"></i>
+                    </div>
+                    <span>美食</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
+                        <i class="fas fa-spa"></i>
+                    </div>
+                    <span>美妆</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #ff9a9e, #fecfef);">
+                        <i class="fas fa-baby"></i>
+                    </div>
+                    <span>母婴</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-running"></i>
+                    </div>
+                    <span>运动</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
+                        <i class="fas fa-home"></i>
+                    </div>
+                    <span>家电</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <i class="fas fa-car"></i>
+                    </div>
+                    <span>汽车</span>
+                </div>
+                <div class="category-item">
+                    <div class="category-icon" style="background: linear-gradient(135deg, #ff6b6b, #feca57);">
+                        <i class="fas fa-ellipsis-h"></i>
+                    </div>
+                    <span>更多</span>
+                </div>
+            </div>
+
+            <!-- 轮播图 -->
+            <div class="banner-slider">
+                <div class="banner-item active" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
+                    <div class="banner-content">
+                        <h2>新品首发</h2>
+                        <p>限时特惠 低至5折</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 活动入口 -->
+            <div class="activity-section">
+                <div class="activity-item" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
+                    <i class="fas fa-bolt"></i>
+                    <span>限时秒杀</span>
+                    <small>抢购中</small>
+                </div>
+                <div class="activity-item" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                    <i class="fas fa-percentage"></i>
+                    <span>天天特价</span>
+                    <small>超值购</small>
+                </div>
+                <div class="activity-item" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                    <i class="fas fa-tags"></i>
+                    <span>品牌闪购</span>
+                    <small>大牌惠</small>
+                </div>
+                <div class="activity-item" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                    <i class="fas fa-gift"></i>
+                    <span>新人专享</span>
+                    <small>领红包</small>
+                </div>
+            </div>
+
+            <!-- 商品推荐 -->
+            <div class="section-title">
+                <span>猜你喜欢</span>
+                <i class="fas fa-sync-alt"></i>
+            </div>
+
+            <div class="product-grid">
+                <div class="product-card">
+                    <div class="product-image" style="background: linear-gradient(135deg, #ffecd2, #fcb69f);">
+                        <i class="fas fa-tshirt"></i>
+                        <span class="product-tag">新品</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">时尚女装夏季新款连衣裙</h3>
+                        <div class="product-price">
+                            <span class="price">¥128</span>
+                            <span class="original-price">¥256</span>
+                        </div>
+                        <div class="product-sales">已售 2.3万件</div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);">
+                        <i class="fas fa-mobile-alt"></i>
+                        <span class="product-tag hot">热卖</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">新款智能手机 高清大屏</h3>
+                        <div class="product-price">
+                            <span class="price">¥2999</span>
+                            <span class="original-price">¥3999</span>
+                        </div>
+                        <div class="product-sales">已售 1.5万件</div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image" style="background: linear-gradient(135deg, #d299c2, #fef9d7);">
+                        <i class="fas fa-pump-soap"></i>
+                        <span class="product-tag">特价</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">护肤套装 补水保湿</h3>
+                        <div class="product-price">
+                            <span class="price">¥89</span>
+                            <span class="original-price">¥178</span>
+                        </div>
+                        <div class="product-sales">已售 8500件</div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image" style="background: linear-gradient(135deg, #f5f7fa, #c3cfe2);">
+                        <i class="fas fa-headphones"></i>
+                        <span class="product-tag hot">爆款</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">无线蓝牙耳机 降噪款</h3>
+                        <div class="product-price">
+                            <span class="price">¥199</span>
+                            <span class="original-price">¥399</span>
+                        </div>
+                        <div class="product-sales">已售 3.2万件</div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image" style="background: linear-gradient(135deg, #ffecd2, #fcb69f);">
+                        <i class="fas fa-shoe-prints"></i>
+                        <span class="product-tag">新品</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">运动休闲鞋 透气款</h3>
+                        <div class="product-price">
+                            <span class="price">¥168</span>
+                            <span class="original-price">¥336</span>
+                        </div>
+                        <div class="product-sales">已售 1.8万件</div>
+                    </div>
+                </div>
+                <div class="product-card">
+                    <div class="product-image" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-watch"></i>
+                        <span class="product-tag hot">热卖</span>
+                    </div>
+                    <div class="product-info">
+                        <h3 class="product-title">智能手表 运动监测</h3>
+                        <div class="product-price">
+                            <span class="price">¥299</span>
+                            <span class="original-price">¥599</span>
+                        </div>
+                        <div class="product-sales">已售 9800件</div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 消息页面 -->
+        <div id="page-message" class="page">
+            <div class="header">
+                <h1>消息</h1>
+                <div class="header-right">
+                    <i class="fas fa-cog"></i>
+                </div>
+            </div>
+
+            <!-- 消息分类 -->
+            <div class="message-tabs">
+                <div class="message-tab active">全部</div>
+                <div class="message-tab">交易物流</div>
+                <div class="message-tab">活动</div>
+                <div class="message-tab">服务</div>
+            </div>
+
+            <!-- 消息列表 -->
+            <div class="message-list">
+                <div class="message-item">
+                    <div class="message-avatar" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
+                        <i class="fas fa-truck"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-title">物流通知</span>
+                            <span class="message-time">10:30</span>
+                        </div>
+                        <p class="message-text">您的包裹已到达北京转运中心，预计明天送达</p>
+                    </div>
+                    <span class="message-badge">2</span>
+                </div>
+                <div class="message-item">
+                    <div class="message-avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <i class="fas fa-store"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-title">官方旗舰店</span>
+                            <span class="message-time">昨天</span>
+                        </div>
+                        <p class="message-text">亲，您关注的商品正在限时特惠中~</p>
+                    </div>
+                </div>
+                <div class="message-item">
+                    <div class="message-avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <i class="fas fa-percent"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-title">优惠活动</span>
+                            <span class="message-time">昨天</span>
+                        </div>
+                        <p class="message-text">618大促即将开始，领取专属优惠券</p>
+                    </div>
+                    <span class="message-badge">5</span>
+                </div>
+                <div class="message-item">
+                    <div class="message-avatar" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-title">客服小蜜</span>
+                            <span class="message-time">周一</span>
+                        </div>
+                        <p class="message-text">您好，有什么可以帮助您的吗？</p>
+                    </div>
+                </div>
+                <div class="message-item">
+                    <div class="message-avatar" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
+                        <i class="fas fa-bell"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-title">系统通知</span>
+                            <span class="message-time">上周</span>
+                        </div>
+                        <p class="message-text">您的账户安全等级已更新，请查看详情</p>
+                    </div>
+                </div>
+                <div class="message-item">
+                    <div class="message-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-comment-dollar"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-title">交易提醒</span>
+                            <span class="message-time">上周</span>
+                        </div>
+                        <p class="message-text">您的订单已确认收货，欢迎评价~</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- 购物车页面 -->
+        <div id="page-cart" class="page">
+            <div class="header">
+                <h1>购物车</h1>
+                <div class="header-right">
+                    <span class="edit-btn">管理</span>
+                </div>
+            </div>
+
+            <!-- 购物车列表 -->
+            <div class="cart-list">
+                <div class="cart-shop">
+                    <div class="shop-header">
+                        <input type="checkbox" class="shop-checkbox" checked>
+                        <i class="fas fa-store"></i>
+                        <span class="shop-name">品牌官方旗舰店</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                    <div class="cart-item">
+                        <input type="checkbox" class="item-checkbox" checked>
+                        <div class="item-image" style="background: linear-gradient(135deg, #ffecd2, #fcb69f);">
+                            <i class="fas fa-tshirt"></i>
+                        </div>
+                        <div class="item-info">
+                            <h3 class="item-title">时尚女装夏季新款连衣裙 修身显瘦</h3>
+                            <div class="item-spec">颜色：粉色 尺码：M</div>
+                            <div class="item-price-row">
+                                <span class="item-price">¥128</span>
+                                <div class="quantity-control">
+                                    <button class="qty-btn minus">-</button>
+                                    <span class="qty-num">1</span>
+                                    <button class="qty-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="cart-item">
+                        <input type="checkbox" class="item-checkbox" checked>
+                        <div class="item-image" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);">
+                            <i class="fas fa-shoe-prints"></i>
+                        </div>
+                        <div class="item-info">
+                            <h3 class="item-title">休闲运动鞋 透气舒适</h3>
+                            <div class="item-spec">颜色：白色 尺码：40</div>
+                            <div class="item-price-row">
+                                <span class="item-price">¥168</span>
+                                <div class="quantity-control">
+                                    <button class="qty-btn minus">-</button>
+                                    <span class="qty-num">2</span>
+                                    <button class="qty-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="cart-shop">
+                    <div class="shop-header">
+                        <input type="checkbox" class="shop-checkbox">
+                        <i class="fas fa-store"></i>
+                        <span class="shop-name">数码专营店</span>
+                        <i class="fas fa-chevron-right"></i>
+                    </div>
+                    <div class="cart-item">
+                        <input type="checkbox" class="item-checkbox">
+                        <div class="item-image" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                            <i class="fas fa-headphones"></i>
+                        </div>
+                        <div class="item-info">
+                            <h3 class="item-title">无线蓝牙耳机 主动降噪</h3>
+                            <div class="item-spec">颜色：黑色</div>
+                            <div class="item-price-row">
+                                <span class="item-price">¥199</span>
+                                <div class="quantity-control">
+                                    <button class="qty-btn minus">-</button>
+                                    <span class="qty-num">1</span>
+                                    <button class="qty-btn plus">+</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 推荐商品 -->
+            <div class="cart-recommend">
+                <div class="section-title">
+                    <span>为你推荐</span>
+                </div>
+                <div class="recommend-list">
+                    <div class="recommend-item">
+                        <div class="recommend-image" style="background: linear-gradient(135deg, #f5f7fa, #c3cfe2);">
+                            <i class="fas fa-watch"></i>
+                        </div>
+                        <div class="recommend-info">
+                            <p>智能手表</p>
+                            <span>¥299</span>
+                        </div>
+                    </div>
+                    <div class="recommend-item">
+                        <div class="recommend-image" style="background: linear-gradient(135deg, #ffecd2, #fcb69f);">
+                            <i class="fas fa-bag-shopping"></i>
+                        </div>
+                        <div class="recommend-info">
+                            <p>时尚包包</p>
+                            <span>¥159</span>
+                        </div>
+                    </div>
+                    <div class="recommend-item">
+                        <div class="recommend-image" style="background: linear-gradient(135deg, #d299c2, #fef9d7);">
+                            <i class="fas fa-pump-soap"></i>
+                        </div>
+                        <div class="recommend-info">
+                            <p>护肤套装</p>
+                            <span>¥89</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 底部结算栏 -->
+            <div class="cart-footer">
+                <div class="cart-footer-left">
+                    <input type="checkbox" class="select-all" checked>
+                    <span>全选</span>
+                </div>
+                <div class="cart-footer-right">
+                    <div class="total-info">
+                        <span>合计：</span>
+                        <span class="total-price">¥464</span>
+                    </div>
+                    <button class="checkout-btn">结算(3)</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 我的页面 -->
+        <div id="page-profile" class="page">
+            <!-- 用户信息头部 -->
+            <div class="profile-header">
+                <div class="profile-bg"></div>
+                <div class="profile-info">
+                    <div class="avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h2>淘宝用户</h2>
+                        <div class="user-id">淘宝ID: taobao_123456</div>
+                        <div class="member-tag">
+                            <i class="fas fa-crown"></i>
+                            <span>88VIP会员</span>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <i class="fas fa-cog"></i>
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 订单入口 -->
+            <div class="order-section">
+                <div class="section-header">
+                    <span>我的订单</span>
+                    <span class="view-all">查看全部 <i class="fas fa-chevron-right"></i></span>
+                </div>
+                <div class="order-tabs">
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-wallet"></i>
+                            <span class="tab-badge">2</span>
+                        </div>
+                        <span>待付款</span>
+                    </div>
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-box"></i>
+                            <span class="tab-badge">1</span>
+                        </div>
+                        <span>待发货</span>
+                    </div>
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-truck"></i>
+                            <span class="tab-badge">3</span>
+                        </div>
+                        <span>待收货</span>
+                    </div>
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <span>待评价</span>
+                    </div>
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-undo"></i>
+                        </div>
+                        <span>退换/售后</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的资产 -->
+            <div class="assets-section">
+                <div class="assets-item">
+                    <span class="assets-value">128.00</span>
+                    <span class="assets-label">红包卡券</span>
+                </div>
+                <div class="assets-item">
+                    <span class="assets-value">2,580</span>
+                    <span class="assets-label">淘金币</span>
+                </div>
+                <div class="assets-item">
+                    <span class="assets-value">0.00</span>
+                    <span class="assets-label">账户余额</span>
+                </div>
+                <div class="assets-item">
+                    <span class="assets-value">1,200</span>
+                    <span class="assets-label">积分</span>
+                </div>
+            </div>
+
+            <!-- 功能菜单 -->
+            <div class="menu-section">
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <span>我的收藏</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <span>浏览历史</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <span>收货地址</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <span>客服中心</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
+                        <i class="fas fa-users"></i>
+                    </div>
+                    <span>邀请好友</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <span>帮助与反馈</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="bottom-nav">
+        <div class="nav-item active" data-page="home">
+            <i class="fas fa-home"></i>
+            <span>首页</span>
+        </div>
+        <div class="nav-item" data-page="message">
+            <i class="fas fa-comment-dots"></i>
+            <span>消息</span>
+            <span class="nav-badge">7</span>
+        </div>
+        <div class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>购物车</span>
+            <span class="nav-badge">3</span>
+        </div>
+        <div class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>我的</span>
+        </div>
+    </nav>
+
+    <script src="js/app.js"></script>
+</body>
+</html>
