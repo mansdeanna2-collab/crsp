@@ -468,7 +468,7 @@
                     <th:block th:if="${displayMediaList != null and !displayMediaList.isEmpty()}">
                         <div th:each="media, iterStat : ${displayMediaList}" class="media-slide" th:data-type="${media.type}">
                             <th:block th:if="${media.type == 'image'}">
-                                <img th:src="${media.url}" alt="商品图片" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <img th:src="${media.url}" th:alt="${product.title + ' - 图片' + (iterStat.index + 1)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
                                 <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
                                     <i th:class="'fas ' + ${product.icon}"></i>
                                 </div>
@@ -476,7 +476,7 @@
                             <th:block th:if="${media.type == 'video'}">
                                 <video th:src="${media.url}" controls playsinline preload="metadata" 
                                        onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    您的浏览器不支持视频播放
+                                    <p>您的浏览器不支持视频播放</p>
                                 </video>
                                 <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
                                     <i th:class="'fas ' + ${product.icon}"></i>

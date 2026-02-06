@@ -130,8 +130,8 @@ public class ProductEntity {
         }
         try {
             // 简单解析JSON数组获取第一个图片
-            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
-            java.util.List<java.util.Map<String, String>> mediaList = mapper.readValue(
+            // 使用静态ObjectMapper以提高性能
+            java.util.List<java.util.Map<String, String>> mediaList = OBJECT_MAPPER.readValue(
                 displayMedia, 
                 new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, String>>>() {}
             );
@@ -145,6 +145,9 @@ public class ProductEntity {
         }
         return null;
     }
+    
+    // 静态ObjectMapper实例，线程安全可复用
+    private static final com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
     
     /**
      * 检查是否有展示媒体
