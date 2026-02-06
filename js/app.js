@@ -312,6 +312,7 @@ function initLocation() {
     const locationModal = document.getElementById('location-modal');
     const locationCurrent = document.querySelector('.location-current span');
     const locationItems = document.querySelectorAll('.location-item');
+    const refreshLocationBtn = document.querySelector('.refresh-location-btn');
 
     if (locationBtn) {
         locationBtn.addEventListener('click', function() {
@@ -321,14 +322,30 @@ function initLocation() {
         });
     }
 
+    // 刷新定位按钮
+    if (refreshLocationBtn) {
+        refreshLocationBtn.addEventListener('click', function() {
+            getCurrentLocation();
+        });
+    }
+
     // 城市选择点击
     locationItems.forEach(item => {
         item.addEventListener('click', function() {
             const city = this.getAttribute('data-city');
             updateLocation(city);
+            // 标记选中状态
+            locationItems.forEach(i => i.classList.remove('active'));
+            this.classList.add('active');
             closeModal(locationModal);
         });
     });
+
+    // 从本地存储恢复位置
+    const savedLocation = localStorage.getItem('userLocation');
+    if (savedLocation) {
+        updateLocation(savedLocation);
+    }
 }
 
 /**
@@ -336,59 +353,139 @@ function initLocation() {
  */
 function getCurrentLocation() {
     const locationCurrent = document.querySelector('.location-current span');
+    const refreshBtn = document.querySelector('.refresh-location-btn');
     
-    if (navigator.geolocation) {
-        locationCurrent.textContent = '正在定位...';
-        
-        navigator.geolocation.getCurrentPosition(
-            function(position) {
-                // 成功获取位置
-                const lat = position.coords.latitude;
-                const lng = position.coords.longitude;
-                // 这里可以调用逆地理编码API获取城市名
-                // 演示目的，使用模拟城市
-                reverseGeocode(lat, lng);
-            },
-            function(error) {
-                // 获取位置失败
-                let errorMsg = '定位失败';
-                switch(error.code) {
-                    case error.PERMISSION_DENIED:
-                        errorMsg = '用户拒绝定位请求';
-                        break;
-                    case error.POSITION_UNAVAILABLE:
-                        errorMsg = '位置信息不可用';
-                        break;
-                    case error.TIMEOUT:
-                        errorMsg = '定位请求超时';
-                        break;
-                }
-                locationCurrent.textContent = errorMsg;
-            },
-            {
-                enableHighAccuracy: true,
-                timeout: 10000,
-                maximumAge: 0
-            }
-        );
-    } else {
+    if (!navigator.geolocation) {
         locationCurrent.textContent = '浏览器不支持定位';
+        return;
     }
+
+    locationCurrent.textContent = '正在定位...';
+    if (refreshBtn) {
+        refreshBtn.disabled = true;
+    }
+    
+    navigator.geolocation.getCurrentPosition(
+        function(position) {
+            // 成功获取位置
+            const lat = position.coords.latitude;
+            const lng = position.coords.longitude;
+            const accuracy = position.coords.accuracy;
+            
+            // 显示坐标信息
+            locationCurrent.textContent = `定位成功 (精度: ${Math.round(accuracy)}m)`;
+            
+            // 调用逆地理编码获取城市名
+            reverseGeocode(lat, lng);
+            
+            if (refreshBtn) {
+                refreshBtn.disabled = false;
+            }
+        },
+        function(error) {
+            // 获取位置失败
+            let errorMsg = '定位失败';
+            switch(error.code) {
+                case error.PERMISSION_DENIED:
+                    errorMsg = '用户拒绝定位，请手动选择城市';
+                    break;
+                case error.POSITION_UNAVAILABLE:
+                    errorMsg = '位置信息不可用，请手动选择城市';
+                    break;
+                case error.TIMEOUT:
+                    errorMsg = '定位超时，请手动选择城市';
+                    break;
+            }
+            locationCurrent.textContent = errorMsg;
+            if (refreshBtn) {
+                refreshBtn.disabled = false;
+            }
+        },
+        {
+            enableHighAccuracy: true,
+            timeout: 15000,
+            maximumAge: 300000 // 5分钟内的位置信息可复用
+        }
+    );
 }
 
 /**
- * 逆地理编码（模拟）
+ * 逆地理编码 - 使用OpenStreetMap Nominatim API
  */
 function reverseGeocode(lat, lng) {
     const locationCurrent = document.querySelector('.location-current span');
-    // 实际项目中应该调用地图API进行逆地理编码
-    // 这里模拟返回一个城市
-    setTimeout(function() {
-        const cities = ['北京', '上海', '广州', '深圳', '杭州', '成都'];
-        const randomCity = cities[Math.floor(Math.random() * cities.length)];
-        locationCurrent.textContent = `当前位置: ${randomCity} (${lat.toFixed(4)}, ${lng.toFixed(4)})`;
-        updateLocation(randomCity);
-    }, 500);
+    
+    // 使用OpenStreetMap Nominatim API（免费，无需API密钥）
+    const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${lat}&lon=${lng}&zoom=10&accept-language=zh-CN`;
+    
+    fetch(url, {
+        headers: {
+            'User-Agent': 'MallApp/1.0'
+        }
+    })
+    .then(response => response.json())
+    .then(data => {
+        let city = '未知位置';
+        
+        if (data && data.address) {
+            // 优先获取城市名，其次是区县名
+            city = data.address.city || 
+                   data.address.county || 
+                   data.address.state || 
+                   data.address.town ||
+                   data.address.village ||
+                   '未知位置';
+        }
+        
+        locationCurrent.textContent = `当前位置: ${city}`;
+        updateLocation(city);
+        
+        // 保存到本地存储
+        localStorage.setItem('userLocation', city);
+        localStorage.setItem('userCoords', JSON.stringify({lat, lng}));
+    })
+    .catch(error => {
+        console.error('逆地理编码失败:', error);
+        // 使用备用方案：根据坐标估算城市
+        const estimatedCity = estimateCityFromCoords(lat, lng);
+        locationCurrent.textContent = `当前位置: ${estimatedCity} (坐标: ${lat.toFixed(4)}, ${lng.toFixed(4)})`;
+        updateLocation(estimatedCity);
+    });
+}
+
+/**
+ * 根据坐标估算城市（备用方案）
+ */
+function estimateCityFromCoords(lat, lng) {
+    // 主要城市坐标范围
+    const cities = [
+        { name: '北京', lat: 39.9042, lng: 116.4074, range: 1 },
+        { name: '上海', lat: 31.2304, lng: 121.4737, range: 1 },
+        { name: '广州', lat: 23.1291, lng: 113.2644, range: 0.8 },
+        { name: '深圳', lat: 22.5431, lng: 114.0579, range: 0.5 },
+        { name: '杭州', lat: 30.2741, lng: 120.1551, range: 0.8 },
+        { name: '成都', lat: 30.5728, lng: 104.0668, range: 0.8 },
+        { name: '南京', lat: 32.0603, lng: 118.7969, range: 0.8 },
+        { name: '武汉', lat: 30.5928, lng: 114.3055, range: 0.8 },
+        { name: '西安', lat: 34.3416, lng: 108.9398, range: 0.8 },
+        { name: '重庆', lat: 29.4316, lng: 106.9123, range: 1 }
+    ];
+    
+    let nearestCity = '当前位置';
+    let minDistance = Infinity;
+    
+    cities.forEach(city => {
+        const distance = Math.sqrt(
+            Math.pow(lat - city.lat, 2) + 
+            Math.pow(lng - city.lng, 2)
+        );
+        if (distance < city.range && distance < minDistance) {
+            minDistance = distance;
+            nearestCity = city.name;
+        }
+    });
+    
+    return nearestCity;
 }
 
 /**
@@ -399,6 +496,8 @@ function updateLocation(city) {
     if (locationText) {
         locationText.textContent = city;
     }
+    // 保存到本地存储
+    localStorage.setItem('userLocation', city);
 }
 
 /**
