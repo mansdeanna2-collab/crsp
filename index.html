@@ -32,18 +32,6 @@
             <!-- 分类导航 -->
             <div class="category-nav">
                 <div class="category-item">
-                    <div class="category-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
-                        <i class="fas fa-tshirt"></i>
-                    </div>
-                    <span>女装</span>
-                </div>
-                <div class="category-item">
-                    <div class="category-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
-                        <i class="fas fa-mobile-alt"></i>
-                    </div>
-                    <span>数码</span>
-                </div>
-                <div class="category-item">
                     <div class="category-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
                         <i class="fas fa-couch"></i>
                     </div>
@@ -129,7 +117,7 @@
 
             <!-- 商品推荐 -->
             <div class="section-title">
-                <span>猜你喜欢</span>
+                <span>商品标题</span>
                 <i class="fas fa-sync-alt"></i>
             </div>
 
@@ -609,6 +597,132 @@
             <span>我的</span>
         </div>
     </nav>
+
+    <!-- 商品详情弹窗 -->
+    <div id="product-detail-modal" class="modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>商品详情</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body">
+                <div class="detail-image" id="detail-image">
+                    <i class="fas fa-shopping-bag"></i>
+                </div>
+                <div class="detail-info">
+                    <h3 id="detail-title">商品名称</h3>
+                    <div class="detail-price">
+                        <span class="detail-current-price" id="detail-price">¥0</span>
+                        <span class="detail-original-price" id="detail-original-price">¥0</span>
+                    </div>
+                    <div class="detail-sales" id="detail-sales">已售 0件</div>
+                    <div class="detail-desc">
+                        <h4>商品描述</h4>
+                        <p id="detail-desc">这是一款优质商品，品质保证，售后无忧。</p>
+                    </div>
+                    <div class="detail-specs">
+                        <h4>商品规格</h4>
+                        <div class="spec-options">
+                            <span class="spec-tag">默认规格</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button class="add-cart-btn">加入购物车</button>
+                <button class="buy-now-btn">立即购买</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 拍照搜索弹窗 -->
+    <div id="camera-modal" class="modal">
+        <div class="modal-content camera-modal-content">
+            <div class="modal-header">
+                <h2>拍照搜索</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body camera-body">
+                <video id="camera-preview" autoplay playsinline></video>
+                <canvas id="camera-canvas" style="display: none;"></canvas>
+                <div id="captured-image-container" style="display: none;">
+                    <img id="captured-image" alt="拍摄的照片">
+                </div>
+            </div>
+            <div class="modal-footer camera-footer">
+                <button id="capture-btn" class="capture-btn">
+                    <i class="fas fa-camera"></i> 拍照
+                </button>
+                <button id="retake-btn" class="retake-btn" style="display: none;">
+                    <i class="fas fa-redo"></i> 重拍
+                </button>
+                <button id="search-image-btn" class="search-image-btn" style="display: none;">
+                    <i class="fas fa-search"></i> 搜索
+                </button>
+                <input type="file" id="file-input" accept="image/*" style="display: none;">
+                <button id="upload-btn" class="upload-btn">
+                    <i class="fas fa-image"></i> 相册
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 搜索结果弹窗 -->
+    <div id="search-modal" class="modal">
+        <div class="modal-content search-modal-content">
+            <div class="modal-header">
+                <h2>搜索结果</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body search-body">
+                <div id="search-results" class="search-results">
+                    <!-- 搜索结果将动态生成 -->
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 定位选择弹窗 -->
+    <div id="location-modal" class="modal">
+        <div class="modal-content location-modal-content">
+            <div class="modal-header">
+                <h2>选择定位</h2>
+                <span class="close-modal">&times;</span>
+            </div>
+            <div class="modal-body location-body">
+                <div class="location-current">
+                    <i class="fas fa-crosshairs"></i>
+                    <span>正在定位...</span>
+                </div>
+                <div class="location-list">
+                    <div class="location-item" data-city="北京">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>北京</span>
+                    </div>
+                    <div class="location-item" data-city="上海">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>上海</span>
+                    </div>
+                    <div class="location-item" data-city="广州">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>广州</span>
+                    </div>
+                    <div class="location-item" data-city="深圳">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>深圳</span>
+                    </div>
+                    <div class="location-item" data-city="杭州">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>杭州</span>
+                    </div>
+                    <div class="location-item" data-city="成都">
+                        <i class="fas fa-map-marker-alt"></i>
+                        <span>成都</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
 
     <script src="js/app.js"></script>
 </body>
