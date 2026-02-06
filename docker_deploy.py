@@ -9,6 +9,7 @@ import os
 import subprocess
 import sys
 import shutil
+import time
 from pathlib import Path
 
 
@@ -390,7 +391,6 @@ docker-compose.yml
         
         # 8. 等待应用启动
         print("\n⏳ 等待应用启动 (约10秒)...")
-        import time
         time.sleep(10)
         
         # 9. 检查状态
