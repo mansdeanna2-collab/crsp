@@ -992,3 +992,371 @@ body {
     background: #ddd;
     border-radius: 2px;
 }
+
+/* ==================== 弹窗样式 ==================== */
+.modal {
+    display: none;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    overflow: auto;
+}
+
+.modal.active {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.modal-content {
+    background-color: #fff;
+    margin: auto;
+    width: 90%;
+    max-width: 400px;
+    max-height: 90vh;
+    border-radius: 12px;
+    overflow: hidden;
+    animation: slideUp 0.3s ease;
+}
+
+@keyframes slideUp {
+    from {
+        transform: translateY(50px);
+        opacity: 0;
+    }
+    to {
+        transform: translateY(0);
+        opacity: 1;
+    }
+}
+
+.modal-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #ff6b35, #ff5722);
+    color: white;
+}
+
+.modal-header h2 {
+    font-size: 16px;
+    font-weight: 600;
+}
+
+.close-modal {
+    font-size: 24px;
+    cursor: pointer;
+    line-height: 1;
+}
+
+.modal-body {
+    padding: 20px;
+    max-height: 60vh;
+    overflow-y: auto;
+}
+
+.modal-footer {
+    padding: 15px 20px;
+    display: flex;
+    gap: 10px;
+    border-top: 1px solid #eee;
+}
+
+/* ==================== 商品详情弹窗样式 ==================== */
+.detail-image {
+    width: 100%;
+    height: 200px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+    margin-bottom: 15px;
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+}
+
+.detail-image i {
+    font-size: 60px;
+    color: white;
+    opacity: 0.8;
+}
+
+.detail-info h3 {
+    font-size: 16px;
+    line-height: 1.4;
+    margin-bottom: 10px;
+}
+
+.detail-price {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    margin-bottom: 8px;
+}
+
+.detail-current-price {
+    color: #ff5722;
+    font-size: 24px;
+    font-weight: 600;
+}
+
+.detail-original-price {
+    color: #999;
+    font-size: 14px;
+    text-decoration: line-through;
+}
+
+.detail-sales {
+    color: #999;
+    font-size: 12px;
+    margin-bottom: 15px;
+}
+
+.detail-desc,
+.detail-specs {
+    margin-top: 15px;
+    padding-top: 15px;
+    border-top: 1px solid #eee;
+}
+
+.detail-desc h4,
+.detail-specs h4 {
+    font-size: 14px;
+    margin-bottom: 10px;
+    color: #333;
+}
+
+.detail-desc p {
+    font-size: 13px;
+    color: #666;
+    line-height: 1.6;
+}
+
+.spec-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+
+.spec-tag {
+    padding: 5px 12px;
+    background: #f5f5f5;
+    border-radius: 4px;
+    font-size: 12px;
+    color: #666;
+}
+
+.add-cart-btn,
+.buy-now-btn {
+    flex: 1;
+    padding: 12px;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.add-cart-btn {
+    background: #ffeee6;
+    color: #ff5722;
+}
+
+.buy-now-btn {
+    background: linear-gradient(135deg, #ff6b35, #ff5722);
+    color: white;
+}
+
+/* ==================== 拍照搜索弹窗样式 ==================== */
+.camera-modal-content {
+    max-width: 350px;
+}
+
+.camera-body {
+    padding: 10px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+}
+
+#camera-preview {
+    width: 100%;
+    max-height: 300px;
+    background: #000;
+    border-radius: 8px;
+}
+
+#captured-image-container {
+    width: 100%;
+}
+
+#captured-image {
+    width: 100%;
+    max-height: 300px;
+    object-fit: contain;
+    border-radius: 8px;
+}
+
+.camera-footer {
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
+.capture-btn,
+.retake-btn,
+.search-image-btn,
+.upload-btn {
+    padding: 10px 20px;
+    border: none;
+    border-radius: 20px;
+    font-size: 14px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+}
+
+.capture-btn {
+    background: linear-gradient(135deg, #ff6b35, #ff5722);
+    color: white;
+}
+
+.retake-btn {
+    background: #f5f5f5;
+    color: #666;
+}
+
+.search-image-btn {
+    background: linear-gradient(135deg, #4facfe, #00f2fe);
+    color: white;
+}
+
+.upload-btn {
+    background: #f5f5f5;
+    color: #666;
+}
+
+/* ==================== 搜索结果弹窗样式 ==================== */
+.search-modal-content {
+    max-width: 400px;
+}
+
+.search-body {
+    padding: 10px;
+}
+
+.search-results {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+}
+
+.search-result-item {
+    background: white;
+    border-radius: 8px;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+
+.search-result-image {
+    height: 100px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: linear-gradient(135deg, #ffecd2, #fcb69f);
+}
+
+.search-result-image i {
+    font-size: 30px;
+    color: white;
+    opacity: 0.8;
+}
+
+.search-result-info {
+    padding: 8px;
+}
+
+.search-result-info h4 {
+    font-size: 12px;
+    line-height: 1.3;
+    height: 32px;
+    overflow: hidden;
+    margin-bottom: 5px;
+}
+
+.search-result-info .result-price {
+    color: #ff5722;
+    font-size: 14px;
+    font-weight: 600;
+}
+
+/* ==================== 定位弹窗样式 ==================== */
+.location-modal-content {
+    max-width: 350px;
+}
+
+.location-body {
+    padding: 15px;
+}
+
+.location-current {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 15px;
+    background: linear-gradient(135deg, #ff6b35, #ff5722);
+    color: white;
+    border-radius: 8px;
+    margin-bottom: 15px;
+}
+
+.location-current i {
+    font-size: 20px;
+}
+
+.location-list {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.location-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 5px;
+    padding: 12px;
+    background: #f5f5f5;
+    border-radius: 8px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.location-item:hover,
+.location-item.active {
+    background: #ffeee6;
+    color: #ff5722;
+}
+
+.location-item i {
+    font-size: 16px;
+    color: #999;
+}
+
+.location-item:hover i,
+.location-item.active i {
+    color: #ff5722;
+}
+
+.location-item span {
+    font-size: 13px;
+}
+
+/* ==================== 定位按钮样式 ==================== */
+.location {
+    cursor: pointer;
+}
