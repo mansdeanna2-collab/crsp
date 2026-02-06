@@ -781,7 +781,7 @@
             setTimeout(() => errorDiv.remove(), 3000);
         }
 
-        // 添加媒体
+        // 添加媒体（通过URL链接，先下载到服务器再显示）
         function addMedia(type) {
             const mediaType = document.getElementById(type + 'MediaType').value;
             const mediaUrl = document.getElementById(type + 'MediaUrl').value.trim();
@@ -796,22 +796,52 @@
                 return;
             }
 
-            const mediaItem = {
-                type: mediaType,
-                url: mediaUrl
-            };
+            // 显示下载进度
+            var progressEl = document.getElementById(type + 'UploadProgress');
+            var progressBar = document.getElementById(type + 'ProgressBar');
+            progressEl.style.display = 'block';
+            progressBar.style.width = '30%';
+            progressEl.querySelector('span').textContent = '正在下载文件到服务器...';
 
-            if (type === 'display') {
-                displayMediaData.push(mediaItem);
-                document.getElementById('displayMediaInput').value = JSON.stringify(displayMediaData);
-                renderMediaList('display');
-            } else {
-                detailMediaData.push(mediaItem);
-                document.getElementById('detailMediaInput').value = JSON.stringify(detailMediaData);
-                renderMediaList('detail');
-            }
+            // 调用后端接口将外部URL文件下载到服务器
+            fetch('/admin/upload/from-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: mediaUrl })
+            })
+            .then(function(response) {
+                progressBar.style.width = '80%';
+                return response.json();
+            })
+            .then(function(result) {
+                progressEl.style.display = 'none';
+                if (result.error) {
+                    showError(result.error);
+                    return;
+                }
 
-            hideMediaInput(type);
+                // 使用服务器返回的本地URL
+                var mediaItem = {
+                    type: result.type || mediaType,
+                    url: result.url
+                };
+
+                if (type === 'display') {
+                    displayMediaData.push(mediaItem);
+                    document.getElementById('displayMediaInput').value = JSON.stringify(displayMediaData);
+                    renderMediaList('display');
+                } else {
+                    detailMediaData.push(mediaItem);
+                    document.getElementById('detailMediaInput').value = JSON.stringify(detailMediaData);
+                    renderMediaList('detail');
+                }
+
+                hideMediaInput(type);
+            })
+            .catch(function(err) {
+                progressEl.style.display = 'none';
+                showError('下载文件失败: ' + (err.message || '请检查链接是否有效和网络连接'));
+            });
         }
 
         // 删除媒体
