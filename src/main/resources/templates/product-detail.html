@@ -88,24 +88,26 @@
             justify-content: center;
         }
         .media-slide img {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .media-slide video {
-            max-width: 100%;
-            max-height: 100%;
-            object-fit: contain;
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
             background: #000;
         }
         .media-slide .video-wrapper {
             position: relative;
             width: 100%;
             height: 100%;
-            display: flex;
-            align-items: center;
-            justify-content: center;
             background: #000;
+        }
+        .media-slide .video-wrapper video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
         }
         .media-slide .video-play-overlay {
             position: absolute;
@@ -322,18 +324,21 @@
         }
         .detail-media-item {
             width: 100%;
+            display: block;
         }
         .detail-media-item img {
             width: 100%;
             height: auto;
             display: block;
             border-radius: 8px;
+            object-fit: cover;
         }
         .detail-media-item video {
             width: 100%;
             height: auto;
             display: block;
             border-radius: 8px;
+            object-fit: cover;
         }
         
         /* 规格选择 */
@@ -570,6 +575,205 @@
             background: linear-gradient(135deg, #ff5722, #ff8a65);
             color: white;
         }
+
+        /* 规格选择弹窗 */
+        .spec-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .spec-modal-overlay.active {
+            display: block;
+        }
+        .spec-modal {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            border-radius: 20px 20px 0 0;
+            padding: 20px 15px;
+            max-height: 70vh;
+            overflow-y: auto;
+            transform: translateY(100%);
+            transition: transform 0.3s ease;
+        }
+        .spec-modal-overlay.active .spec-modal {
+            transform: translateY(0);
+        }
+        .spec-modal-header {
+            display: flex;
+            align-items: flex-start;
+            gap: 12px;
+            margin-bottom: 20px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .spec-modal-image {
+            width: 80px;
+            height: 80px;
+            border-radius: 8px;
+            overflow: hidden;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .spec-modal-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .spec-modal-image i {
+            font-size: 40px;
+            color: white;
+        }
+        .spec-modal-price-info {
+            flex: 1;
+        }
+        .spec-modal-price {
+            color: #ff5722;
+            font-size: 22px;
+            font-weight: bold;
+            margin-bottom: 5px;
+        }
+        .spec-modal-price small {
+            font-size: 14px;
+        }
+        .spec-modal-stock {
+            font-size: 13px;
+            color: #999;
+        }
+        .spec-modal-selected {
+            font-size: 13px;
+            color: #666;
+            margin-top: 5px;
+        }
+        .spec-modal-close {
+            position: absolute;
+            top: 15px;
+            right: 15px;
+            background: none;
+            border: none;
+            font-size: 20px;
+            color: #999;
+            cursor: pointer;
+            padding: 5px;
+        }
+        .spec-group {
+            margin-bottom: 20px;
+        }
+        .spec-group-title {
+            font-size: 14px;
+            font-weight: bold;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        .spec-options {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .spec-option {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            padding: 8px 16px;
+            border: 1px solid #e0e0e0;
+            border-radius: 20px;
+            font-size: 13px;
+            color: #333;
+            cursor: pointer;
+            transition: all 0.2s;
+            background: white;
+        }
+        .spec-option:hover {
+            border-color: #ff5722;
+        }
+        .spec-option.selected {
+            border-color: #ff5722;
+            background: #fff3e0;
+            color: #ff5722;
+        }
+        .spec-option img {
+            width: 24px;
+            height: 24px;
+            border-radius: 4px;
+            object-fit: cover;
+        }
+        .quantity-section {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 20px;
+            padding: 10px 0;
+        }
+        .quantity-label {
+            font-size: 14px;
+            font-weight: bold;
+            color: #333;
+        }
+        .quantity-control {
+            display: flex;
+            align-items: center;
+            gap: 0;
+            border: 1px solid #e0e0e0;
+            border-radius: 4px;
+            overflow: hidden;
+        }
+        .quantity-btn {
+            width: 36px;
+            height: 36px;
+            border: none;
+            background: #f5f5f5;
+            font-size: 18px;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #333;
+        }
+        .quantity-btn:disabled {
+            color: #ccc;
+            cursor: not-allowed;
+        }
+        .quantity-btn:hover:not(:disabled) {
+            background: #e0e0e0;
+        }
+        .quantity-input {
+            width: 50px;
+            height: 36px;
+            border: none;
+            border-left: 1px solid #e0e0e0;
+            border-right: 1px solid #e0e0e0;
+            text-align: center;
+            font-size: 15px;
+            outline: none;
+        }
+        .spec-modal-confirm {
+            width: 100%;
+            padding: 14px 0;
+            border: none;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            color: white;
+        }
+        .spec-modal-confirm.cart-btn {
+            background: linear-gradient(135deg, #ffd54f, #ffb300);
+            color: #333;
+        }
+        .spec-modal-confirm.buy-btn {
+            background: linear-gradient(135deg, #ff5722, #ff8a65);
+        }
     </style>
 </head>
 <body>
@@ -789,6 +993,47 @@
         </div>
     </div>
 
+    <!-- 规格选择弹窗 -->
+    <div class="spec-modal-overlay" id="specModal">
+        <div class="spec-modal">
+            <button class="spec-modal-close" onclick="closeSpecModal()">
+                <i class="fas fa-times"></i>
+            </button>
+            <div class="spec-modal-header">
+                <div class="spec-modal-image" id="specModalImage" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                    <th:block th:if="${product.hasDisplayMedia() and product.firstImageUrl != null}">
+                        <img th:src="${product.firstImageUrl}" th:alt="${product.title}">
+                    </th:block>
+                    <th:block th:unless="${product.hasDisplayMedia() and product.firstImageUrl != null}">
+                        <i th:class="'fas ' + ${product.icon}"></i>
+                    </th:block>
+                </div>
+                <div class="spec-modal-price-info">
+                    <div class="spec-modal-price"><small>¥</small><span id="specModalPrice" th:text="${product.price}">0</span></div>
+                    <div class="spec-modal-stock">库存: <span id="specModalStock" th:text="${product.stock != null ? product.stock : 999}">999</span>件</div>
+                    <div class="spec-modal-selected" id="specModalSelected">请选择规格</div>
+                </div>
+            </div>
+            <div id="specGroupContainer">
+                <div class="spec-group">
+                    <div class="spec-group-title">规格</div>
+                    <div class="spec-options" id="specOptions">
+                        <!-- JS will populate spec options -->
+                    </div>
+                </div>
+            </div>
+            <div class="quantity-section">
+                <span class="quantity-label">数量</span>
+                <div class="quantity-control">
+                    <button class="quantity-btn" id="quantityMinus" onclick="changeQuantity(-1)">-</button>
+                    <input type="number" class="quantity-input" id="quantityInput" value="1" min="1" onchange="validateQuantity()">
+                    <button class="quantity-btn" id="quantityPlus" onclick="changeQuantity(1)">+</button>
+                </div>
+            </div>
+            <button class="spec-modal-confirm buy-btn" id="specModalConfirm" onclick="confirmSpecSelection()">确定</button>
+        </div>
+    </div>
+
     <!-- 底部操作栏 -->
     <div class="detail-footer">
         <div class="footer-icons">
@@ -806,8 +1051,8 @@
             </a>
         </div>
         <div class="footer-buttons">
-            <button class="add-cart-btn" onclick="alert('已加入购物车')">加入购物车</button>
-            <button class="buy-now-btn" onclick="alert('前往结算页面')">立即购买</button>
+            <button class="add-cart-btn" onclick="openSpecModal('cart')">加入购物车</button>
+            <button class="buy-now-btn" onclick="openSpecModal('buy')">立即购买</button>
         </div>
     </div>
 
@@ -940,6 +1185,155 @@
                 } else {
                     prevSlide();
                 }
+            }
+        }
+
+        // 规格选择弹窗功能
+        let specModalMode = 'buy'; // 'buy' or 'cart'
+        let selectedSpec = null;
+        let productSpecs = [];
+        const basePrice = parseFloat(document.getElementById('specModalPrice').textContent) || 0;
+        const maxStock = parseInt(document.getElementById('specModalStock').textContent) || 999;
+
+        // 初始化规格数据
+        (function initSpecs() {
+            try {
+                var specsJson = /*[[${product.specifications}]]*/ 'null';
+                if (specsJson && specsJson !== 'null' && specsJson !== '') {
+                    productSpecs = JSON.parse(specsJson);
+                }
+            } catch(e) {
+                productSpecs = [];
+            }
+            // 如果没有规格数据，使用默认规格
+            if (!productSpecs || productSpecs.length === 0) {
+                var defaultSpec = /*[[${product.spec}]]*/ '默认规格';
+                productSpecs = [{ name: defaultSpec || '默认规格' }];
+            }
+            renderSpecOptions();
+        })();
+
+        function renderSpecOptions() {
+            var container = document.getElementById('specOptions');
+            if (!container) return;
+            container.innerHTML = '';
+            productSpecs.forEach(function(spec, index) {
+                var btn = document.createElement('div');
+                btn.className = 'spec-option';
+                btn.setAttribute('data-index', index);
+                if (spec.image) {
+                    var img = document.createElement('img');
+                    img.src = spec.image;
+                    img.alt = spec.name;
+                    btn.appendChild(img);
+                }
+                var text = document.createTextNode(spec.name);
+                btn.appendChild(text);
+                if (spec.price) {
+                    var priceSpan = document.createElement('span');
+                    priceSpan.style.color = '#ff5722';
+                    priceSpan.style.fontSize = '12px';
+                    priceSpan.textContent = ' ¥' + spec.price;
+                    btn.appendChild(priceSpan);
+                }
+                btn.onclick = function() { selectSpec(index); };
+                container.appendChild(btn);
+            });
+        }
+
+        function selectSpec(index) {
+            selectedSpec = index;
+            var options = document.querySelectorAll('.spec-option');
+            options.forEach(function(opt, i) {
+                opt.classList.toggle('selected', i === index);
+            });
+            var spec = productSpecs[index];
+            var selectedEl = document.getElementById('specModalSelected');
+            if (selectedEl) {
+                selectedEl.textContent = '已选: ' + spec.name;
+            }
+            // 更新价格
+            var priceEl = document.getElementById('specModalPrice');
+            if (priceEl && spec.price) {
+                priceEl.textContent = spec.price;
+            } else if (priceEl) {
+                priceEl.textContent = basePrice;
+            }
+        }
+
+        function openSpecModal(mode) {
+            specModalMode = mode;
+            var modal = document.getElementById('specModal');
+            var confirmBtn = document.getElementById('specModalConfirm');
+            if (mode === 'cart') {
+                confirmBtn.textContent = '加入购物车';
+                confirmBtn.className = 'spec-modal-confirm cart-btn';
+            } else {
+                confirmBtn.textContent = '立即购买';
+                confirmBtn.className = 'spec-modal-confirm buy-btn';
+            }
+            modal.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function closeSpecModal() {
+            var modal = document.getElementById('specModal');
+            modal.classList.remove('active');
+            document.body.style.overflow = '';
+        }
+
+        // 点击遮罩关闭
+        document.getElementById('specModal').addEventListener('click', function(e) {
+            if (e.target === this) {
+                closeSpecModal();
+            }
+        });
+
+        function changeQuantity(delta) {
+            var input = document.getElementById('quantityInput');
+            var val = parseInt(input.value) || 1;
+            val += delta;
+            if (val < 1) val = 1;
+            if (val > maxStock) val = maxStock;
+            input.value = val;
+            updateQuantityButtons();
+        }
+
+        function validateQuantity() {
+            var input = document.getElementById('quantityInput');
+            var val = parseInt(input.value) || 1;
+            if (val < 1) val = 1;
+            if (val > maxStock) val = maxStock;
+            input.value = val;
+            updateQuantityButtons();
+        }
+
+        function updateQuantityButtons() {
+            var val = parseInt(document.getElementById('quantityInput').value) || 1;
+            document.getElementById('quantityMinus').disabled = val <= 1;
+            document.getElementById('quantityPlus').disabled = val >= maxStock;
+        }
+
+        function confirmSpecSelection() {
+            if (selectedSpec === null && productSpecs.length > 1) {
+                alert('请先选择商品规格');
+                return;
+            }
+            // 自动选择第一个规格（如果只有一个）
+            if (selectedSpec === null && productSpecs.length === 1) {
+                selectSpec(0);
+            }
+            var spec = productSpecs[selectedSpec];
+            var quantity = parseInt(document.getElementById('quantityInput').value) || 1;
+            var specName = spec ? spec.name : '默认规格';
+            var price = spec && spec.price ? spec.price : basePrice;
+
+            closeSpecModal();
+
+            if (specModalMode === 'cart') {
+                alert('已加入购物车: ' + specName + ' x' + quantity);
+            } else {
+                alert('前往结算: ' + specName + ' x' + quantity + '，合计: ¥' + (price * quantity).toFixed(2));
             }
         }
     </script>
