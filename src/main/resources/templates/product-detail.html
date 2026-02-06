@@ -887,7 +887,6 @@
                     <span class="stock-tag"
                           th:classappend="${!product.inStock} ? ' out-of-stock' : (${product.lowStock} ? ' low-stock' : '')"
                           th:text="${product.stockStatus}">有货</span>
-                    <span th:if="${product.stock != null}" th:text="'库存 ' + ${product.stock} + ' 件'">库存 0 件</span>
                 </div>
                 <h1 class="product-title-detail" th:text="${product.title}">商品名称</h1>
                 <div class="tag-list">
@@ -1233,7 +1232,6 @@
         let productSpecs = [];
         const basePrice = parseFloat(document.getElementById('specModalPrice').textContent) || 0;
         const maxStock = parseInt(document.getElementById('specModalStock').textContent) || 999;
-        const isOutOfStock = maxStock <= 0;
 
         // 初始化规格数据
         (function initSpecs() {
@@ -1302,7 +1300,8 @@
         }
 
         function openSpecModal(mode) {
-            if (isOutOfStock) {
+            var currentStock = parseInt(document.getElementById('specModalStock').textContent) || 0;
+            if (currentStock <= 0) {
                 alert('该商品已售罄');
                 return;
             }
