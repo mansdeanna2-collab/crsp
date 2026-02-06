@@ -500,7 +500,6 @@
                             <th:block th:if="${media.type == 'video'}">
                                 <div class="video-wrapper">
                                     <video th:src="${media.url}" playsinline preload="metadata" 
-                                           webkit-playsinline="true"
                                            th:attr="poster=${media.poster != null ? media.poster : ''}"
                                            onerror="this.style.display='none'; this.closest('.video-wrapper').nextElementSibling.style.display='flex';">
                                         <p>您的浏览器不支持视频播放</p>
@@ -610,7 +609,6 @@
                         </th:block>
                         <th:block th:if="${media.type == 'video'}">
                             <video th:src="${media.url}" controls playsinline preload="metadata"
-                                   webkit-playsinline="true"
                                    style="background: #000;"
                                    onerror="this.style.display='none';">
                                 您的浏览器不支持视频播放
