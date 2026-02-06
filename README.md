@@ -52,8 +52,9 @@
 ### 环境要求
 - Java 17 或更高版本
 - Maven 3.6+
+- Docker (可选，用于容器化部署)
 
-### 启动应用
+### 方式一：直接启动
 ```bash
 # 使用Maven启动
 mvn spring-boot:run
@@ -64,6 +65,51 @@ java -jar target/mall-1.0.0.jar
 ```
 
 然后访问 `http://localhost:8080`
+
+### 方式二：Docker部署 (推荐)
+
+使用自动部署脚本，一键检测依赖并打包到Docker环境运行：
+
+```bash
+# 运行自动部署脚本 (默认端口1000)
+python3 docker_deploy.py
+
+# 指定自定义端口
+python3 docker_deploy.py -p 3000
+
+# 查看帮助
+python3 docker_deploy.py --help
+```
+
+或使用 Docker Compose：
+
+```bash
+# 构建并启动
+docker-compose up -d
+
+# 查看日志
+docker-compose logs -f
+
+# 停止服务
+docker-compose down
+```
+
+然后访问 `http://localhost:1000`
+
+#### Docker管理命令
+```bash
+# 查看容器日志
+docker logs crsp-mall-container
+
+# 停止容器
+docker stop crsp-mall-container
+
+# 启动容器
+docker start crsp-mall-container
+
+# 删除容器
+docker rm crsp-mall-container
+```
 
 ### API接口
 - `GET /api/products` - 获取所有商品
