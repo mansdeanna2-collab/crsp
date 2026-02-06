@@ -105,6 +105,11 @@ public class PageController {
      */
     @GetMapping("/cart")
     public String cart(Model model) {
+        // 添加推荐商品
+        List<ProductEntity> recommendProducts = productDbService.getActiveProducts().stream()
+                .limit(4)
+                .toList();
+        model.addAttribute("recommendProducts", recommendProducts);
         return "cart";
     }
 

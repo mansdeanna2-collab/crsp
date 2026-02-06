@@ -341,6 +341,104 @@
             margin-top: 10px;
             padding: 15px;
         }
+
+        /* 用户评价 */
+        .review-section {
+            background: white;
+            margin-top: 10px;
+            padding: 15px;
+        }
+        .review-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+        }
+        .review-summary {
+            font-size: 13px;
+            color: #999;
+        }
+        .review-summary em {
+            color: #ff5722;
+            font-style: normal;
+            font-weight: bold;
+        }
+        .review-tags {
+            display: flex;
+            gap: 8px;
+            margin-bottom: 15px;
+            overflow-x: auto;
+        }
+        .review-tag {
+            white-space: nowrap;
+            padding: 4px 12px;
+            border-radius: 15px;
+            font-size: 12px;
+            background: #f5f5f5;
+            color: #666;
+            cursor: pointer;
+        }
+        .review-tag.active {
+            background: #fff3e0;
+            color: #ff5722;
+        }
+        .review-list {
+            border-top: 1px solid #f5f5f5;
+        }
+        .review-item {
+            padding: 15px 0;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .review-user {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+            margin-bottom: 10px;
+        }
+        .review-avatar {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: #ccc;
+            font-size: 14px;
+        }
+        .review-user-info {
+            flex: 1;
+        }
+        .review-name {
+            font-size: 13px;
+            color: #333;
+        }
+        .review-stars {
+            color: #ff9800;
+            font-size: 10px;
+            margin-top: 2px;
+        }
+        .review-date {
+            font-size: 12px;
+            color: #ccc;
+        }
+        .review-text {
+            font-size: 14px;
+            color: #333;
+            line-height: 1.6;
+            margin-bottom: 8px;
+        }
+        .review-spec {
+            font-size: 12px;
+            color: #999;
+        }
+        .review-more {
+            text-align: center;
+            padding: 12px 0 0;
+            font-size: 13px;
+            color: #999;
+            cursor: pointer;
+        }
         .spec-row {
             display: flex;
             align-items: center;
@@ -547,7 +645,8 @@
                 <div class="price-section">
                     <span class="current-price"><small>¥</small><span th:text="${product.price}">0</span></span>
                     <span class="original-price-detail" th:text="'¥' + ${product.originalPrice}">¥0</span>
-                    <span class="discount-tag">5折</span>
+                    <span class="discount-tag" th:if="${product.originalPrice > 0}" 
+                          th:text="${T(java.lang.Math).round(product.price * 10.0 / product.originalPrice)} + '折'">5折</span>
                 </div>
                 <div class="sales-info" th:text="${product.sales}">已售 0件</div>
                 <h1 class="product-title-detail" th:text="${product.title}">商品名称</h1>
@@ -596,6 +695,51 @@
             <div class="desc-section">
                 <div class="desc-title">商品描述</div>
                 <div class="desc-content" th:text="${product.description}">商品描述内容</div>
+            </div>
+
+            <!-- 用户评价 -->
+            <div class="review-section">
+                <div class="review-header">
+                    <span class="desc-title">用户评价</span>
+                    <span class="review-summary">好评率 <em>98%</em></span>
+                </div>
+                <div class="review-tags">
+                    <span class="review-tag active">全部(128)</span>
+                    <span class="review-tag">好评(125)</span>
+                    <span class="review-tag">有图(32)</span>
+                    <span class="review-tag">追评(8)</span>
+                </div>
+                <div class="review-list">
+                    <div class="review-item">
+                        <div class="review-user">
+                            <div class="review-avatar"><i class="fas fa-user"></i></div>
+                            <div class="review-user-info">
+                                <span class="review-name">用***户</span>
+                                <div class="review-stars">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
+                                </div>
+                            </div>
+                            <span class="review-date">2024-01-15</span>
+                        </div>
+                        <div class="review-text">质量很好，包装很严密，隐私保护到位，很满意的一次购物体验！</div>
+                        <div class="review-spec">规格：默认规格</div>
+                    </div>
+                    <div class="review-item">
+                        <div class="review-user">
+                            <div class="review-avatar"><i class="fas fa-user"></i></div>
+                            <div class="review-user-info">
+                                <span class="review-name">匿***名</span>
+                                <div class="review-stars">
+                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
+                                </div>
+                            </div>
+                            <span class="review-date">2024-01-10</span>
+                        </div>
+                        <div class="review-text">物流很快，第二天就到了，商品和描述一致，好评！</div>
+                        <div class="review-spec">规格：默认规格</div>
+                    </div>
+                </div>
+                <div class="review-more">查看全部128条评价 <i class="fas fa-chevron-right"></i></div>
             </div>
 
             <!-- 商品详情图片/视频 -->
