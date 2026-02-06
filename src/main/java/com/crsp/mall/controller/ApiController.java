@@ -3,9 +3,12 @@ package com.crsp.mall.controller;
 import com.crsp.mall.entity.ProductEntity;
 import com.crsp.mall.service.ProductDbService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
+import java.util.Map;
 
 /**
  * REST API控制器
@@ -29,8 +32,11 @@ public class ApiController {
      * 获取单个商品详情
      */
     @GetMapping("/products/{id}")
-    public ProductEntity getProduct(@PathVariable Long id) {
-        return productDbService.getProductById(id).orElse(null);
+    public ResponseEntity<?> getProduct(@PathVariable Long id) {
+        return productDbService.getProductById(id)
+                .<ResponseEntity<?>>map(ResponseEntity::ok)
+                .orElseGet(() -> ResponseEntity.status(HttpStatus.NOT_FOUND)
+                        .body(Map.of("error", "商品不存在")));
     }
 
     /**
