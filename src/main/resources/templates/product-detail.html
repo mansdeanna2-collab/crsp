@@ -604,6 +604,24 @@
             color: white;
             cursor: not-allowed;
         }
+        .toast-message {
+            position: fixed;
+            left: 50%;
+            bottom: 90px;
+            transform: translateX(-50%);
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 8px 16px;
+            border-radius: 20px;
+            font-size: 12px;
+            opacity: 0;
+            pointer-events: none;
+            transition: opacity 0.3s ease;
+            z-index: 200;
+        }
+        .toast-message.show {
+            opacity: 1;
+        }
 
         /* 规格选择弹窗 */
         .spec-modal-overlay {
@@ -1029,7 +1047,7 @@
     </div>
 
     <!-- 规格选择弹窗 -->
-    <div class="spec-modal-overlay" id="specModal">
+    <div class="spec-modal-overlay" id="specModal" th:attr="data-stock=${product.stock != null ? product.stock : 999}">
         <div class="spec-modal">
             <button class="spec-modal-close" onclick="closeSpecModal()">
                 <i class="fas fa-times"></i>
@@ -1092,6 +1110,8 @@
                     th:disabled="${!product.inStock}">立即购买</button>
         </div>
     </div>
+
+    <div class="toast-message" id="toastMessage">提示</div>
 
     <script>
         // 轮播图功能
@@ -1230,8 +1250,13 @@
         let specModalMode = 'buy'; // 'buy' or 'cart'
         let selectedSpec = null;
         let productSpecs = [];
-        const basePrice = parseFloat(document.getElementById('specModalPrice').textContent) || 0;
-        const maxStock = parseInt(document.getElementById('specModalStock').textContent) || 999;
+        const DEFAULT_MAX_STOCK = 999;
+        const specModal = document.getElementById('specModal');
+        const specModalPriceEl = document.getElementById('specModalPrice');
+        const specModalStockEl = document.getElementById('specModalStock');
+        const basePrice = parseFloat(specModalPriceEl ? specModalPriceEl.textContent : 0) || 0;
+        const maxStock = parseInt(specModalStockEl ? specModalStockEl.textContent : 0) || DEFAULT_MAX_STOCK;
+        let toastTimer;
 
         // 初始化规格数据
         (function initSpecs() {
@@ -1300,29 +1325,44 @@
         }
 
         function openSpecModal(mode) {
-            var currentStock = parseInt(document.getElementById('specModalStock').textContent) || 0;
+            var stockEl = specModalStockEl;
+            var fallbackStock = specModal ? (parseInt(specModal.dataset.stock) || 0) : 0;
+            if (!stockEl) {
+                console.warn('specModalStock element not found; check the product-detail modal markup for #specModalStock.');
+            }
+            var currentStock = fallbackStock;
+            if (stockEl) {
+                var parsedStock = parseInt(stockEl.textContent);
+                if (!Number.isNaN(parsedStock)) {
+                    currentStock = parsedStock;
+                }
+            }
             if (currentStock <= 0) {
-                alert('该商品已售罄');
+                showToast('该商品已售完');
                 return;
             }
             specModalMode = mode;
-            var modal = document.getElementById('specModal');
             var confirmBtn = document.getElementById('specModalConfirm');
-            if (mode === 'cart') {
-                confirmBtn.textContent = '加入购物车';
-                confirmBtn.className = 'spec-modal-confirm cart-btn';
-            } else {
-                confirmBtn.textContent = '立即购买';
-                confirmBtn.className = 'spec-modal-confirm buy-btn';
+            if (confirmBtn) {
+                if (mode === 'cart') {
+                    confirmBtn.textContent = '加入购物车';
+                    confirmBtn.className = 'spec-modal-confirm cart-btn';
+                } else {
+                    confirmBtn.textContent = '立即购买';
+                    confirmBtn.className = 'spec-modal-confirm buy-btn';
+                }
             }
-            modal.classList.add('active');
-            document.body.style.overflow = 'hidden';
+            if (specModal) {
+                specModal.classList.add('active');
+                document.body.style.overflow = 'hidden';
+            }
         }
 
         function closeSpecModal() {
-            var modal = document.getElementById('specModal');
-            modal.classList.remove('active');
-            document.body.style.overflow = '';
+            if (specModal) {
+                specModal.classList.remove('active');
+                document.body.style.overflow = '';
+            }
         }
 
         // 点击遮罩关闭
@@ -1355,6 +1395,17 @@
             var val = parseInt(document.getElementById('quantityInput').value) || 1;
             document.getElementById('quantityMinus').disabled = val <= 1;
             document.getElementById('quantityPlus').disabled = val >= maxStock;
+        }
+
+        function showToast(message) {
+            var toast = document.getElementById('toastMessage');
+            if (!toast) return;
+            toast.textContent = message;
+            toast.classList.add('show');
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(function() {
+                toast.classList.remove('show');
+            }, 2000);
         }
 
         function confirmSpecSelection() {

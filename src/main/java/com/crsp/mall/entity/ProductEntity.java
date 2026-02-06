@@ -109,6 +109,9 @@ public class ProductEntity {
     public Integer getStock() { return stock; }
     public void setStock(Integer stock) { this.stock = stock; }
 
+    /**
+     * Stock is treated as available when value is null (unlimited/unspecified).
+     */
     public boolean isInStock() {
         return stock == null || stock > 0;
     }
@@ -119,7 +122,7 @@ public class ProductEntity {
 
     public String getStockStatus() {
         if (!isInStock()) {
-            return "已售罄";
+            return "已售完";
         }
         if (isLowStock()) {
             return "库存紧张";

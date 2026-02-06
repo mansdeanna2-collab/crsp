@@ -23,6 +23,6 @@ class ProductEntityTest {
         product.setStock(0);
         assertThat(product.isInStock()).isFalse();
         assertThat(product.isLowStock()).isFalse();
-        assertThat(product.getStockStatus()).isEqualTo("已售罄");
+        assertThat(product.getStockStatus()).isEqualTo("已售完");
     }
 }
