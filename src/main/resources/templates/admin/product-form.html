@@ -1,0 +1,286 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.id != null} ? '编辑商品' : '添加商品'">商品表单 - 成人玩具商城后台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1a1f36 0%, #252b48 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-header i { font-size: 28px; color: #667eea; }
+        .sidebar-header h2 { font-size: 18px; font-weight: 600; }
+        .sidebar-header span { font-size: 12px; color: #9aa0ac; display: block; }
+        .sidebar-menu { padding: 15px 0; }
+        .menu-title {
+            padding: 10px 20px;
+            font-size: 11px;
+            color: #6c7293;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #9aa0ac;
+            text-decoration: none;
+            gap: 12px;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .menu-item:hover { background: rgba(102, 126, 234, 0.1); color: white; }
+        .menu-item.active { background: rgba(102, 126, 234, 0.15); color: white; border-left-color: #667eea; }
+        .menu-item i { width: 20px; font-size: 16px; }
+        .main-content { flex: 1; margin-left: 250px; }
+        .top-header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .page-title { font-size: 20px; font-weight: 600; color: #333; }
+        .content-area { padding: 30px; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            max-width: 800px;
+        }
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .card-title { font-size: 16px; font-weight: 600; color: #333; }
+        .card-body { padding: 30px; }
+        .form-group { margin-bottom: 25px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group textarea,
+        .form-group select {
+            width: 100%;
+            padding: 12px 15px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus,
+        .form-group textarea:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-group textarea { resize: vertical; min-height: 100px; }
+        .form-row {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 20px;
+        }
+        .form-hint {
+            font-size: 12px;
+            color: #999;
+            margin-top: 5px;
+        }
+        .btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            text-decoration: none;
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
+        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3); }
+        .btn-secondary { background: #f5f5f5; color: #666; }
+        .btn-secondary:hover { background: #eee; }
+        .form-actions {
+            display: flex;
+            gap: 15px;
+            margin-top: 30px;
+            padding-top: 20px;
+            border-top: 1px solid #eee;
+        }
+        .checkbox-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .checkbox-group input[type="checkbox"] {
+            width: auto;
+            margin: 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 左侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-store"></i>
+                <div>
+                    <h2>后台管理</h2>
+                    <span>成人玩具商城</span>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-title">主菜单</div>
+                <a th:href="@{/admin}" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表盘</span>
+                </a>
+                <a th:href="@{/admin/products}" class="menu-item active">
+                    <i class="fas fa-box"></i>
+                    <span>商品管理</span>
+                </a>
+                <a th:href="@{/admin/orders}" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>订单管理</span>
+                </a>
+                <div class="menu-title">系统</div>
+                <a th:href="@{/}" class="menu-item" target="_blank">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>查看商城</span>
+                </a>
+                <a th:href="@{/admin/logout}" class="menu-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>退出登录</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="top-header">
+                <h1 class="page-title" th:text="${product.id != null} ? '编辑商品' : '添加商品'">商品表单</h1>
+            </div>
+
+            <div class="content-area">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title">商品信息</h3>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/products/save}" method="post" th:object="${product}">
+                            <input type="hidden" th:field="*{id}">
+                            
+                            <div class="form-group">
+                                <label for="title">商品名称 *</label>
+                                <input type="text" id="title" th:field="*{title}" required placeholder="请输入商品名称">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="price">销售价格 *</label>
+                                    <input type="number" id="price" th:field="*{price}" step="0.01" required placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="originalPrice">原价</label>
+                                    <input type="number" id="originalPrice" th:field="*{originalPrice}" step="0.01" placeholder="0.00">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="stock">库存数量</label>
+                                    <input type="number" id="stock" th:field="*{stock}" placeholder="0">
+                                </div>
+                                <div class="form-group">
+                                    <label for="sales">销量显示</label>
+                                    <input type="text" id="sales" th:field="*{sales}" placeholder="已售 0件">
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="icon">图标类名</label>
+                                    <input type="text" id="icon" th:field="*{icon}" placeholder="fa-box">
+                                    <p class="form-hint">Font Awesome图标类名，如：fa-box, fa-gift, fa-shirt</p>
+                                </div>
+                                <div class="form-group">
+                                    <label for="bgColor">背景颜色</label>
+                                    <input type="text" id="bgColor" th:field="*{bgColor}" placeholder="#ffecd2, #fcb69f">
+                                    <p class="form-hint">渐变色格式，如：#ffecd2, #fcb69f</p>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tag">商品标签</label>
+                                    <select id="tag" th:field="*{tag}">
+                                        <option value="">请选择</option>
+                                        <option value="新品">新品</option>
+                                        <option value="热卖">热卖</option>
+                                        <option value="特价">特价</option>
+                                        <option value="爆款">爆款</option>
+                                        <option value="推荐">推荐</option>
+                                        <option value="精品">精品</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="spec">商品规格</label>
+                                    <input type="text" id="spec" th:field="*{spec}" placeholder="默认规格">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">商品描述</label>
+                                <textarea id="description" th:field="*{description}" rows="4" placeholder="请输入商品描述"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="active" th:field="*{active}">
+                                    <label for="active" style="margin-bottom: 0;">上架销售</label>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> 保存商品
+                                </button>
+                                <a th:href="@{/admin/products}" class="btn btn-secondary">
+                                    <i class="fas fa-times"></i> 取消
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

@@ -1,7 +1,7 @@
 package com.crsp.mall.controller;
 
-import com.crsp.mall.model.Product;
-import com.crsp.mall.service.ProductService;
+import com.crsp.mall.entity.ProductEntity;
+import com.crsp.mall.service.ProductDbService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -15,29 +15,29 @@ import java.util.List;
 public class ApiController {
 
     @Autowired
-    private ProductService productService;
+    private ProductDbService productDbService;
 
     /**
      * 获取所有商品
      */
     @GetMapping("/products")
-    public List<Product> getAllProducts() {
-        return productService.getAllProducts();
+    public List<ProductEntity> getAllProducts() {
+        return productDbService.getActiveProducts();
     }
 
     /**
      * 获取单个商品详情
      */
     @GetMapping("/products/{id}")
-    public Product getProduct(@PathVariable Long id) {
-        return productService.getProductById(id);
+    public ProductEntity getProduct(@PathVariable Long id) {
+        return productDbService.getProductById(id).orElse(null);
     }
 
     /**
      * 搜索商品
      */
     @GetMapping("/products/search")
-    public List<Product> searchProducts(@RequestParam(required = false) String keyword) {
-        return productService.searchProducts(keyword);
+    public List<ProductEntity> searchProducts(@RequestParam(required = false) String keyword) {
+        return productDbService.searchProducts(keyword);
     }
 }

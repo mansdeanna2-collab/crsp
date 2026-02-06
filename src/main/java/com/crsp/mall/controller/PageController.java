@@ -1,7 +1,7 @@
 package com.crsp.mall.controller;
 
-import com.crsp.mall.model.Product;
-import com.crsp.mall.service.ProductService;
+import com.crsp.mall.entity.ProductEntity;
+import com.crsp.mall.service.ProductDbService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -10,6 +10,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
 
 import java.util.List;
+import java.util.Optional;
 
 /**
  * 页面控制器
@@ -18,14 +19,14 @@ import java.util.List;
 public class PageController {
 
     @Autowired
-    private ProductService productService;
+    private ProductDbService productDbService;
 
     /**
      * 首页
      */
     @GetMapping("/")
     public String home(Model model) {
-        List<Product> products = productService.getAllProducts();
+        List<ProductEntity> products = productDbService.getActiveProducts();
         model.addAttribute("products", products);
         return "index";
     }
@@ -35,12 +36,7 @@ public class PageController {
      */
     @GetMapping("/search")
     public String search(@RequestParam(required = false) String keyword, Model model) {
-        List<Product> results;
-        if (keyword != null && !keyword.trim().isEmpty()) {
-            results = productService.searchProducts(keyword);
-        } else {
-            results = productService.getAllProducts();
-        }
+        List<ProductEntity> results = productDbService.searchProducts(keyword);
         model.addAttribute("keyword", keyword);
         model.addAttribute("products", results);
         return "search";
@@ -51,13 +47,14 @@ public class PageController {
      */
     @GetMapping("/product/{id}")
     public String productDetail(@PathVariable Long id, Model model) {
-        Product product = productService.getProductById(id);
-        if (product == null) {
+        Optional<ProductEntity> productOpt = productDbService.getProductById(id);
+        if (productOpt.isEmpty()) {
             return "redirect:/";
         }
+        ProductEntity product = productOpt.get();
         model.addAttribute("product", product);
         // 获取相关推荐商品
-        List<Product> relatedProducts = productService.getAllProducts().stream()
+        List<ProductEntity> relatedProducts = productDbService.getActiveProducts().stream()
                 .filter(p -> !p.getId().equals(id))
                 .limit(4)
                 .toList();
