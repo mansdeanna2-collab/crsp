@@ -285,6 +285,7 @@ docker-compose.yml
         print(f"   镜像: {self.image_name}")
         print(f"   容器名: {self.container_name}")
         print(f"   端口映射: {self.frontend_port} -> {self.app_port}")
+        print(f"   数据卷: mall-data:/data (数据库持久化)")
         
         try:
             result = subprocess.run(
@@ -293,6 +294,7 @@ docker-compose.yml
                     "-d",  # 后台运行
                     "--name", self.container_name,
                     "-p", f"{self.frontend_port}:{self.app_port}",
+                    "-v", "mall-data:/data",  # 挂载数据卷以持久化数据库
                     "--restart", "unless-stopped",  # 自动重启
                     self.image_name
                 ],

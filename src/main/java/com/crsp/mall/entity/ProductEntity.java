@@ -119,4 +119,38 @@ public class ProductEntity {
     
     public String getSpecifications() { return specifications; }
     public void setSpecifications(String specifications) { this.specifications = specifications; }
+    
+    /**
+     * 获取第一个展示图片的URL（用于商品列表显示）
+     * @return 图片URL，如果没有则返回null
+     */
+    public String getFirstImageUrl() {
+        if (displayMedia == null || displayMedia.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            // 简单解析JSON数组获取第一个图片
+            com.fasterxml.jackson.databind.ObjectMapper mapper = new com.fasterxml.jackson.databind.ObjectMapper();
+            java.util.List<java.util.Map<String, String>> mediaList = mapper.readValue(
+                displayMedia, 
+                new com.fasterxml.jackson.core.type.TypeReference<java.util.List<java.util.Map<String, String>>>() {}
+            );
+            for (java.util.Map<String, String> media : mediaList) {
+                if ("image".equals(media.get("type")) && media.get("url") != null) {
+                    return media.get("url");
+                }
+            }
+        } catch (Exception e) {
+            // JSON解析失败，返回null
+        }
+        return null;
+    }
+    
+    /**
+     * 检查是否有展示媒体
+     * @return true如果有展示媒体
+     */
+    public boolean hasDisplayMedia() {
+        return getFirstImageUrl() != null;
+    }
 }

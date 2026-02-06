@@ -8,8 +8,12 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.RequestParam;
+import com.fasterxml.jackson.core.type.TypeReference;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -20,6 +24,8 @@ public class PageController {
 
     @Autowired
     private ProductDbService productDbService;
+    
+    private final ObjectMapper objectMapper = new ObjectMapper();
 
     /**
      * 首页
@@ -53,6 +59,15 @@ public class PageController {
         }
         ProductEntity product = productOpt.get();
         model.addAttribute("product", product);
+        
+        // 解析展示媒体JSON
+        List<Map<String, String>> displayMediaList = parseMediaJson(product.getDisplayMedia());
+        model.addAttribute("displayMediaList", displayMediaList);
+        
+        // 解析详情媒体JSON
+        List<Map<String, String>> detailMediaList = parseMediaJson(product.getDetailMedia());
+        model.addAttribute("detailMediaList", detailMediaList);
+        
         // 获取相关推荐商品
         List<ProductEntity> relatedProducts = productDbService.getActiveProducts().stream()
                 .filter(p -> !p.getId().equals(id))
@@ -60,6 +75,21 @@ public class PageController {
                 .toList();
         model.addAttribute("relatedProducts", relatedProducts);
         return "product-detail";
+    }
+    
+    /**
+     * 解析媒体JSON字符串为List
+     */
+    private List<Map<String, String>> parseMediaJson(String json) {
+        if (json == null || json.trim().isEmpty()) {
+            return new ArrayList<>();
+        }
+        try {
+            return objectMapper.readValue(json, new TypeReference<List<Map<String, String>>>() {});
+        } catch (Exception e) {
+            // JSON解析失败，返回空列表
+            return new ArrayList<>();
+        }
     }
 
     /**
