@@ -1,15 +1,31 @@
-# 淘宝商城模板 (Taobao-style Shop Template)
+# 成人玩具商城 (Adult Toy Mall)
 
-一个仿淘宝风格的移动端商城页面模板，包含四个主要页面：首页、消息、购物车、我的。
+一个基于Java Spring Boot的移动端成人玩具商城应用，采用淘宝风格设计，包含独立的搜索页面和商品详情页面。
 
 ## 📱 页面预览
 
 ### 首页 (Home)
-- 顶部搜索栏（支持定位、搜索、扫码）
-- 分类导航（10个商品分类）
+- 顶部搜索栏（跳转到独立搜索页面）
 - 轮播广告位
 - 活动入口（限时秒杀、天天特价等）
-- 商品推荐列表（瀑布流布局）
+- 成人玩具商品推荐列表（瀑布流布局）
+- **注：已移除8个分类导航（家居、美食、美妆、母婴、运动、家电、汽车、更多）**
+
+### 搜索页面 (Search) - 独立页面
+- 独立的搜索页面
+- 搜索结果网格展示
+- 支持关键词搜索
+- 点击商品进入详情页
+
+### 商品详情页面 (Product Detail) - 独立页面（参考淘宝风格）
+- 商品大图展示
+- 价格、折扣、销量信息
+- 商品标签（正品保证、隐私发货等）
+- 店铺信息
+- 规格选择
+- 商品描述
+- 相关推荐
+- 底部操作栏（加入购物车、立即购买）
 
 ### 消息 (Messages)
 - 消息分类Tab切换
@@ -28,45 +44,72 @@
 ### 我的 (Profile)
 - 用户信息头部（头像、昵称、会员标识）
 - 订单入口（待付款、待发货、待收货等）
-- 我的资产（红包卡券、淘金币、余额、积分）
+- 我的资产（红包卡券、积分、余额、优惠券）
 - 功能菜单列表
 
 ## 🚀 快速开始
 
-### 直接打开
-在浏览器中直接打开 `index.html` 文件即可预览。
+### 环境要求
+- Java 17 或更高版本
+- Maven 3.6+
 
-### 本地服务器
+### 启动应用
 ```bash
-# 使用Python启动简单服务器
-python -m http.server 8080
+# 使用Maven启动
+mvn spring-boot:run
 
-# 或使用Node.js的http-server
-npx http-server -p 8080
+# 或先打包再运行
+mvn clean package
+java -jar target/mall-1.0.0.jar
 ```
 
 然后访问 `http://localhost:8080`
+
+### API接口
+- `GET /api/products` - 获取所有商品
+- `GET /api/products/{id}` - 获取单个商品详情
+- `GET /api/products/search?keyword=xxx` - 搜索商品
 
 ## 📁 项目结构
 
 ```
 crsp/
-├── index.html          # 主页面
-├── css/
-│   └── style.css       # 样式文件
-├── js/
-│   └── app.js          # 交互逻辑
-└── README.md           # 说明文档
+├── pom.xml                              # Maven配置文件
+├── src/main/java/com/crsp/mall/
+│   ├── MallApplication.java             # Spring Boot主入口
+│   ├── controller/
+│   │   ├── PageController.java          # 页面控制器
+│   │   └── ApiController.java           # REST API控制器
+│   ├── model/
+│   │   └── Product.java                 # 商品模型
+│   └── service/
+│       └── ProductService.java          # 商品服务
+├── src/main/resources/
+│   ├── application.properties           # 应用配置
+│   ├── templates/                        # Thymeleaf模板
+│   │   ├── index.html                   # 首页
+│   │   ├── search.html                  # 搜索页面（独立）
+│   │   ├── product-detail.html          # 商品详情页（独立）
+│   │   ├── message.html                 # 消息页面
+│   │   ├── cart.html                    # 购物车页面
+│   │   └── profile.html                 # 个人中心
+│   └── static/
+│       ├── css/style.css                # 样式文件
+│       └── js/app.js                    # 交互逻辑
+├── css/                                 # 原始CSS（保留兼容）
+├── js/                                  # 原始JS（保留兼容）
+└── README.md                            # 说明文档
 ```
 
 ## 🎨 技术特点
 
-- **纯前端实现**：HTML5 + CSS3 + JavaScript
+- **后端框架**：Java Spring Boot 3.2
+- **模板引擎**：Thymeleaf
+- **前端技术**：HTML5 + CSS3 + JavaScript
 - **响应式设计**：适配移动端和桌面端
-- **无框架依赖**：原生JavaScript，无需构建工具
 - **Font Awesome图标**：使用CDN加载图标库
 - **渐变配色**：采用现代渐变色彩设计
-- **交互动效**：按钮点击、页面切换等动画效果
+- **RESTful API**：提供商品数据接口
 
 ## 📐 设计规范
 
@@ -78,13 +121,13 @@ crsp/
 ## 🔧 自定义
 
 ### 修改主题色
-在 `css/style.css` 中搜索 `#ff5722` 或 `#ff6b35` 替换为你想要的颜色。
+在 `src/main/resources/static/css/style.css` 中搜索 `#ff5722` 或 `#ff6b35` 替换为你想要的颜色。
 
 ### 添加商品
-在 `index.html` 中的 `.product-grid` 区域添加新的商品卡片。
+在 `ProductService.java` 的 `initProducts()` 方法中添加新的商品数据。
 
-### 修改分类
-在 `index.html` 中的 `.category-nav` 区域修改分类图标和名称。
+### 修改商品标签
+商品标签显示为"成人玩具"，可在 `index.html` 模板的 `.section-title` 中修改。
 
 ## 📝 License
 

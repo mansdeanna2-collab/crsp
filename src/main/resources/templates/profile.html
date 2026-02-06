@@ -1,0 +1,170 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的 - 成人玩具商城</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="app-container">
+        <div id="page-profile" class="page active">
+            <!-- 用户信息头部 -->
+            <div class="profile-header">
+                <div class="profile-bg"></div>
+                <div class="profile-info">
+                    <div class="avatar">
+                        <i class="fas fa-user"></i>
+                    </div>
+                    <div class="user-details">
+                        <h2>用户昵称</h2>
+                        <div class="user-id">用户ID: user_123456</div>
+                        <div class="member-tag">
+                            <i class="fas fa-crown"></i>
+                            <span>VIP会员</span>
+                        </div>
+                    </div>
+                    <div class="profile-actions">
+                        <i class="fas fa-cog"></i>
+                        <i class="fas fa-qrcode"></i>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 订单入口 -->
+            <div class="order-section">
+                <div class="section-header">
+                    <span>我的订单</span>
+                    <span class="view-all">查看全部 <i class="fas fa-chevron-right"></i></span>
+                </div>
+                <div class="order-tabs">
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-wallet"></i>
+                            <span class="tab-badge">2</span>
+                        </div>
+                        <span>待付款</span>
+                    </div>
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-box"></i>
+                            <span class="tab-badge">1</span>
+                        </div>
+                        <span>待发货</span>
+                    </div>
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-truck"></i>
+                            <span class="tab-badge">3</span>
+                        </div>
+                        <span>待收货</span>
+                    </div>
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-comment-dots"></i>
+                        </div>
+                        <span>待评价</span>
+                    </div>
+                    <div class="order-tab">
+                        <div class="order-icon">
+                            <i class="fas fa-undo"></i>
+                        </div>
+                        <span>退换/售后</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- 我的资产 -->
+            <div class="assets-section">
+                <div class="assets-item">
+                    <span class="assets-value">128.00</span>
+                    <span class="assets-label">红包卡券</span>
+                </div>
+                <div class="assets-item">
+                    <span class="assets-value">2,580</span>
+                    <span class="assets-label">积分</span>
+                </div>
+                <div class="assets-item">
+                    <span class="assets-value">0.00</span>
+                    <span class="assets-label">账户余额</span>
+                </div>
+                <div class="assets-item">
+                    <span class="assets-value">1,200</span>
+                    <span class="assets-label">优惠券</span>
+                </div>
+            </div>
+
+            <!-- 功能菜单 -->
+            <div class="menu-section">
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
+                        <i class="fas fa-heart"></i>
+                    </div>
+                    <span>我的收藏</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <i class="fas fa-history"></i>
+                    </div>
+                    <span>浏览历史</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <i class="fas fa-map-marker-alt"></i>
+                    </div>
+                    <span>收货地址</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #fa709a, #fee140);">
+                        <i class="fas fa-headset"></i>
+                    </div>
+                    <span>客服中心</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
+                        <i class="fas fa-shield-alt"></i>
+                    </div>
+                    <span>隐私设置</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+                <div class="menu-item">
+                    <div class="menu-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-question-circle"></i>
+                    </div>
+                    <span>帮助与反馈</span>
+                    <i class="fas fa-chevron-right"></i>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="bottom-nav">
+        <a th:href="@{/}" class="nav-item" data-page="home">
+            <i class="fas fa-home"></i>
+            <span>首页</span>
+        </a>
+        <a th:href="@{/message}" class="nav-item" data-page="message">
+            <i class="fas fa-comment-dots"></i>
+            <span>消息</span>
+            <span class="nav-badge">7</span>
+        </a>
+        <a th:href="@{/cart}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>购物车</span>
+            <span class="nav-badge">3</span>
+        </a>
+        <a th:href="@{/profile}" class="nav-item active" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>我的</span>
+        </a>
+    </nav>
+
+    <script th:src="@{/js/app.js}"></script>
+</body>
+</html>
