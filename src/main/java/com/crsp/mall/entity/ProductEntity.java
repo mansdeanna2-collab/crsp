@@ -88,7 +88,14 @@ public class ProductEntity {
     public void setIcon(String icon) { this.icon = icon; }
     
     public String getBgColor() { return bgColor; }
-    public void setBgColor(String bgColor) { this.bgColor = bgColor; }
+    public void setBgColor(String bgColor) {
+        // Sanitize bgColor to only allow hex colors and commas (prevent CSS injection)
+        if (bgColor != null && !bgColor.matches("^[#a-fA-F0-9, ]+$")) {
+            this.bgColor = "#ffecd2, #fcb69f";
+        } else {
+            this.bgColor = bgColor;
+        }
+    }
     
     public String getTag() { return tag; }
     public void setTag(String tag) { this.tag = tag; }
