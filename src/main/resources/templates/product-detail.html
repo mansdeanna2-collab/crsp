@@ -590,16 +590,15 @@
                     <th:block th:if="${displayMediaList != null and !displayMediaList.isEmpty()}">
                         <div th:each="media, iterStat : ${displayMediaList}" class="media-slide" th:data-type="${media.type}">
                             <th:block th:if="${media.type == 'image'}">
-                                <img th:src="${media.url}" th:alt="${product.title + ' - 图片' + (iterStat.index + 1)}" onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
+                                <img th:src="${media.url}" th:alt="${product.title + ' - 图片' + (iterStat.index + 1)}" onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='flex';">
                                 <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
                                     <i th:class="'fas ' + ${product.icon}"></i>
                                 </div>
                             </th:block>
                             <th:block th:if="${media.type == 'video'}">
                                 <div class="video-wrapper">
-                                    <video th:src="${media.url}" playsinline preload="metadata" 
-                                           th:attr="poster=${media.poster != null ? media.poster : ''}"
-                                           onerror="this.style.display='none'; this.closest('.video-wrapper').nextElementSibling.style.display='flex';">
+                                    <video playsinline preload="metadata">
+                                        <source th:src="${media.url}" type="video/mp4">
                                         <p>您的浏览器不支持视频播放</p>
                                     </video>
                                     <div class="video-play-overlay" onclick="playVideo(this)">
@@ -752,9 +751,9 @@
                                  onerror="this.style.display='none';">
                         </th:block>
                         <th:block th:if="${media.type == 'video'}">
-                            <video th:src="${media.url}" controls playsinline preload="metadata"
-                                   style="background: #000;"
-                                   onerror="this.style.display='none';">
+                            <video controls playsinline preload="metadata"
+                                   style="background: #000;">
+                                <source th:src="${media.url}" type="video/mp4">
                                 您的浏览器不支持视频播放
                             </video>
                         </th:block>
@@ -772,7 +771,7 @@
                         <div class="related-image" th:style="'background: linear-gradient(135deg, ' + ${related.bgColor} + ');'">
                             <th:block th:if="${related.hasDisplayMedia()}">
                                 <img th:src="${related.firstImageUrl}" th:alt="${related.title}" 
-                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                     onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='block';">
                                 <i th:class="'fas ' + ${related.icon}" style="display: none;"></i>
                             </th:block>
                             <th:block th:unless="${related.hasDisplayMedia()}">
@@ -835,19 +834,21 @@
         function pauseAllVideos() {
             if (!sliderContainer) return;
             sliderContainer.querySelectorAll('video').forEach(video => {
-                video.pause();
+                try { video.pause(); } catch(e) {}
                 // 恢复播放按钮
-                const overlay = video.parentElement.querySelector('.video-play-overlay');
+                const wrapper = video.closest('.video-wrapper');
+                const overlay = wrapper ? wrapper.querySelector('.video-play-overlay') : null;
                 if (overlay) overlay.classList.remove('hidden');
             });
         }
 
         // 播放视频
         function playVideo(overlay) {
-            const video = overlay.parentElement.querySelector('video');
+            const wrapper = overlay.closest('.video-wrapper');
+            const video = wrapper ? wrapper.querySelector('video') : null;
             if (video) {
                 if (video.paused) {
-                    video.play();
+                    video.play().catch(function(){});
                     video.controls = true;
                     overlay.classList.add('hidden');
                 }
@@ -880,15 +881,39 @@
         if (sliderContainer) {
             sliderContainer.querySelectorAll('video').forEach(video => {
                 video.addEventListener('pause', () => {
-                    const overlay = video.parentElement.querySelector('.video-play-overlay');
+                    const wrapper = video.closest('.video-wrapper');
+                    const overlay = wrapper ? wrapper.querySelector('.video-play-overlay') : null;
                     if (overlay) overlay.classList.remove('hidden');
                 });
                 video.addEventListener('play', () => {
-                    const overlay = video.parentElement.querySelector('.video-play-overlay');
+                    const wrapper = video.closest('.video-wrapper');
+                    const overlay = wrapper ? wrapper.querySelector('.video-play-overlay') : null;
                     if (overlay) overlay.classList.add('hidden');
                 });
+                // 处理视频加载错误，显示fallback图标
+                var source = video.querySelector('source');
+                if (source) {
+                    source.addEventListener('error', function() {
+                        video.style.display = 'none';
+                        var wrapper = video.closest('.video-wrapper');
+                        if (wrapper) {
+                            var fallback = wrapper.nextElementSibling;
+                            if (fallback && fallback.classList.contains('fallback-icon')) {
+                                fallback.style.display = 'flex';
+                            }
+                        }
+                    });
+                }
             });
         }
+
+        // 处理详情区域视频加载错误
+        document.querySelectorAll('.detail-media-item video source').forEach(function(source) {
+            source.addEventListener('error', function() {
+                var video = source.parentElement;
+                if (video) video.style.display = 'none';
+            });
+        });
 
         // 触摸滑动支持
         let touchStartX = 0;

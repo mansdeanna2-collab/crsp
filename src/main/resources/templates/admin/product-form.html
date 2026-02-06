@@ -533,9 +533,16 @@
                                     <div class="media-list" id="displayMediaList">
                                         <!-- 媒体项将通过JS动态添加 -->
                                     </div>
-                                    <div class="add-media-btn" onclick="showMediaInput('display')">
-                                        <i class="fas fa-plus"></i>
-                                        <span>添加图片或视频</span>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <div class="add-media-btn" onclick="showMediaInput('display')" style="flex: 1; min-width: 120px;">
+                                            <i class="fas fa-link"></i>
+                                            <span>输入链接地址</span>
+                                        </div>
+                                        <div class="add-media-btn" onclick="triggerFileUpload('display')" style="flex: 1; min-width: 120px;">
+                                            <i class="fas fa-upload"></i>
+                                            <span>本地上传文件</span>
+                                        </div>
+                                        <input type="file" id="displayFileInput" accept="image/*,video/*" style="display: none;" onchange="uploadFile('display', this)">
                                     </div>
                                     <div class="media-input-group" id="displayMediaInputGroup">
                                         <div class="media-input-row">
@@ -553,6 +560,12 @@
                                                 <i class="fas fa-check"></i> 添加
                                             </button>
                                         </div>
+                                    </div>
+                                    <div class="upload-progress" id="displayUploadProgress" style="display: none; margin-top: 10px;">
+                                        <div style="background: #eee; border-radius: 4px; height: 6px; overflow: hidden;">
+                                            <div id="displayProgressBar" style="background: linear-gradient(135deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                        </div>
+                                        <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">上传中...</span>
                                     </div>
                                 </div>
                             </div>
@@ -574,9 +587,16 @@
                                     <div class="media-list" id="detailMediaList">
                                         <!-- 媒体项将通过JS动态添加 -->
                                     </div>
-                                    <div class="add-media-btn" onclick="showMediaInput('detail')">
-                                        <i class="fas fa-plus"></i>
-                                        <span>添加图片或视频</span>
+                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                        <div class="add-media-btn" onclick="showMediaInput('detail')" style="flex: 1; min-width: 120px;">
+                                            <i class="fas fa-link"></i>
+                                            <span>输入链接地址</span>
+                                        </div>
+                                        <div class="add-media-btn" onclick="triggerFileUpload('detail')" style="flex: 1; min-width: 120px;">
+                                            <i class="fas fa-upload"></i>
+                                            <span>本地上传文件</span>
+                                        </div>
+                                        <input type="file" id="detailFileInput" accept="image/*,video/*" style="display: none;" onchange="uploadFile('detail', this)">
                                     </div>
                                     <div class="media-input-group" id="detailMediaInputGroup">
                                         <div class="media-input-row">
@@ -594,6 +614,12 @@
                                                 <i class="fas fa-check"></i> 添加
                                             </button>
                                         </div>
+                                    </div>
+                                    <div class="upload-progress" id="detailUploadProgress" style="display: none; margin-top: 10px;">
+                                        <div style="background: #eee; border-radius: 4px; height: 6px; overflow: hidden;">
+                                            <div id="detailProgressBar" style="background: linear-gradient(135deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                        </div>
+                                        <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">上传中...</span>
                                     </div>
                                 </div>
                             </div>
@@ -726,6 +752,10 @@
 
         // URL验证函数
         function isValidUrl(string) {
+            // 允许本地上传路径
+            if (string.startsWith('/uploads/')) {
+                return true;
+            }
             try {
                 const url = new URL(string);
                 return url.protocol === 'http:' || url.protocol === 'https:';
@@ -786,6 +816,18 @@
 
         // 删除媒体
         function removeMedia(type, index) {
+            var data = type === 'display' ? displayMediaData : detailMediaData;
+            var removed = data[index];
+
+            // 如果是本地上传的文件，通知服务器删除
+            if (removed && removed.url && removed.url.startsWith('/uploads/')) {
+                fetch('/admin/upload/delete', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ url: removed.url })
+                }).catch(function() {});
+            }
+
             if (type === 'display') {
                 displayMediaData.splice(index, 1);
                 document.getElementById('displayMediaInput').value = JSON.stringify(displayMediaData);
@@ -795,6 +837,68 @@
                 document.getElementById('detailMediaInput').value = JSON.stringify(detailMediaData);
                 renderMediaList('detail');
             }
+        }
+
+        // 触发文件选择
+        function triggerFileUpload(type) {
+            document.getElementById(type + 'FileInput').click();
+        }
+
+        // 上传文件
+        function uploadFile(type, input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var progressEl = document.getElementById(type + 'UploadProgress');
+            var progressBar = document.getElementById(type + 'ProgressBar');
+            progressEl.style.display = 'block';
+            progressBar.style.width = '0%';
+
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/admin/upload', true);
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    var percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                progressEl.style.display = 'none';
+                input.value = '';
+                if (xhr.status === 200) {
+                    var result = JSON.parse(xhr.responseText);
+                    var mediaItem = {
+                        type: result.type,
+                        url: result.url
+                    };
+                    if (type === 'display') {
+                        displayMediaData.push(mediaItem);
+                        document.getElementById('displayMediaInput').value = JSON.stringify(displayMediaData);
+                        renderMediaList('display');
+                    } else {
+                        detailMediaData.push(mediaItem);
+                        document.getElementById('detailMediaInput').value = JSON.stringify(detailMediaData);
+                        renderMediaList('detail');
+                    }
+                } else {
+                    var err = '上传失败';
+                    try { err = JSON.parse(xhr.responseText).error || err; } catch(e) {}
+                    showError(err);
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                progressEl.style.display = 'none';
+                input.value = '';
+                showError('上传失败，请检查网络连接');
+            });
+
+            xhr.send(formData);
         }
 
         // 渲染媒体列表（使用安全的DOM方法防止XSS）
