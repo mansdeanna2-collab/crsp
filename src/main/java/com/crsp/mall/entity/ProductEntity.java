@@ -39,6 +39,18 @@ public class ProductEntity {
     
     private Boolean active = true;
     
+    // 商品展示图片/视频 (JSON格式存储多个媒体项，每项包含type: image/video, url: 链接)
+    @Column(name = "display_media", length = 5000)
+    private String displayMedia;
+    
+    // 商品详情图片/视频 (JSON格式存储多个媒体项)
+    @Column(name = "detail_media", length = 10000)
+    private String detailMedia;
+    
+    // 商品规格列表 (JSON格式存储，包含name, image, price字段)
+    @Column(name = "specifications", length = 10000)
+    private String specifications;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -98,4 +110,13 @@ public class ProductEntity {
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public String getDisplayMedia() { return displayMedia; }
+    public void setDisplayMedia(String displayMedia) { this.displayMedia = displayMedia; }
+    
+    public String getDetailMedia() { return detailMedia; }
+    public void setDetailMedia(String detailMedia) { this.detailMedia = detailMedia; }
+    
+    public String getSpecifications() { return specifications; }
+    public void setSpecifications(String specifications) { this.specifications = specifications; }
 }
