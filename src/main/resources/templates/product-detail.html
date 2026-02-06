@@ -803,7 +803,7 @@
                             <th:block th:if="${media.type == 'video'}">
                                 <div class="video-wrapper">
                                     <video playsinline preload="metadata">
-                                        <source th:src="${media.url}" type="video/mp4">
+                                        <source th:src="${media.url}">
                                         <p>您的浏览器不支持视频播放</p>
                                     </video>
                                     <div class="video-play-overlay" onclick="playVideo(this)">
@@ -958,7 +958,7 @@
                         <th:block th:if="${media.type == 'video'}">
                             <video controls playsinline preload="metadata"
                                    style="background: #000;">
-                                <source th:src="${media.url}" type="video/mp4">
+                                <source th:src="${media.url}">
                                 您的浏览器不支持视频播放
                             </video>
                         </th:block>
@@ -1143,6 +1143,7 @@
                         video.style.display = 'none';
                         var wrapper = video.closest('.video-wrapper');
                         if (wrapper) {
+                            wrapper.style.display = 'none';
                             var fallback = wrapper.nextElementSibling;
                             if (fallback && fallback.classList.contains('fallback-icon')) {
                                 fallback.style.display = 'flex';
