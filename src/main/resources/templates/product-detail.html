@@ -95,6 +95,41 @@
             max-width: 100%;
             max-height: 100%;
             object-fit: contain;
+            background: #000;
+        }
+        .media-slide .video-wrapper {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #000;
+        }
+        .media-slide .video-play-overlay {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.5);
+            color: white;
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 24px;
+            cursor: pointer;
+            z-index: 5;
+            transition: all 0.3s;
+        }
+        .media-slide .video-play-overlay:hover {
+            background: rgba(0,0,0,0.7);
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+        .media-slide .video-play-overlay.hidden {
+            display: none;
         }
         .media-slide .fallback-icon {
             display: flex;
@@ -151,21 +186,6 @@
         }
         .media-nav-btn:hover {
             background: rgba(0,0,0,0.5);
-        }
-        .video-play-btn {
-            position: absolute;
-            top: 50%;
-            left: 50%;
-            transform: translate(-50%, -50%);
-            background: rgba(0,0,0,0.5);
-            color: white;
-            border: none;
-            width: 60px;
-            height: 60px;
-            border-radius: 50%;
-            cursor: pointer;
-            font-size: 24px;
-            z-index: 5;
         }
         
         /* 商品信息 */
@@ -367,6 +387,7 @@
             align-items: center;
             justify-content: center;
             overflow: hidden;
+            position: relative;
         }
         .related-image i {
             font-size: 30px;
@@ -376,6 +397,9 @@
             width: 100%;
             height: 100%;
             object-fit: cover;
+            position: absolute;
+            top: 0;
+            left: 0;
         }
         .related-info {
             padding: 8px 0;
@@ -474,10 +498,17 @@
                                 </div>
                             </th:block>
                             <th:block th:if="${media.type == 'video'}">
-                                <video th:src="${media.url}" controls playsinline preload="metadata" 
-                                       onerror="this.style.display='none'; this.nextElementSibling.style.display='flex';">
-                                    <p>您的浏览器不支持视频播放</p>
-                                </video>
+                                <div class="video-wrapper">
+                                    <video th:src="${media.url}" playsinline preload="metadata" 
+                                           webkit-playsinline="true"
+                                           th:attr="poster=${media.poster != null ? media.poster : ''}"
+                                           onerror="this.style.display='none'; this.closest('.video-wrapper').nextElementSibling.style.display='flex';">
+                                        <p>您的浏览器不支持视频播放</p>
+                                    </video>
+                                    <div class="video-play-overlay" onclick="playVideo(this)">
+                                        <i class="fas fa-play"></i>
+                                    </div>
+                                </div>
                                 <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
                                     <i th:class="'fas ' + ${product.icon}"></i>
                                 </div>
@@ -579,6 +610,8 @@
                         </th:block>
                         <th:block th:if="${media.type == 'video'}">
                             <video th:src="${media.url}" controls playsinline preload="metadata"
+                                   webkit-playsinline="true"
+                                   style="background: #000;"
                                    onerror="this.style.display='none';">
                                 您的浏览器不支持视频播放
                             </video>
@@ -595,7 +628,14 @@
                        th:href="@{/product/{id}(id=${related.id})}" 
                        class="related-card">
                         <div class="related-image" th:style="'background: linear-gradient(135deg, ' + ${related.bgColor} + ');'">
-                            <i th:class="'fas ' + ${related.icon}"></i>
+                            <th:block th:if="${related.hasDisplayMedia()}">
+                                <img th:src="${related.firstImageUrl}" th:alt="${related.title}" 
+                                     onerror="this.style.display='none'; this.nextElementSibling.style.display='block';">
+                                <i th:class="'fas ' + ${related.icon}" style="display: none;"></i>
+                            </th:block>
+                            <th:block th:unless="${related.hasDisplayMedia()}">
+                                <i th:class="'fas ' + ${related.icon}"></i>
+                            </th:block>
                         </div>
                         <div class="related-info">
                             <div class="related-name" th:text="${related.title}">商品名称</div>
@@ -644,6 +684,31 @@
                 indicators.forEach((ind, index) => {
                     ind.classList.toggle('active', index === currentSlide);
                 });
+                // 切换时暂停所有视频
+                pauseAllVideos();
+            }
+        }
+
+        // 暂停所有轮播视频
+        function pauseAllVideos() {
+            if (!sliderContainer) return;
+            sliderContainer.querySelectorAll('video').forEach(video => {
+                video.pause();
+                // 恢复播放按钮
+                const overlay = video.parentElement.querySelector('.video-play-overlay');
+                if (overlay) overlay.classList.remove('hidden');
+            });
+        }
+
+        // 播放视频
+        function playVideo(overlay) {
+            const video = overlay.parentElement.querySelector('video');
+            if (video) {
+                if (video.paused) {
+                    video.play();
+                    video.controls = true;
+                    overlay.classList.add('hidden');
+                }
             }
         }
 
@@ -668,6 +733,20 @@
                 updateSlider();
             });
         });
+
+        // 视频播放结束恢复播放按钮
+        if (sliderContainer) {
+            sliderContainer.querySelectorAll('video').forEach(video => {
+                video.addEventListener('pause', () => {
+                    const overlay = video.parentElement.querySelector('.video-play-overlay');
+                    if (overlay) overlay.classList.remove('hidden');
+                });
+                video.addEventListener('play', () => {
+                    const overlay = video.parentElement.querySelector('.video-play-overlay');
+                    if (overlay) overlay.classList.add('hidden');
+                });
+            });
+        }
 
         // 触摸滑动支持
         let touchStartX = 0;

@@ -113,6 +113,11 @@ public class PageController {
      */
     @GetMapping("/profile")
     public String profile(Model model) {
+        // 添加推荐商品（猜你喜欢）
+        List<ProductEntity> recommendProducts = productDbService.getActiveProducts().stream()
+                .limit(6)
+                .toList();
+        model.addAttribute("recommendProducts", recommendProducts);
         return "profile";
     }
 }
