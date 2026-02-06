@@ -796,7 +796,7 @@
                         <div th:each="media, iterStat : ${displayMediaList}" class="media-slide" th:data-type="${media.type}">
                             <th:block th:if="${media.type == 'image'}">
                                 <img th:src="${media.url}" th:alt="${product.title + ' - 图片' + (iterStat.index + 1)}" onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='flex';">
-                                <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                                <div class="fallback-icon" th:style="'display: none; background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
                                     <i th:class="'fas ' + ${product.icon}"></i>
                                 </div>
                             </th:block>
@@ -810,7 +810,7 @@
                                         <i class="fas fa-play"></i>
                                     </div>
                                 </div>
-                                <div class="fallback-icon" style="display: none;" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                                <div class="fallback-icon" th:style="'display: none; background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
                                     <i th:class="'fas ' + ${product.icon}"></i>
                                 </div>
                             </th:block>
