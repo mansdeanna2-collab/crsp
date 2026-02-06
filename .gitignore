@@ -12,3 +12,12 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Python
+__pycache__/
+*.pyc
+*.pyo
+.env
+
+# Docker (不跟踪运行时生成的文件)
+.dockerignore
