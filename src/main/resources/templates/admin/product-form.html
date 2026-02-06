@@ -417,9 +417,9 @@
             <div class="content-area">
                 <form th:action="@{/admin/products/save}" method="post" th:object="${product}" id="productForm">
                     <input type="hidden" th:field="*{id}">
-                    <input type="hidden" th:field="*{displayMedia}" id="displayMediaInput">
-                    <input type="hidden" th:field="*{detailMedia}" id="detailMediaInput">
-                    <input type="hidden" th:field="*{specifications}" id="specificationsInput">
+                    <input type="hidden" name="displayMedia" id="displayMediaInput" th:value="*{displayMedia}">
+                    <input type="hidden" name="detailMedia" id="detailMediaInput" th:value="*{detailMedia}">
+                    <input type="hidden" name="specifications" id="specificationsInput" th:value="*{specifications}">
                     
                     <!-- Tab 导航 -->
                     <div class="form-tabs">
