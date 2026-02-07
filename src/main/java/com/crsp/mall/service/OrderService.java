@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
 
@@ -63,8 +64,17 @@ public class OrderService {
 
     private static final Set<String> VALID_STATUSES = Set.of("pending", "paid", "shipped", "completed", "cancelled");
 
+    // Valid state transitions: current status -> allowed next statuses
+    private static final Map<String, Set<String>> VALID_TRANSITIONS = Map.of(
+        "pending", Set.of("paid", "cancelled"),
+        "paid", Set.of("shipped", "cancelled"),
+        "shipped", Set.of("completed"),
+        "completed", Set.of(),
+        "cancelled", Set.of()
+    );
+
     /**
-     * 更新订单状态
+     * 更新订单状态（验证状态转换合法性）
      */
     public OrderEntity updateOrderStatus(Long id, String status) {
         if (status == null || !VALID_STATUSES.contains(status)) {
@@ -73,6 +83,11 @@ public class OrderService {
         Optional<OrderEntity> optionalOrder = orderRepository.findById(id);
         if (optionalOrder.isPresent()) {
             OrderEntity order = optionalOrder.get();
+            // Validate state transition
+            Set<String> allowedNextStatuses = VALID_TRANSITIONS.getOrDefault(order.getStatus(), Set.of());
+            if (!allowedNextStatuses.contains(status)) {
+                return null;
+            }
             order.setStatus(status);
             
             // 更新相应的时间戳
