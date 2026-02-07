@@ -89,6 +89,8 @@ public class AdminController {
         long orderCount = allOrders.size();
         long pendingOrders = allOrders.stream().filter(o -> "pending".equals(o.getStatus())).count();
         long userCount = userService.getUserCount();
+        long registeredCount = userService.getRegisteredCount();
+        long activeUserCount = userService.getActiveCount();
         double totalRevenue = allOrders.stream()
                 .filter(o -> !"cancelled".equals(o.getStatus()))
                 .mapToDouble(OrderEntity::getTotalAmount)
@@ -98,6 +100,8 @@ public class AdminController {
         model.addAttribute("orderCount", orderCount);
         model.addAttribute("pendingOrders", pendingOrders);
         model.addAttribute("userCount", userCount);
+        model.addAttribute("registeredCount", registeredCount);
+        model.addAttribute("activeUserCount", activeUserCount);
         model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("recentOrders", allOrders.stream().limit(5).toList());
         model.addAttribute("currentPage", "dashboard");
@@ -275,6 +279,8 @@ public class AdminController {
         model.addAttribute("currentPage", "users");
         model.addAttribute("guestCount", userService.getGuestCount());
         model.addAttribute("totalCount", userService.getUserCount());
+        model.addAttribute("registeredCount", userService.getRegisteredCount());
+        model.addAttribute("activeCount", userService.getActiveCount());
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedType", type);
         
@@ -296,12 +302,16 @@ public class AdminController {
         }
         
         UserEntity user = userOpt.get();
+        double totalSpending = userService.getUserTotalSpending(user.getId());
         model.addAttribute("user", user);
         model.addAttribute("currentPage", "users");
         model.addAttribute("orders", orderService.getOrdersByUserId(id));
         model.addAttribute("favorites", userService.getFavorites(id));
         model.addAttribute("cartItems", userService.getCartItems(id));
         model.addAttribute("browsingHistory", userService.getBrowsingHistory(id));
+        model.addAttribute("totalSpending", totalSpending);
+        model.addAttribute("userLevel", UserEntity.calculateLevel(totalSpending));
+        model.addAttribute("orderCount", userService.getUserOrderCount(id));
         
         return "admin/user-detail";
     }
@@ -330,6 +340,7 @@ public class AdminController {
                           @RequestParam(required = false) String nickname,
                           @RequestParam(required = false) String phone,
                           @RequestParam(required = false) String email,
+                          @RequestParam(required = false) String address,
                           @RequestParam(required = false) String userType,
                           @RequestParam(required = false) Boolean active,
                           HttpSession session,
@@ -362,6 +373,10 @@ public class AdminController {
             } else if (trimmedEmail.matches("^[\\w]([\\w.-]*[\\w])?@[\\w]([\\w.-]*[\\w])?\\.[a-zA-Z]{2,}$")) {
                 user.setEmail(trimmedEmail);
             }
+        }
+        if (address != null) {
+            String trimmedAddress = address.trim();
+            user.setAddress(trimmedAddress.isEmpty() ? null : trimmedAddress);
         }
         if (userType != null && ("guest".equals(userType) || "user".equals(userType))) {
             user.setUserType(userType);

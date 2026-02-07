@@ -2,10 +2,12 @@ package com.crsp.mall.service;
 
 import com.crsp.mall.entity.CartItemEntity;
 import com.crsp.mall.entity.FavoriteEntity;
+import com.crsp.mall.entity.OrderEntity;
 import com.crsp.mall.entity.ProductEntity;
 import com.crsp.mall.entity.UserEntity;
 import com.crsp.mall.repository.CartItemRepository;
 import com.crsp.mall.repository.FavoriteRepository;
+import com.crsp.mall.repository.OrderRepository;
 import com.crsp.mall.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -29,6 +31,9 @@ class UserServiceTest {
 
     @Autowired
     private FavoriteRepository favoriteRepository;
+
+    @Autowired
+    private OrderRepository orderRepository;
 
     @Test
     void getOrCreateUserCreatesGuestWithToken() {
@@ -147,5 +152,76 @@ class UserServiceTest {
         product.setTitle("测试商品");
         product.setPrice(100.0);
         return product;
+    }
+
+    @Test
+    void getRegisteredCountReturnsCorrectCount() {
+        // Initially no users
+        long initial = userService.getRegisteredCount();
+
+        UserEntity user = userService.getOrCreateUser(null);
+        user.setUserType("user");
+        userService.saveUser(user);
+
+        assertEquals(initial + 1, userService.getRegisteredCount());
+    }
+
+    @Test
+    void getActiveCountReturnsCorrectCount() {
+        long initialActive = userService.getActiveCount();
+
+        UserEntity user1 = userService.getOrCreateUser(null);
+        UserEntity user2 = userService.getOrCreateUser(null);
+        user2.setActive(false);
+        userService.saveUser(user2);
+
+        // user1 is active by default, user2 is disabled
+        assertEquals(initialActive + 1, userService.getActiveCount());
+    }
+
+    @Test
+    void getUserTotalSpendingCalculatesCorrectly() {
+        UserEntity user = userService.getOrCreateUser(null);
+
+        // Create orders
+        OrderEntity order1 = new OrderEntity();
+        order1.setUserId(user.getId());
+        order1.setUserName("测试");
+        order1.setTotalAmount(100.0);
+        order1.setStatus("completed");
+        orderRepository.save(order1);
+
+        OrderEntity order2 = new OrderEntity();
+        order2.setUserId(user.getId());
+        order2.setUserName("测试");
+        order2.setTotalAmount(200.0);
+        order2.setStatus("pending");
+        orderRepository.save(order2);
+
+        // Cancelled order should not count
+        OrderEntity cancelledOrder = new OrderEntity();
+        cancelledOrder.setUserId(user.getId());
+        cancelledOrder.setUserName("测试");
+        cancelledOrder.setTotalAmount(500.0);
+        cancelledOrder.setStatus("cancelled");
+        orderRepository.save(cancelledOrder);
+
+        assertEquals(300.0, userService.getUserTotalSpending(user.getId()), 0.01);
+    }
+
+    @Test
+    void getUserOrderCountReturnsCorrectCount() {
+        UserEntity user = userService.getOrCreateUser(null);
+
+        assertEquals(0, userService.getUserOrderCount(user.getId()));
+
+        OrderEntity order = new OrderEntity();
+        order.setUserId(user.getId());
+        order.setUserName("测试");
+        order.setTotalAmount(100.0);
+        order.setStatus("completed");
+        orderRepository.save(order);
+
+        assertEquals(1, userService.getUserOrderCount(user.getId()));
     }
 }

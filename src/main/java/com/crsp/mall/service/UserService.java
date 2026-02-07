@@ -28,6 +28,9 @@ public class UserService {
     @Autowired
     private CartItemRepository cartItemRepository;
 
+    @Autowired
+    private OrderRepository orderRepository;
+
     // ===== 用户管理 =====
 
     /**
@@ -68,6 +71,28 @@ public class UserService {
 
     public long getGuestCount() {
         return userRepository.countByUserType("guest");
+    }
+
+    public long getRegisteredCount() {
+        return userRepository.countByUserType("user");
+    }
+
+    public long getActiveCount() {
+        return userRepository.countByActive(true);
+    }
+
+    /**
+     * 获取用户消费总额（非取消订单）
+     */
+    public double getUserTotalSpending(Long userId) {
+        return orderRepository.sumTotalAmountByUserIdExcludingCancelled(userId);
+    }
+
+    /**
+     * 获取用户订单数量
+     */
+    public long getUserOrderCount(Long userId) {
+        return orderRepository.countByUserId(userId);
     }
 
     public UserEntity saveUser(UserEntity user) {

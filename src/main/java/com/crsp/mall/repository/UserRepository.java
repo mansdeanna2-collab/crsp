@@ -21,5 +21,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     
     long countByUserType(String userType);
     
+    long countByActive(Boolean active);
+    
     boolean existsByToken(String token);
 }
