@@ -207,7 +207,11 @@ public class UserApiController {
      * 更新购物车商品数量
      */
     @PutMapping("/cart/{itemId}")
-    public ResponseEntity<?> updateCartItem(@PathVariable Long itemId, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> updateCartItem(@PathVariable Long itemId, @RequestBody Map<String, Object> body, HttpServletRequest request) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+        }
         if (body.get("quantity") == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "数量不能为空"));
         }
@@ -217,7 +221,10 @@ public class UserApiController {
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "数量格式无效"));
         }
-        CartItemEntity item = userService.updateCartItemQuantity(itemId, quantity);
+        if (quantity < 1 || quantity > 999) {
+            return ResponseEntity.badRequest().body(Map.of("error", "数量必须在1-999之间"));
+        }
+        CartItemEntity item = userService.updateCartItemQuantity(itemId, quantity, user.getId());
         if (item == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "购物车项不存在"));
         }
@@ -228,12 +235,16 @@ public class UserApiController {
      * 更新购物车商品选中状态
      */
     @PutMapping("/cart/{itemId}/select")
-    public ResponseEntity<?> updateCartItemSelected(@PathVariable Long itemId, @RequestBody Map<String, Object> body) {
+    public ResponseEntity<?> updateCartItemSelected(@PathVariable Long itemId, @RequestBody Map<String, Object> body, HttpServletRequest request) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+        }
         if (body.get("selected") == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "选中状态不能为空"));
         }
         Boolean selected = Boolean.valueOf(body.get("selected").toString());
-        CartItemEntity item = userService.updateCartItemSelected(itemId, selected);
+        CartItemEntity item = userService.updateCartItemSelected(itemId, selected, user.getId());
         if (item == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "购物车项不存在"));
         }
@@ -244,8 +255,12 @@ public class UserApiController {
      * 删除购物车商品
      */
     @DeleteMapping("/cart/{itemId}")
-    public ResponseEntity<?> removeCartItem(@PathVariable Long itemId) {
-        userService.removeCartItem(itemId);
+    public ResponseEntity<?> removeCartItem(@PathVariable Long itemId, HttpServletRequest request) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+        }
+        userService.removeCartItem(itemId, user.getId());
         return ResponseEntity.ok(Map.of("success", true));
     }
 
@@ -274,10 +289,21 @@ public class UserApiController {
             return ResponseEntity.badRequest().body(Map.of("error", "请先初始化用户"));
         }
 
-        String userName = body.get("userName") != null ? body.get("userName").toString() : user.getNickname();
-        String userPhone = body.get("userPhone") != null ? body.get("userPhone").toString() : "";
-        String shippingAddress = body.get("shippingAddress") != null ? body.get("shippingAddress").toString() : "";
-        String remark = body.get("remark") != null ? body.get("remark").toString() : "";
+        String userName = body.get("userName") != null ? body.get("userName").toString().trim() : "";
+        String userPhone = body.get("userPhone") != null ? body.get("userPhone").toString().trim() : "";
+        String shippingAddress = body.get("shippingAddress") != null ? body.get("shippingAddress").toString().trim() : "";
+        String remark = body.get("remark") != null ? body.get("remark").toString().trim() : "";
+
+        // 输入验证
+        if (userName.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请输入收货人姓名"));
+        }
+        if (userPhone.isEmpty() || !userPhone.matches("^1[3-9]\\d{9}$")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的手机号码"));
+        }
+        if (shippingAddress.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请输入收货地址"));
+        }
 
         // 获取选中的购物车商品
         List<CartItemEntity> selectedItems = userService.getSelectedCartItems(user.getId());
@@ -285,10 +311,21 @@ public class UserApiController {
             return ResponseEntity.badRequest().body(Map.of("error", "请选择要结算的商品"));
         }
 
-        // 计算总价和商品数量
+        // 验证库存并计算总价
         double totalAmount = 0;
         int totalCount = 0;
         for (CartItemEntity item : selectedItems) {
+            Optional<ProductEntity> productOpt = productDbService.getProductById(item.getProductId());
+            if (productOpt.isEmpty() || !Boolean.TRUE.equals(productOpt.get().getActive())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 已下架"));
+            }
+            ProductEntity product = productOpt.get();
+            if (!product.isInStock()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 已售罄"));
+            }
+            if (product.getStock() != null && product.getStock() < item.getQuantity()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 库存不足，当前库存: " + product.getStock()));
+            }
             totalAmount += item.getProductPrice() * item.getQuantity();
             totalCount += item.getQuantity();
         }
@@ -306,9 +343,19 @@ public class UserApiController {
         
         OrderEntity savedOrder = orderService.saveOrder(order);
 
+        // 扣减库存
+        for (CartItemEntity item : selectedItems) {
+            productDbService.getProductById(item.getProductId()).ifPresent(product -> {
+                if (product.getStock() != null) {
+                    product.setStock(product.getStock() - item.getQuantity());
+                    productDbService.saveProduct(product);
+                }
+            });
+        }
+
         // 清除已下单的购物车商品
         for (CartItemEntity item : selectedItems) {
-            userService.removeCartItem(item.getId());
+            userService.removeCartItem(item.getId(), user.getId());
         }
 
         Map<String, Object> result = new HashMap<>();

@@ -154,11 +154,13 @@ public class UserService {
      */
     public CartItemEntity addToCart(Long userId, ProductEntity product, String specName, Integer quantity) {
         String spec = (specName != null) ? specName : "";
+        int qty = (quantity != null && quantity >= 1) ? Math.min(quantity, 999) : 1;
         Optional<CartItemEntity> existing = cartItemRepository.findByUserIdAndProductIdAndSpecName(userId, product.getId(), spec);
         
         if (existing.isPresent()) {
             CartItemEntity item = existing.get();
-            item.setQuantity(item.getQuantity() + (quantity != null ? quantity : 1));
+            int newQty = Math.min(item.getQuantity() + qty, 999);
+            item.setQuantity(newQty);
             return cartItemRepository.save(item);
         }
         
@@ -169,22 +171,28 @@ public class UserService {
         item.setProductPrice(product.getPrice());
         item.setProductImage(product.getFirstImageUrl());
         item.setSpecName(spec);
-        item.setQuantity(quantity != null ? quantity : 1);
+        item.setQuantity(qty);
         return cartItemRepository.save(item);
     }
 
-    public CartItemEntity updateCartItemQuantity(Long itemId, Integer quantity) {
+    public CartItemEntity updateCartItemQuantity(Long itemId, Integer quantity, Long userId) {
         Optional<CartItemEntity> itemOpt = cartItemRepository.findById(itemId);
         if (itemOpt.isPresent()) {
             CartItemEntity item = itemOpt.get();
+            if (!item.getUserId().equals(userId)) {
+                return null; // 不属于该用户
+            }
             item.setQuantity(quantity);
             return cartItemRepository.save(item);
         }
         return null;
     }
 
-    public void removeCartItem(Long itemId) {
-        cartItemRepository.deleteById(itemId);
+    public void removeCartItem(Long itemId, Long userId) {
+        Optional<CartItemEntity> itemOpt = cartItemRepository.findById(itemId);
+        if (itemOpt.isPresent() && itemOpt.get().getUserId().equals(userId)) {
+            cartItemRepository.deleteById(itemId);
+        }
     }
 
     public List<CartItemEntity> getCartItems(Long userId) {
@@ -204,10 +212,13 @@ public class UserService {
         cartItemRepository.deleteByUserId(userId);
     }
 
-    public CartItemEntity updateCartItemSelected(Long itemId, Boolean selected) {
+    public CartItemEntity updateCartItemSelected(Long itemId, Boolean selected, Long userId) {
         Optional<CartItemEntity> itemOpt = cartItemRepository.findById(itemId);
         if (itemOpt.isPresent()) {
             CartItemEntity item = itemOpt.get();
+            if (!item.getUserId().equals(userId)) {
+                return null; // 不属于该用户
+            }
             item.setSelected(selected);
             return cartItemRepository.save(item);
         }

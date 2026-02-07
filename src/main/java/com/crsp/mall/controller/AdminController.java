@@ -85,15 +85,16 @@ public class AdminController {
         
         // 统计数据
         long productCount = productDbService.getAllProducts().size();
-        long orderCount = orderService.getAllOrders().size();
-        long pendingOrders = orderService.getOrdersByStatus("pending").size();
+        List<OrderEntity> allOrders = orderService.getAllOrders();
+        long orderCount = allOrders.size();
+        long pendingOrders = allOrders.stream().filter(o -> "pending".equals(o.getStatus())).count();
         long userCount = userService.getUserCount();
         
         model.addAttribute("productCount", productCount);
         model.addAttribute("orderCount", orderCount);
         model.addAttribute("pendingOrders", pendingOrders);
         model.addAttribute("userCount", userCount);
-        model.addAttribute("recentOrders", orderService.getAllOrders().stream().limit(5).toList());
+        model.addAttribute("recentOrders", allOrders.stream().limit(5).toList());
         model.addAttribute("currentPage", "dashboard");
         
         return "admin/dashboard";
