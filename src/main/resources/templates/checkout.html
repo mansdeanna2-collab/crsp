@@ -409,6 +409,13 @@
                     var successEl = document.getElementById('order-success');
                     successEl.classList.add('show');
                     document.getElementById('success-order-no').textContent = '订单号：' + data.orderNo;
+                    if (data.priceChanged) {
+                        var notice = document.createElement('p');
+                        notice.style.color = '#ff9800';
+                        notice.style.marginBottom = '10px';
+                        notice.textContent = '注意：部分商品价格已变动，实际金额以订单为准';
+                        successEl.insertBefore(notice, successEl.querySelector('.back-home-btn').parentNode);
+                    }
                 } else {
                     alert(data.error || '下单失败，请重试');
                     btn.disabled = false;

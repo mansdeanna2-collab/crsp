@@ -316,6 +316,7 @@ public class UserApiController {
         // 验证库存并计算总价（使用当前数据库中的实际价格）
         double totalAmount = 0;
         int totalCount = 0;
+        boolean priceChanged = false;
         for (CartItemEntity item : selectedItems) {
             Optional<ProductEntity> productOpt = productDbService.getProductById(item.getProductId());
             if (productOpt.isEmpty()) {
@@ -332,6 +333,9 @@ public class UserApiController {
                 return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 库存不足，当前库存: " + product.getStock()));
             }
             // Use current product price from DB, not the stale cart snapshot
+            if (item.getProductPrice() != null && Math.abs(product.getPrice() - item.getProductPrice()) > 0.01) {
+                priceChanged = true;
+            }
             totalAmount += product.getPrice() * item.getQuantity();
             totalCount += item.getQuantity();
         }
@@ -369,6 +373,9 @@ public class UserApiController {
         result.put("orderNo", savedOrder.getOrderNo());
         result.put("totalAmount", totalAmount);
         result.put("productCount", totalCount);
+        if (priceChanged) {
+            result.put("priceChanged", true);
+        }
         return ResponseEntity.ok(result);
     }
 
