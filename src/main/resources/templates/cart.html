@@ -6,6 +6,61 @@
     <title>购物车 - 成人玩具商城</title>
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .cart-page-content { padding-bottom: 120px; }
+        .cart-empty {
+            text-align: center;
+            padding: 60px 15px;
+            color: #999;
+        }
+        .cart-empty i { font-size: 48px; margin-bottom: 15px; display: block; }
+        .cart-empty a {
+            display: inline-block;
+            margin-top: 15px;
+            background: #ff5722;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 20px;
+            text-decoration: none;
+        }
+        .db-cart-item {
+            display: flex;
+            gap: 10px;
+            padding: 12px 15px;
+            background: white;
+            border-bottom: 1px solid #f0f0f0;
+            align-items: center;
+        }
+        .db-cart-item .item-checkbox { flex-shrink: 0; width: 20px; height: 20px; }
+        .db-cart-item .item-image {
+            width: 80px; height: 80px;
+            background: #f5f5f5;
+            border-radius: 8px;
+            display: flex; align-items: center; justify-content: center;
+            overflow: hidden; flex-shrink: 0;
+        }
+        .db-cart-item .item-image img { width: 100%; height: 100%; object-fit: cover; }
+        .db-cart-item .item-image i { font-size: 24px; color: #ccc; }
+        .db-cart-item .item-info { flex: 1; }
+        .db-cart-item .item-title {
+            font-size: 14px; color: #333; margin-bottom: 4px;
+            display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden;
+        }
+        .db-cart-item .item-spec { font-size: 12px; color: #999; margin-bottom: 4px; }
+        .db-cart-item .item-price-row { display: flex; justify-content: space-between; align-items: center; }
+        .db-cart-item .item-price { color: #ff5722; font-weight: bold; font-size: 16px; }
+        .db-cart-item .quantity-control { display: flex; align-items: center; gap: 8px; }
+        .db-cart-item .qty-btn {
+            width: 26px; height: 26px; border: 1px solid #ddd; background: #f8f8f8;
+            border-radius: 4px; display: flex; align-items: center; justify-content: center;
+            cursor: pointer; font-size: 14px; color: #333;
+        }
+        .db-cart-item .qty-num { font-size: 14px; min-width: 20px; text-align: center; }
+        .delete-item-btn {
+            background: none; border: none; color: #999; font-size: 16px; cursor: pointer; padding: 5px;
+        }
+        .delete-item-btn:hover { color: #ff5722; }
+    </style>
 </head>
 <body>
     <div class="app-container">
@@ -13,124 +68,59 @@
             <div class="header">
                 <h1>购物车</h1>
                 <div class="header-right">
-                    <span class="edit-btn">管理</span>
+                    <span class="edit-btn" id="clear-cart-btn" onclick="clearCartAll()" style="cursor:pointer;">清空</span>
                 </div>
             </div>
 
-            <!-- 购物车列表 -->
-            <div class="cart-list">
-                <div class="cart-shop">
-                    <div class="shop-header">
-                        <input type="checkbox" class="shop-checkbox" checked>
-                        <i class="fas fa-store"></i>
-                        <span class="shop-name">成人用品旗舰店</span>
-                        <i class="fas fa-chevron-right"></i>
-                    </div>
-                    <div class="cart-item">
-                        <input type="checkbox" class="item-checkbox" checked>
-                        <div class="item-image" style="background: linear-gradient(135deg, #ffecd2, #fcb69f);">
-                            <i class="fas fa-wand-magic-sparkles"></i>
-                        </div>
-                        <div class="item-info">
-                            <h3 class="item-title">高级震动按摩棒 多频调节</h3>
-                            <div class="item-spec">颜色：粉色 尺寸：标准</div>
-                            <div class="item-price-row">
-                                <span class="item-price">¥128</span>
-                                <div class="quantity-control">
-                                    <button class="qty-btn minus">-</button>
-                                    <span class="qty-num">1</span>
-                                    <button class="qty-btn plus">+</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                    <div class="cart-item">
-                        <input type="checkbox" class="item-checkbox" checked>
-                        <div class="item-image" style="background: linear-gradient(135deg, #a1c4fd, #c2e9fb);">
-                            <i class="fas fa-circle"></i>
-                        </div>
-                        <div class="item-info">
-                            <h3 class="item-title">智能遥控跳蛋 静音设计</h3>
-                            <div class="item-spec">颜色：紫色</div>
-                            <div class="item-price-row">
-                                <span class="item-price">¥89</span>
-                                <div class="quantity-control">
-                                    <button class="qty-btn minus">-</button>
-                                    <span class="qty-num">2</span>
-                                    <button class="qty-btn plus">+</button>
-                                </div>
-                            </div>
-                        </div>
+            <div class="cart-page-content">
+                <!-- 购物车列表(动态加载) -->
+                <div id="cart-items-container">
+                    <div class="cart-empty">
+                        <i class="fas fa-spinner fa-spin"></i>
+                        <p>加载中...</p>
                     </div>
                 </div>
 
-                <div class="cart-shop">
-                    <div class="shop-header">
-                        <input type="checkbox" class="shop-checkbox">
-                        <i class="fas fa-store"></i>
-                        <span class="shop-name">情趣用品专营店</span>
-                        <i class="fas fa-chevron-right"></i>
+                <!-- 推荐商品 -->
+                <div class="cart-recommend" th:if="${recommendProducts != null and !recommendProducts.isEmpty()}">
+                    <div class="section-title">
+                        <span>为你推荐</span>
                     </div>
-                    <div class="cart-item">
-                        <input type="checkbox" class="item-checkbox">
-                        <div class="item-image" style="background: linear-gradient(135deg, #667eea, #764ba2);">
-                            <i class="fas fa-spray-can"></i>
-                        </div>
-                        <div class="item-info">
-                            <h3 class="item-title">延时喷剂 植物配方</h3>
-                            <div class="item-spec">规格：15ml</div>
-                            <div class="item-price-row">
-                                <span class="item-price">¥158</span>
-                                <div class="quantity-control">
-                                    <button class="qty-btn minus">-</button>
-                                    <span class="qty-num">1</span>
-                                    <button class="qty-btn plus">+</button>
-                                </div>
+                    <div class="recommend-list">
+                        <a th:each="product : ${recommendProducts}"
+                           th:href="@{/product/{id}(id=${product.id})}"
+                           class="recommend-item" style="text-decoration: none; color: inherit;">
+                            <div class="recommend-image" style="background: #f5f5f5;">
+                                <th:block th:if="${product.hasDisplayMedia() and product.firstImageUrl != null}">
+                                    <img th:src="${product.firstImageUrl}" th:alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
+                                         onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='block';">
+                                    <i class="fas fa-box" style="display: none;"></i>
+                                </th:block>
+                                <th:block th:unless="${product.hasDisplayMedia() and product.firstImageUrl != null}">
+                                    <i class="fas fa-box"></i>
+                                </th:block>
                             </div>
-                        </div>
+                            <div class="recommend-info">
+                                <p th:text="${product.title}">商品名称</p>
+                                <span th:text="'¥' + ${product.price}">¥0</span>
+                            </div>
+                        </a>
                     </div>
-                </div>
-            </div>
-
-            <!-- 推荐商品 -->
-            <div class="cart-recommend">
-                <div class="section-title">
-                    <span>为你推荐</span>
-                </div>
-                <div class="recommend-list">
-                    <a th:each="product : ${recommendProducts}" 
-                       th:href="@{/product/{id}(id=${product.id})}"
-                       class="recommend-item" style="text-decoration: none; color: inherit;">
-                        <div class="recommend-image" style="background: #f5f5f5;">
-                            <th:block th:if="${product.hasDisplayMedia() and product.firstImageUrl != null}">
-                                <img th:src="${product.firstImageUrl}" th:alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                                     onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='block';">
-                                <i class="fas fa-box" style="display: none;"></i>
-                            </th:block>
-                            <th:block th:unless="${product.hasDisplayMedia() and product.firstImageUrl != null}">
-                                <i class="fas fa-box"></i>
-                            </th:block>
-                        </div>
-                        <div class="recommend-info">
-                            <p th:text="${product.title}">商品名称</p>
-                            <span th:text="'¥' + ${product.price}">¥0</span>
-                        </div>
-                    </a>
                 </div>
             </div>
 
             <!-- 底部结算栏 -->
             <div class="cart-footer">
                 <div class="cart-footer-left">
-                    <input type="checkbox" class="select-all" checked>
+                    <input type="checkbox" class="select-all" id="select-all-cb" onchange="toggleSelectAll(this.checked)">
                     <span>全选</span>
                 </div>
                 <div class="cart-footer-right">
                     <div class="total-info">
                         <span>合计：</span>
-                        <span class="total-price">¥306</span>
+                        <span class="total-price" id="cart-total">¥0.00</span>
                     </div>
-                    <button class="checkout-btn">结算(3)</button>
+                    <button class="checkout-btn" id="checkout-btn" onclick="goCheckout()">结算(0)</button>
                 </div>
             </div>
         </div>
@@ -145,12 +135,11 @@
         <a th:href="@{/message}" class="nav-item" data-page="message">
             <i class="fas fa-comment-dots"></i>
             <span>消息</span>
-            <span class="nav-badge">7</span>
         </a>
         <a th:href="@{/cart}" class="nav-item active" data-page="cart">
             <i class="fas fa-shopping-cart"></i>
             <span>购物车</span>
-            <span class="nav-badge">3</span>
+            <span class="nav-badge" id="cart-badge" style="display:none;">0</span>
         </a>
         <a th:href="@{/profile}" class="nav-item" data-page="profile">
             <i class="fas fa-user"></i>
@@ -158,6 +147,154 @@
         </a>
     </nav>
 
-    <script th:src="@{/js/app.js}"></script>
+    <script>
+        var cartItems = [];
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/user/init', { method: 'POST' }).then(function() {
+                loadCart();
+            });
+        });
+
+        function loadCart() {
+            fetch('/api/user/cart')
+                .then(function(r) { return r.json(); })
+                .then(function(items) {
+                    cartItems = items;
+                    renderCart();
+                    updateBadge();
+                })
+                .catch(function() {
+                    document.getElementById('cart-items-container').innerHTML =
+                        '<div class="cart-empty"><i class="fas fa-exclamation-circle"></i><p>加载失败，请刷新重试</p></div>';
+                });
+        }
+
+        function renderCart() {
+            var container = document.getElementById('cart-items-container');
+            if (!cartItems || cartItems.length === 0) {
+                container.innerHTML = '<div class="cart-empty"><i class="fas fa-shopping-cart"></i><p>购物车是空的</p><a href="/">去逛逛</a></div>';
+                updateTotal();
+                return;
+            }
+            var html = '';
+            cartItems.forEach(function(item) {
+                html += '<div class="db-cart-item" data-id="' + item.id + '">' +
+                    '<input type="checkbox" class="item-checkbox" ' + (item.selected ? 'checked' : '') +
+                    ' onchange="toggleSelect(' + item.id + ', this.checked)">' +
+                    '<div class="item-image">' +
+                    (item.productImage ? '<img src="' + item.productImage + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><i class="fas fa-box" style="display:none"></i>' : '<i class="fas fa-box"></i>') +
+                    '</div>' +
+                    '<div class="item-info">' +
+                    '<div class="item-title">' + item.productTitle + '</div>' +
+                    (item.specName ? '<div class="item-spec">' + item.specName + '</div>' : '') +
+                    '<div class="item-price-row">' +
+                    '<span class="item-price">¥' + item.productPrice.toFixed(2) + '</span>' +
+                    '<div class="quantity-control">' +
+                    '<button class="qty-btn" onclick="changeQty(' + item.id + ', -1)">-</button>' +
+                    '<span class="qty-num">' + item.quantity + '</span>' +
+                    '<button class="qty-btn" onclick="changeQty(' + item.id + ', 1)">+</button>' +
+                    '</div></div></div>' +
+                    '<button class="delete-item-btn" onclick="removeItem(' + item.id + ')"><i class="fas fa-trash-alt"></i></button>' +
+                    '</div>';
+            });
+            container.innerHTML = html;
+            updateTotal();
+        }
+
+        function updateTotal() {
+            var total = 0;
+            var count = 0;
+            cartItems.forEach(function(item) {
+                if (item.selected) {
+                    total += item.productPrice * item.quantity;
+                    count += item.quantity;
+                }
+            });
+            document.getElementById('cart-total').textContent = '¥' + total.toFixed(2);
+            document.getElementById('checkout-btn').textContent = '结算(' + count + ')';
+
+            // Update select-all status
+            var allSelected = cartItems.length > 0 && cartItems.every(function(i) { return i.selected; });
+            document.getElementById('select-all-cb').checked = allSelected;
+        }
+
+        function updateBadge() {
+            var badge = document.getElementById('cart-badge');
+            if (cartItems.length > 0) {
+                badge.textContent = cartItems.length;
+                badge.style.display = '';
+            } else {
+                badge.style.display = 'none';
+            }
+        }
+
+        function toggleSelect(itemId, selected) {
+            fetch('/api/user/cart/' + itemId + '/select', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ selected: selected })
+            });
+            cartItems.forEach(function(item) {
+                if (item.id === itemId) item.selected = selected;
+            });
+            updateTotal();
+        }
+
+        function toggleSelectAll(selected) {
+            cartItems.forEach(function(item) {
+                item.selected = selected;
+                fetch('/api/user/cart/' + item.id + '/select', {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ selected: selected })
+                });
+            });
+            renderCart();
+        }
+
+        function changeQty(itemId, delta) {
+            var item = cartItems.find(function(i) { return i.id === itemId; });
+            if (!item) return;
+            var newQty = item.quantity + delta;
+            if (newQty < 1) {
+                removeItem(itemId);
+                return;
+            }
+            if (newQty > 99) return;
+            item.quantity = newQty;
+            fetch('/api/user/cart/' + itemId, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ quantity: newQty })
+            });
+            renderCart();
+        }
+
+        function removeItem(itemId) {
+            fetch('/api/user/cart/' + itemId, { method: 'DELETE' });
+            cartItems = cartItems.filter(function(i) { return i.id !== itemId; });
+            renderCart();
+            updateBadge();
+        }
+
+        function clearCartAll() {
+            if (!cartItems.length) return;
+            if (!confirm('确定要清空购物车吗？')) return;
+            fetch('/api/user/cart', { method: 'DELETE' });
+            cartItems = [];
+            renderCart();
+            updateBadge();
+        }
+
+        function goCheckout() {
+            var selectedCount = cartItems.filter(function(i) { return i.selected; }).length;
+            if (selectedCount === 0) {
+                alert('请选择要结算的商品');
+                return;
+            }
+            window.location.href = '/checkout';
+        }
+    </script>
 </body>
 </html>
