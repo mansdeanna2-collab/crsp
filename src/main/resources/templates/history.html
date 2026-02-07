@@ -135,6 +135,13 @@
     </div>
 
     <script>
+        function escapeHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             // 先初始化用户
             fetch('/api/user/init', { method: 'POST' }).then(function() {
@@ -156,12 +163,12 @@
                         var time = item.viewedAt ? new Date(item.viewedAt).toLocaleString('zh-CN') : '';
                         html += '<a href="/product/' + item.productId + '" class="history-item">' +
                             '<div class="history-item-image">' +
-                            (item.productImage ? '<img src="' + item.productImage + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><i class="fas fa-box" style="display:none"></i>' : '<i class="fas fa-box"></i>') +
+                            (item.productImage ? '<img src="' + encodeURI(item.productImage) + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><i class="fas fa-box" style="display:none"></i>' : '<i class="fas fa-box"></i>') +
                             '</div>' +
                             '<div class="history-item-info">' +
-                            '<div class="history-item-title">' + (item.productTitle || '') + '</div>' +
+                            '<div class="history-item-title">' + escapeHtml(item.productTitle) + '</div>' +
                             '<div class="history-item-price">¥' + (item.productPrice ? item.productPrice.toFixed(2) : '0.00') + '</div>' +
-                            '<div class="history-item-time">' + time + '</div>' +
+                            '<div class="history-item-time">' + escapeHtml(time) + '</div>' +
                             '</div></a>';
                     });
                     container.innerHTML = html;

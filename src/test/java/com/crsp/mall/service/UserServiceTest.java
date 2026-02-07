@@ -1,9 +1,11 @@
 package com.crsp.mall.service;
 
 import com.crsp.mall.entity.CartItemEntity;
+import com.crsp.mall.entity.FavoriteEntity;
 import com.crsp.mall.entity.ProductEntity;
 import com.crsp.mall.entity.UserEntity;
 import com.crsp.mall.repository.CartItemRepository;
+import com.crsp.mall.repository.FavoriteRepository;
 import com.crsp.mall.repository.UserRepository;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -24,6 +26,9 @@ class UserServiceTest {
 
     @Autowired
     private CartItemRepository cartItemRepository;
+
+    @Autowired
+    private FavoriteRepository favoriteRepository;
 
     @Test
     void getOrCreateUserCreatesGuestWithToken() {
@@ -110,6 +115,30 @@ class UserServiceTest {
         // Owner can remove
         userService.removeCartItem(itemId, owner.getId());
         assertFalse(cartItemRepository.findById(itemId).isPresent());
+    }
+
+    @Test
+    void deleteUserCascadesRelatedData() {
+        UserEntity user = userService.getOrCreateUser(null);
+        Long userId = user.getId();
+        ProductEntity product = createProduct();
+
+        // Add related data
+        userService.addToCart(userId, product, "", 1);
+        userService.toggleFavorite(userId, product);
+        userService.addBrowsingHistory(userId, product);
+
+        // Verify data exists
+        assertTrue(cartItemRepository.countByUserId(userId) > 0);
+        assertTrue(favoriteRepository.countByUserId(userId) > 0);
+
+        // Delete user
+        userService.deleteUser(userId);
+
+        // All related data should be gone
+        assertEquals(0, cartItemRepository.countByUserId(userId));
+        assertEquals(0, favoriteRepository.countByUserId(userId));
+        assertFalse(userRepository.findById(userId).isPresent());
     }
 
     private ProductEntity createProduct() {

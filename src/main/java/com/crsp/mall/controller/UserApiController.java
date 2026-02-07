@@ -9,6 +9,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.HashMap;
@@ -49,7 +50,6 @@ public class UserApiController {
         
         Map<String, Object> result = new HashMap<>();
         result.put("id", user.getId());
-        result.put("token", user.getToken());
         result.put("nickname", user.getNickname());
         result.put("userType", user.getUserType());
         return ResponseEntity.ok(result);
@@ -283,6 +283,7 @@ public class UserApiController {
      * 提交订单
      */
     @PostMapping("/checkout")
+    @Transactional
     public ResponseEntity<?> checkout(@RequestBody Map<String, Object> body, HttpServletRequest request) {
         UserEntity user = getCurrentUser(request);
         if (user == null) {
@@ -312,7 +313,7 @@ public class UserApiController {
             return ResponseEntity.badRequest().body(Map.of("error", "请选择要结算的商品"));
         }
 
-        // 验证库存并计算总价
+        // 验证库存并计算总价（使用当前数据库中的实际价格）
         double totalAmount = 0;
         int totalCount = 0;
         for (CartItemEntity item : selectedItems) {
@@ -330,7 +331,8 @@ public class UserApiController {
             if (product.getStock() != null && product.getStock() < item.getQuantity()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 库存不足，当前库存: " + product.getStock()));
             }
-            totalAmount += item.getProductPrice() * item.getQuantity();
+            // Use current product price from DB, not the stale cart snapshot
+            totalAmount += product.getPrice() * item.getQuantity();
             totalCount += item.getQuantity();
         }
 

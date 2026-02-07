@@ -319,6 +319,13 @@
     </div>
 
     <script>
+        function escapeHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
         // 加载结算商品
         document.addEventListener('DOMContentLoaded', function() {
             loadCheckoutItems();
@@ -348,11 +355,11 @@
                         totalCount += item.quantity;
                         html += '<div class="checkout-item">' +
                             '<div class="checkout-item-image">' +
-                            (item.productImage ? '<img src="' + item.productImage + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><i class="fas fa-box" style="display:none"></i>' : '<i class="fas fa-box"></i>') +
+                            (item.productImage ? '<img src="' + encodeURI(item.productImage) + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><i class="fas fa-box" style="display:none"></i>' : '<i class="fas fa-box"></i>') +
                             '</div>' +
                             '<div class="checkout-item-info">' +
-                            '<div class="checkout-item-title">' + item.productTitle + '</div>' +
-                            (item.specName ? '<div class="checkout-item-spec">' + item.specName + '</div>' : '') +
+                            '<div class="checkout-item-title">' + escapeHtml(item.productTitle) + '</div>' +
+                            (item.specName ? '<div class="checkout-item-spec">' + escapeHtml(item.specName) + '</div>' : '') +
                             '<div class="checkout-item-bottom">' +
                             '<span class="checkout-item-price">¥' + item.productPrice.toFixed(2) + '</span>' +
                             '<span class="checkout-item-qty">x' + item.quantity + '</span>' +

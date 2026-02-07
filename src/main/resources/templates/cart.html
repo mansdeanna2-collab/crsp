@@ -150,6 +150,13 @@
     <script>
         var cartItems = [];
 
+        function escapeHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
         document.addEventListener('DOMContentLoaded', function() {
             fetch('/api/user/init', { method: 'POST' }).then(function() {
                 loadCart();
@@ -183,11 +190,11 @@
                     '<input type="checkbox" class="item-checkbox" ' + (item.selected ? 'checked' : '') +
                     ' onchange="toggleSelect(' + item.id + ', this.checked)">' +
                     '<div class="item-image">' +
-                    (item.productImage ? '<img src="' + item.productImage + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><i class="fas fa-box" style="display:none"></i>' : '<i class="fas fa-box"></i>') +
+                    (item.productImage ? '<img src="' + encodeURI(item.productImage) + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><i class="fas fa-box" style="display:none"></i>' : '<i class="fas fa-box"></i>') +
                     '</div>' +
                     '<div class="item-info">' +
-                    '<div class="item-title">' + item.productTitle + '</div>' +
-                    (item.specName ? '<div class="item-spec">' + item.specName + '</div>' : '') +
+                    '<div class="item-title">' + escapeHtml(item.productTitle) + '</div>' +
+                    (item.specName ? '<div class="item-spec">' + escapeHtml(item.specName) + '</div>' : '') +
                     '<div class="item-price-row">' +
                     '<span class="item-price">¥' + item.productPrice.toFixed(2) + '</span>' +
                     '<div class="quantity-control">' +

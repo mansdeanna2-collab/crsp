@@ -74,7 +74,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
+    @Transactional
     public void deleteUser(Long id) {
+        // Cascade delete related data
+        browsingHistoryRepository.deleteByUserId(id);
+        favoriteRepository.deleteByUserId(id);
+        cartItemRepository.deleteByUserId(id);
         userRepository.deleteById(id);
     }
 
