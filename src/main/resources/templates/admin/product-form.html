@@ -976,8 +976,37 @@
                 imageInput.style.flex = '1';
                 imageInput.value = spec.image || '';
                 imageInput.onchange = function() { 
-                    updateSpec(index, 'image', this.value); 
-                    renderSpecList(); 
+                    var inputEl = this;
+                    var url = inputEl.value.trim();
+                    // 如果是外部链接，先下载到服务器
+                    if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
+                        inputEl.disabled = true;
+                        fetch('/admin/upload/from-url', {
+                            method: 'POST',
+                            headers: { 'Content-Type': 'application/json' },
+                            body: JSON.stringify({ url: url })
+                        })
+                        .then(function(resp) { return resp.json(); })
+                        .then(function(data) {
+                            inputEl.disabled = false;
+                            if (data.url) {
+                                updateSpec(index, 'image', data.url);
+                            } else {
+                                showError(data.error || '图片下载失败');
+                                updateSpec(index, 'image', url);
+                            }
+                            renderSpecList();
+                        })
+                        .catch(function() {
+                            inputEl.disabled = false;
+                            showError('图片下载失败，使用原始链接');
+                            updateSpec(index, 'image', url);
+                            renderSpecList();
+                        });
+                    } else {
+                        updateSpec(index, 'image', url); 
+                        renderSpecList(); 
+                    }
                 };
                 imageContainer.appendChild(imageInput);
                 specItem.appendChild(imageContainer);

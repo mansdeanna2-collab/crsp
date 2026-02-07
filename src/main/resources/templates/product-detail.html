@@ -856,15 +856,7 @@
                           th:data-index="${iterStat.index}">
                     </span>
                 </div>
-                <!-- 导航按钮 -->
-                <th:block th:if="${displayMediaList != null and displayMediaList.size() > 1}">
-                    <button class="media-nav-btn prev" onclick="prevSlide()">
-                        <i class="fas fa-chevron-left"></i>
-                    </button>
-                    <button class="media-nav-btn next" onclick="nextSlide()">
-                        <i class="fas fa-chevron-right"></i>
-                    </button>
-                </th:block>
+                <!-- 导航按钮已移除，使用左右滑动和自动切换 -->
             </div>
 
             <!-- 商品信息 -->
@@ -920,56 +912,7 @@
                 </div>
             </div>
 
-            <!-- 商品描述 -->
-            <div class="desc-section">
-                <div class="desc-title">商品描述</div>
-                <div class="desc-content" th:text="${product.description}">商品描述内容</div>
-            </div>
 
-            <!-- 用户评价 -->
-            <div class="review-section">
-                <div class="review-header">
-                    <span class="desc-title">用户评价</span>
-                    <span class="review-summary">好评率 <em>98%</em></span>
-                </div>
-                <div class="review-tags">
-                    <span class="review-tag active">全部(128)</span>
-                    <span class="review-tag">好评(125)</span>
-                    <span class="review-tag">有图(32)</span>
-                    <span class="review-tag">追评(8)</span>
-                </div>
-                <div class="review-list">
-                    <div class="review-item">
-                        <div class="review-user">
-                            <div class="review-avatar"><i class="fas fa-user"></i></div>
-                            <div class="review-user-info">
-                                <span class="review-name">用***户</span>
-                                <div class="review-stars">
-                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i>
-                                </div>
-                            </div>
-                            <span class="review-date">2024-01-15</span>
-                        </div>
-                        <div class="review-text">质量很好，包装很严密，隐私保护到位，很满意的一次购物体验！</div>
-                        <div class="review-spec">规格：默认规格</div>
-                    </div>
-                    <div class="review-item">
-                        <div class="review-user">
-                            <div class="review-avatar"><i class="fas fa-user"></i></div>
-                            <div class="review-user-info">
-                                <span class="review-name">匿***名</span>
-                                <div class="review-stars">
-                                    <i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star"></i><i class="fas fa-star-half-alt"></i>
-                                </div>
-                            </div>
-                            <span class="review-date">2024-01-10</span>
-                        </div>
-                        <div class="review-text">物流很快，第二天就到了，商品和描述一致，好评！</div>
-                        <div class="review-spec">规格：默认规格</div>
-                    </div>
-                </div>
-                <div class="review-more">查看全部128条评价 <i class="fas fa-chevron-right"></i></div>
-            </div>
 
             <!-- 商品详情图片/视频 -->
             <div class="detail-media-section" th:if="${detailMediaList != null and !detailMediaList.isEmpty()}">
@@ -1146,8 +1089,31 @@
             ind.addEventListener('click', () => {
                 currentSlide = index;
                 updateSlider();
+                resetAutoSlide();
             });
         });
+
+        // 3秒自动切换
+        let autoSlideTimer = null;
+        function startAutoSlide() {
+            if (totalSlides > 1) {
+                autoSlideTimer = setInterval(function() {
+                    currentSlide = (currentSlide + 1) % totalSlides;
+                    updateSlider();
+                }, 3000);
+            }
+        }
+        function stopAutoSlide() {
+            if (autoSlideTimer) {
+                clearInterval(autoSlideTimer);
+                autoSlideTimer = null;
+            }
+        }
+        function resetAutoSlide() {
+            stopAutoSlide();
+            startAutoSlide();
+        }
+        startAutoSlide();
 
         // 视频播放结束恢复播放按钮
         if (sliderContainer) {
@@ -1195,11 +1161,13 @@
         if (sliderContainer) {
             sliderContainer.addEventListener('touchstart', (e) => {
                 touchStartX = e.changedTouches[0].screenX;
+                stopAutoSlide();
             });
 
             sliderContainer.addEventListener('touchend', (e) => {
                 touchEndX = e.changedTouches[0].screenX;
                 handleSwipe();
+                resetAutoSlide();
             });
         }
 
