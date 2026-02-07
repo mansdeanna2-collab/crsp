@@ -992,15 +992,15 @@
                             if (data.url) {
                                 updateSpec(index, 'image', data.url);
                             } else {
-                                showError(data.error || '图片下载失败');
-                                updateSpec(index, 'image', url);
+                                showError(data.error || '图片下载失败，请重试或上传本地文件');
+                                updateSpec(index, 'image', '');
                             }
                             renderSpecList();
                         })
                         .catch(function() {
                             inputEl.disabled = false;
-                            showError('图片下载失败，使用原始链接');
-                            updateSpec(index, 'image', url);
+                            showError('图片下载失败，请重试或上传本地文件');
+                            updateSpec(index, 'image', '');
                             renderSpecList();
                         });
                     } else {
