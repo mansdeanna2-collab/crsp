@@ -45,7 +45,7 @@ public class ProductDbService {
         if (keyword == null || keyword.trim().isEmpty()) {
             return productRepository.findByActiveTrue();
         }
-        return productRepository.findByTitleContainingIgnoreCaseAndActiveTrue(keyword.trim());
+        return productRepository.searchActiveProducts(keyword.trim());
     }
 
     /**
