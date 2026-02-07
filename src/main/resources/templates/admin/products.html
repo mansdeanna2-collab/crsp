@@ -172,6 +172,10 @@
                     <span>用户管理</span>
                 </a>
                 <div class="menu-title">系统</div>
+                <a th:href="@{/admin/password}" class="menu-item" th:classappend="${currentPage == 'password'} ? ' active'">
+                    <i class="fas fa-key"></i>
+                    <span>修改密码</span>
+                </a>
                 <a th:href="@{/}" class="menu-item" target="_blank">
                     <i class="fas fa-external-link-alt"></i>
                     <span>查看商城</span>

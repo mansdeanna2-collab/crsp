@@ -73,10 +73,36 @@ public class AdminService {
     }
 
     /**
+     * 修改管理员密码
+     */
+    public boolean changePassword(Long adminId, String oldPassword, String newPassword) {
+        Optional<AdminEntity> adminOpt = adminRepository.findById(adminId);
+        if (adminOpt.isEmpty()) {
+            return false;
+        }
+        AdminEntity admin = adminOpt.get();
+        if (!passwordEncoder.matches(oldPassword, admin.getPassword())) {
+            return false;
+        }
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        adminRepository.save(admin);
+        return true;
+    }
+
+    /**
      * 初始化默认管理员
+     * 如果admin用户不存在则创建，如果已存在则确保密码为默认密码admin123
      */
     public void initDefaultAdmin() {
-        if (!adminRepository.existsByUsername("admin")) {
+        Optional<AdminEntity> existing = adminRepository.findByUsername("admin");
+        if (existing.isPresent()) {
+            // 确保默认管理员密码始终为admin123（解决持久化数据库中密码不一致问题）
+            AdminEntity admin = existing.get();
+            if (!passwordEncoder.matches("admin123", admin.getPassword())) {
+                admin.setPassword(passwordEncoder.encode("admin123"));
+                adminRepository.save(admin);
+            }
+        } else {
             AdminEntity admin = new AdminEntity();
             admin.setUsername("admin");
             admin.setPassword(passwordEncoder.encode("admin123"));
