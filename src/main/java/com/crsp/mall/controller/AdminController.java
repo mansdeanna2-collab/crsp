@@ -89,11 +89,16 @@ public class AdminController {
         long orderCount = allOrders.size();
         long pendingOrders = allOrders.stream().filter(o -> "pending".equals(o.getStatus())).count();
         long userCount = userService.getUserCount();
+        double totalRevenue = allOrders.stream()
+                .filter(o -> !"cancelled".equals(o.getStatus()))
+                .mapToDouble(OrderEntity::getTotalAmount)
+                .sum();
         
         model.addAttribute("productCount", productCount);
         model.addAttribute("orderCount", orderCount);
         model.addAttribute("pendingOrders", pendingOrders);
         model.addAttribute("userCount", userCount);
+        model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("recentOrders", allOrders.stream().limit(5).toList());
         model.addAttribute("currentPage", "dashboard");
         
@@ -244,18 +249,61 @@ public class AdminController {
      * 用户管理页面
      */
     @GetMapping("/users")
-    public String userList(HttpSession session, Model model) {
+    public String userList(@RequestParam(required = false) String keyword,
+                           @RequestParam(required = false) String type,
+                           HttpSession session, Model model) {
         if (session.getAttribute("admin") == null) {
             return "redirect:/admin/login";
         }
         
         List<UserEntity> users = userService.getAllUsers();
+        
+        // 按类型过滤
+        if (type != null && !type.isEmpty()) {
+            users = users.stream().filter(u -> type.equals(u.getUserType())).toList();
+        }
+        // 按关键词搜索(昵称或手机)
+        if (keyword != null && !keyword.trim().isEmpty()) {
+            String kw = keyword.trim().toLowerCase();
+            users = users.stream().filter(u -> 
+                (u.getNickname() != null && u.getNickname().toLowerCase().contains(kw)) ||
+                (u.getPhone() != null && u.getPhone().contains(kw))
+            ).toList();
+        }
+        
         model.addAttribute("users", users);
         model.addAttribute("currentPage", "users");
         model.addAttribute("guestCount", userService.getGuestCount());
         model.addAttribute("totalCount", userService.getUserCount());
+        model.addAttribute("keyword", keyword);
+        model.addAttribute("selectedType", type);
         
         return "admin/users";
+    }
+
+    /**
+     * 用户详情页面
+     */
+    @GetMapping("/users/{id}")
+    public String userDetail(@PathVariable Long id, HttpSession session, Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+        
+        Optional<UserEntity> userOpt = userService.getUserById(id);
+        if (userOpt.isEmpty()) {
+            return "redirect:/admin/users";
+        }
+        
+        UserEntity user = userOpt.get();
+        model.addAttribute("user", user);
+        model.addAttribute("currentPage", "users");
+        model.addAttribute("orders", orderService.getOrdersByUserId(id));
+        model.addAttribute("favorites", userService.getFavorites(id));
+        model.addAttribute("cartItems", userService.getCartItems(id));
+        model.addAttribute("browsingHistory", userService.getBrowsingHistory(id));
+        
+        return "admin/user-detail";
     }
 
     /**

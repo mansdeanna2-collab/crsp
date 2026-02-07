@@ -157,4 +157,12 @@ public class PageController {
     public String favorites(Model model) {
         return "favorites";
     }
+
+    /**
+     * 我的订单页面
+     */
+    @GetMapping("/orders")
+    public String orders(Model model) {
+        return "orders";
+    }
 }

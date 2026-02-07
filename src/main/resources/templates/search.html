@@ -213,12 +213,11 @@
         <a th:href="@{/message}" class="nav-item" data-page="message">
             <i class="fas fa-comment-dots"></i>
             <span>消息</span>
-            <span class="nav-badge">7</span>
         </a>
         <a th:href="@{/cart}" class="nav-item" data-page="cart">
             <i class="fas fa-shopping-cart"></i>
             <span>购物车</span>
-            <span class="nav-badge">3</span>
+            <span class="nav-badge" id="nav-cart-badge" style="display:none;">0</span>
         </a>
         <a th:href="@{/profile}" class="nav-item" data-page="profile">
             <i class="fas fa-user"></i>
@@ -227,6 +226,17 @@
     </nav>
 
     <script>
+        // 更新购物车角标
+        fetch('/api/user/info')
+            .then(function(r) { return r.json(); })
+            .then(function(info) {
+                if (info && info.cartCount > 0) {
+                    var badge = document.getElementById('nav-cart-badge');
+                    if (badge) { badge.textContent = info.cartCount; badge.style.display = ''; }
+                }
+            })
+            .catch(function() {});
+
         // 处理视频加载错误
         document.querySelectorAll('.result-image video source').forEach(function(source) {
             source.addEventListener('error', function() {

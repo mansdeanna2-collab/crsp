@@ -8,6 +8,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -33,6 +34,9 @@ public class UserApiController {
     @Autowired
     private OrderService orderService;
 
+    @Value("${server.cookie.secure:false}")
+    private boolean secureCookie;
+
     /**
      * 获取或创建用户（自动注册游客）
      */
@@ -42,11 +46,7 @@ public class UserApiController {
         UserEntity user = userService.getOrCreateUser(token);
         
         // 设置cookie
-        Cookie cookie = new Cookie("user_token", user.getToken());
-        cookie.setMaxAge(365 * 24 * 60 * 60); // 1年
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
+        setUserTokenCookie(response, user.getToken());
         
         Map<String, Object> result = new HashMap<>();
         result.put("id", user.getId());
@@ -73,6 +73,44 @@ public class UserApiController {
         result.put("favoriteCount", userService.getFavoriteCount(user.getId()));
         result.put("cartCount", userService.getCartItemCount(user.getId()));
         return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 更新用户个人信息
+     */
+    @PutMapping("/info")
+    public ResponseEntity<?> updateUserInfo(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+        }
+
+        if (body.containsKey("nickname")) {
+            String nickname = body.get("nickname") != null ? body.get("nickname").toString().trim() : "";
+            if (nickname.isEmpty() || nickname.length() > 20) {
+                return ResponseEntity.badRequest().body(Map.of("error", "昵称长度须为1-20个字符"));
+            }
+            user.setNickname(nickname);
+        }
+
+        if (body.containsKey("phone")) {
+            String phone = body.get("phone") != null ? body.get("phone").toString().trim() : "";
+            if (!phone.isEmpty() && !phone.matches("^1[3-9]\\d{9}$")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的手机号码"));
+            }
+            user.setPhone(phone.isEmpty() ? null : phone);
+        }
+
+        if (body.containsKey("email")) {
+            String email = body.get("email") != null ? body.get("email").toString().trim() : "";
+            if (!email.isEmpty() && !email.matches("^[\\w]([\\w.-]*[\\w])?@[\\w]([\\w.-]*[\\w])?\\.[a-zA-Z]{2,}$")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的邮箱地址"));
+            }
+            user.setEmail(email.isEmpty() ? null : email);
+        }
+
+        userService.saveUser(user);
+        return ResponseEntity.ok(Map.of("success", true));
     }
 
     // ===== 浏览历史 =====
@@ -316,7 +354,7 @@ public class UserApiController {
         // 验证库存并计算总价（使用当前数据库中的实际价格）
         double totalAmount = 0;
         int totalCount = 0;
-        boolean priceChanged = false;
+        StringBuilder priceChanges = new StringBuilder();
         for (CartItemEntity item : selectedItems) {
             Optional<ProductEntity> productOpt = productDbService.getProductById(item.getProductId());
             if (productOpt.isEmpty()) {
@@ -332,12 +370,24 @@ public class UserApiController {
             if (product.getStock() != null && product.getStock() < item.getQuantity()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 库存不足，当前库存: " + product.getStock()));
             }
-            // Use current product price from DB, not the stale cart snapshot
+            // 检测价格变化，若价格已变需要用户重新确认
             if (item.getProductPrice() != null && Math.abs(product.getPrice() - item.getProductPrice()) > 0.01) {
-                priceChanged = true;
+                priceChanges.append(String.format("「%s」 ¥%.2f → ¥%.2f；", 
+                    item.getProductTitle(), item.getProductPrice(), product.getPrice()));
+                // 同步更新购物车中的价格快照
+                item.setProductPrice(product.getPrice());
+                userService.saveCartItem(item);
             }
             totalAmount += product.getPrice() * item.getQuantity();
             totalCount += item.getQuantity();
+        }
+
+        // 若有价格变化，拒绝下单并告知用户
+        if (priceChanges.length() > 0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "以下商品价格已变动，请确认后重新提交：" + priceChanges,
+                "priceChanged", true
+            ));
         }
 
         // 创建订单
@@ -353,9 +403,9 @@ public class UserApiController {
         
         OrderEntity savedOrder = orderService.saveOrder(order);
 
-        // 扣减库存
+        // 扣减库存（使用悲观锁防止并发超卖）
         for (CartItemEntity item : selectedItems) {
-            productDbService.getProductById(item.getProductId()).ifPresent(product -> {
+            productDbService.getProductByIdForUpdate(item.getProductId()).ifPresent(product -> {
                 if (product.getStock() != null) {
                     product.setStock(product.getStock() - item.getQuantity());
                     productDbService.saveProduct(product);
@@ -373,9 +423,6 @@ public class UserApiController {
         result.put("orderNo", savedOrder.getOrderNo());
         result.put("totalAmount", totalAmount);
         result.put("productCount", totalCount);
-        if (priceChanged) {
-            result.put("priceChanged", true);
-        }
         return ResponseEntity.ok(result);
     }
 
@@ -391,7 +438,69 @@ public class UserApiController {
         return ResponseEntity.ok(orderService.getOrdersByUserId(user.getId()));
     }
 
+    /**
+     * 取消订单（仅限待付款状态）
+     */
+    @PostMapping("/orders/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId, HttpServletRequest request) {
+        ResponseEntity<?> error = validateUserOrder(request, orderId, "pending", "仅待付款订单可取消");
+        if (error != null) return error;
+        OrderEntity updated = orderService.updateOrderStatus(orderId, "cancelled");
+        if (updated == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "取消失败"));
+        }
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    /**
+     * 确认收货（仅限已发货状态）
+     */
+    @PostMapping("/orders/{orderId}/confirm")
+    public ResponseEntity<?> confirmOrder(@PathVariable Long orderId, HttpServletRequest request) {
+        ResponseEntity<?> error = validateUserOrder(request, orderId, "shipped", "仅已发货订单可确认收货");
+        if (error != null) return error;
+        OrderEntity updated = orderService.updateOrderStatus(orderId, "completed");
+        if (updated == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "确认失败"));
+        }
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    /**
+     * 验证用户订单：检查登录、订单存在、归属权、状态
+     * @return null表示验证通过，否则返回错误响应
+     */
+    private ResponseEntity<?> validateUserOrder(HttpServletRequest request, Long orderId,
+                                                 String requiredStatus, String statusError) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+        }
+        Optional<OrderEntity> orderOpt = orderService.getOrderById(orderId);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "订单不存在"));
+        }
+        OrderEntity order = orderOpt.get();
+        if (!user.getId().equals(order.getUserId())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "无权操作此订单"));
+        }
+        if (!requiredStatus.equals(order.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("error", statusError));
+        }
+        return null;
+    }
+
     // ===== 辅助方法 =====
+
+    private void setUserTokenCookie(HttpServletResponse response, String token) {
+        Cookie cookie = new Cookie("user_token", token);
+        cookie.setMaxAge(365 * 24 * 60 * 60); // 1年
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(secureCookie);
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+    }
 
     private String getTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
@@ -418,11 +527,7 @@ public class UserApiController {
         UserEntity user = userService.getOrCreateUser(token);
         
         // 设置cookie
-        Cookie cookie = new Cookie("user_token", user.getToken());
-        cookie.setMaxAge(365 * 24 * 60 * 60);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
+        setUserTokenCookie(response, user.getToken());
         
         return user;
     }

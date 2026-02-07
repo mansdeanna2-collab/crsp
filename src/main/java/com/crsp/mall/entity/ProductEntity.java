@@ -1,6 +1,9 @@
 package com.crsp.mall.entity;
 
 import jakarta.persistence.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
 import java.time.LocalDateTime;
 
 /**
@@ -10,6 +13,8 @@ import java.time.LocalDateTime;
 @Table(name = "products")
 public class ProductEntity {
     
+    private static final Logger LOGGER = LoggerFactory.getLogger(ProductEntity.class);
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -169,7 +174,7 @@ public class ProductEntity {
                 }
             }
         } catch (Exception e) {
-            // JSON解析失败，返回null
+            LOGGER.warn("商品ID={}的displayMedia JSON解析失败: {}", id, e.getMessage());
         }
         return null;
     }
@@ -193,7 +198,7 @@ public class ProductEntity {
                 }
             }
         } catch (Exception e) {
-            // JSON解析失败，返回null
+            LOGGER.warn("商品ID={}的displayMedia视频JSON解析失败: {}", id, e.getMessage());
         }
         return null;
     }
