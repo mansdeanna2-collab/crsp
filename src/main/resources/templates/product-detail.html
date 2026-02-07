@@ -136,6 +136,27 @@
         .media-slide .video-play-overlay.hidden {
             display: none;
         }
+        .media-slide .video-mute-toggle {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            background: rgba(0,0,0,0.6);
+            color: white;
+            width: 36px;
+            height: 36px;
+            border-radius: 50%;
+            display: none;
+            align-items: center;
+            justify-content: center;
+            font-size: 16px;
+            cursor: pointer;
+            z-index: 6;
+            border: none;
+            -webkit-tap-highlight-color: transparent;
+        }
+        .media-slide .video-mute-toggle.visible {
+            display: flex;
+        }
         .media-slide .fallback-icon {
             display: flex;
             align-items: center;
@@ -738,19 +759,20 @@
         }
         .spec-modal-image .spec-img-expand {
             position: absolute;
-            right: 4px;
-            top: 4px;
+            right: 2px;
+            bottom: 2px;
             background: rgba(0,0,0,0.5);
             color: white;
-            width: 22px;
-            height: 22px;
+            width: 28px;
+            height: 28px;
             border-radius: 4px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 12px;
+            font-size: 14px;
             cursor: pointer;
             z-index: 2;
+            -webkit-tap-highlight-color: transparent;
         }
         .spec-modal-image .spec-img-expand:hover {
             background: rgba(0,0,0,0.7);
@@ -894,6 +916,9 @@
                                     <div class="video-play-overlay" onclick="playVideo(this)">
                                         <i class="fas fa-play"></i>
                                     </div>
+                                    <button class="video-mute-toggle" onclick="toggleMute(this)">
+                                        <i class="fas fa-volume-mute"></i>
+                                    </button>
                                 </div>
                                 <div class="fallback-icon" style="display: none; background: #f5f5f5;">
                                     <i class="fas fa-box"></i>
@@ -1125,11 +1150,24 @@
             if (!sliderContainer) return;
             sliderContainer.querySelectorAll('video').forEach(video => {
                 try { video.pause(); } catch(e) {}
-                // 恢复播放按钮
+                // 恢复播放按钮，隐藏静音切换
                 const wrapper = video.closest('.video-wrapper');
                 const overlay = wrapper ? wrapper.querySelector('.video-play-overlay') : null;
+                const muteToggle = wrapper ? wrapper.querySelector('.video-mute-toggle') : null;
                 if (overlay) overlay.classList.remove('hidden');
+                if (muteToggle) muteToggle.classList.remove('visible');
             });
+        }
+
+        // 更新静音切换按钮图标
+        function updateMuteToggleIcon(wrapper, video) {
+            var muteToggle = wrapper ? wrapper.querySelector('.video-mute-toggle') : null;
+            if (muteToggle) {
+                var icon = muteToggle.querySelector('i');
+                if (icon) {
+                    icon.className = video.muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
+                }
+            }
         }
 
         // 自动播放当前slide的视频（静音模式）
@@ -1139,6 +1177,8 @@
             if (!currentSlideEl || currentSlideEl.getAttribute('data-type') !== 'video') return;
             var video = currentSlideEl.querySelector('video');
             var overlay = currentSlideEl.querySelector('.video-play-overlay');
+            var wrapper = currentSlideEl.querySelector('.video-wrapper');
+            var muteToggle = wrapper ? wrapper.querySelector('.video-mute-toggle') : null;
             if (video) {
                 // 停止自动轮播（同步，防止竞态条件）
                 stopAutoSlide();
@@ -1146,6 +1186,11 @@
                 video.play().then(function() {
                     video.controls = true;
                     if (overlay) overlay.classList.add('hidden');
+                    // 显示静音切换按钮
+                    if (muteToggle) {
+                        muteToggle.classList.add('visible');
+                        updateMuteToggleIcon(wrapper, video);
+                    }
                 }).catch(function(e) {
                     console.warn('Auto play failed:', e);
                     // 自动播放失败时恢复自动轮播
@@ -1154,10 +1199,21 @@
             }
         }
 
+        // 切换静音状态
+        function toggleMute(btn) {
+            var wrapper = btn.closest('.video-wrapper');
+            var video = wrapper ? wrapper.querySelector('video') : null;
+            if (video) {
+                video.muted = !video.muted;
+                updateMuteToggleIcon(wrapper, video);
+            }
+        }
+
         // 播放视频
         function playVideo(overlay) {
             const wrapper = overlay.closest('.video-wrapper');
             const video = wrapper ? wrapper.querySelector('video') : null;
+            const muteToggle = wrapper ? wrapper.querySelector('.video-mute-toggle') : null;
             if (video) {
                 if (video.paused) {
                     video.muted = false;
@@ -1165,6 +1221,11 @@
                     video.controls = true;
                     overlay.classList.add('hidden');
                     stopAutoSlide();
+                    // 显示静音切换按钮
+                    if (muteToggle) {
+                        muteToggle.classList.add('visible');
+                        updateMuteToggleIcon(wrapper, video);
+                    }
                 }
             }
         }
@@ -1234,17 +1295,27 @@
                 video.addEventListener('pause', () => {
                     const wrapper = video.closest('.video-wrapper');
                     const overlay = wrapper ? wrapper.querySelector('.video-play-overlay') : null;
+                    const muteToggle = wrapper ? wrapper.querySelector('.video-mute-toggle') : null;
                     if (overlay) overlay.classList.remove('hidden');
+                    if (muteToggle) muteToggle.classList.remove('visible');
                 });
                 video.addEventListener('play', () => {
                     const wrapper = video.closest('.video-wrapper');
                     const overlay = wrapper ? wrapper.querySelector('.video-play-overlay') : null;
+                    const muteToggle = wrapper ? wrapper.querySelector('.video-mute-toggle') : null;
                     if (overlay) overlay.classList.add('hidden');
+                    if (muteToggle) {
+                        muteToggle.classList.add('visible');
+                        updateMuteToggleIcon(wrapper, video);
+                    }
                     // 视频播放时停止自动轮播
                     stopAutoSlide();
                 });
                 video.addEventListener('ended', () => {
                     // 视频播放结束，恢复自动轮播
+                    const wrapper = video.closest('.video-wrapper');
+                    const muteToggle = wrapper ? wrapper.querySelector('.video-mute-toggle') : null;
+                    if (muteToggle) muteToggle.classList.remove('visible');
                     resetAutoSlide();
                 });
                 // 处理视频加载错误，显示fallback图标
@@ -1341,6 +1412,9 @@
                 } else {
                     prevSlide();
                 }
+            } else {
+                // Snap back to current slide when threshold not met
+                updateSlider();
             }
         }
 

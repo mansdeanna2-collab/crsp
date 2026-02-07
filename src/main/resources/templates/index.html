@@ -186,12 +186,42 @@
 
             // 触摸滑动
             var startX = 0;
-            track.addEventListener('touchstart', function(e) { startX = e.changedTouches[0].screenX; stopAutoPlay(); });
+            var startY = 0;
+            var isDragging = false;
+            track.addEventListener('touchstart', function(e) {
+                startX = e.touches[0].clientX;
+                startY = e.touches[0].clientY;
+                isDragging = true;
+                stopAutoPlay();
+                track.style.transition = 'none';
+            }, { passive: true });
+            track.addEventListener('touchmove', function(e) {
+                if (!isDragging) return;
+                var diffX = Math.abs(e.touches[0].clientX - startX);
+                var diffY = Math.abs(e.touches[0].clientY - startY);
+                if (diffX > diffY && diffX > 10) {
+                    e.preventDefault();
+                    var offsetX = e.touches[0].clientX - startX;
+                    var baseTranslate = -current * 100;
+                    var dragPercent = (offsetX / track.offsetWidth) * 100;
+                    track.style.transform = 'translateX(' + (baseTranslate + dragPercent) + '%)';
+                }
+            }, { passive: false });
             track.addEventListener('touchend', function(e) {
-                var diff = startX - e.changedTouches[0].screenX;
+                if (!isDragging) return;
+                isDragging = false;
+                track.style.transition = 'transform 0.4s ease';
+                var diff = startX - e.changedTouches[0].clientX;
                 if (Math.abs(diff) > 40) { diff > 0 ? goTo(current + 1) : goTo(current - 1); }
+                else { goTo(current); }
                 startAutoPlay();
-            });
+            }, { passive: true });
+            track.addEventListener('touchcancel', function() {
+                isDragging = false;
+                track.style.transition = 'transform 0.4s ease';
+                goTo(current);
+                startAutoPlay();
+            }, { passive: true });
 
             startAutoPlay();
         })();
