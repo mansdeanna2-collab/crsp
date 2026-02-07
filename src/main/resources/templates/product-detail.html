@@ -195,8 +195,7 @@
         .product-detail-info {
             background: white;
             padding: 15px;
-            margin-top: -20px;
-            border-radius: 20px 20px 0 0;
+            margin-top: 0;
             position: relative;
         }
         .price-section {
@@ -1290,6 +1289,15 @@
                 priceEl.textContent = spec.price;
             } else if (priceEl) {
                 priceEl.textContent = basePrice;
+            }
+            // 更新规格弹窗头部图片
+            var modalImageEl = document.getElementById('specModalImage');
+            if (modalImageEl && spec.image) {
+                var newImg = document.createElement('img');
+                newImg.src = spec.image;
+                newImg.alt = spec.name || '';
+                modalImageEl.textContent = '';
+                modalImageEl.appendChild(newImg);
             }
         }
 
