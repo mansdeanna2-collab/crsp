@@ -1084,7 +1084,7 @@
 
     <!-- 图片预览全屏弹窗 -->
     <div class="image-preview-overlay" id="imagePreviewOverlay" onclick="closeImagePreview()">
-        <button class="image-preview-close" onclick="closeImagePreview()">
+        <button class="image-preview-close" aria-label="关闭图片预览" onclick="closeImagePreview()">
             <i class="fas fa-times"></i>
         </button>
         <img id="imagePreviewImg" src="" alt="预览图片">
@@ -1463,7 +1463,7 @@
         function openImagePreview(src) {
             var overlay = document.getElementById('imagePreviewOverlay');
             var img = document.getElementById('imagePreviewImg');
-            if (overlay && img) {
+            if (overlay && img && src && (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/'))) {
                 img.src = src;
                 overlay.classList.add('active');
                 document.body.style.overflow = 'hidden';
