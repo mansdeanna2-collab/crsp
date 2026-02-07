@@ -2,6 +2,8 @@
  * 成人玩具商城 - JavaScript交互
  */
 
+var DEFAULT_SPECS = [{ label: '默认规格' }];
+
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化导航
     initNavigation();
@@ -736,7 +738,8 @@ function showSearchResults(keyword) {
                 originalPrice: '¥' + (priceValue * 2),
                 sales: '已售 1000+件',
                 icon: product.icon,
-                bg: product.bg
+                bg: product.bg,
+                specs: DEFAULT_SPECS
             });
         });
     });
@@ -748,6 +751,47 @@ function showSearchResults(keyword) {
  * 初始化商品详情功能
  */
 function initProductDetail() {
+    const productSpecs = [
+        [
+            { label: '粉色', bg: 'linear-gradient(135deg, #ffecd2, #fcb69f)', icon: 'fa-tshirt' },
+            { label: '白色', bg: 'linear-gradient(135deg, #f5f7fa, #c3cfe2)', icon: 'fa-tshirt' },
+            { label: '尺码 S' },
+            { label: '尺码 M' },
+            { label: '尺码 L' }
+        ],
+        [
+            { label: '星空黑', bg: 'linear-gradient(135deg, #434343, #000000)', icon: 'fa-mobile-alt' },
+            { label: '冰蓝色', bg: 'linear-gradient(135deg, #a1c4fd, #c2e9fb)', icon: 'fa-mobile-alt' },
+            { label: '128GB' },
+            { label: '256GB' }
+        ],
+        [
+            { label: '滋润型', bg: 'linear-gradient(135deg, #d299c2, #fef9d7)', icon: 'fa-pump-soap' },
+            { label: '清爽型', bg: 'linear-gradient(135deg, #a1c4fd, #c2e9fb)', icon: 'fa-pump-soap' },
+            { label: '30ml' },
+            { label: '50ml' }
+        ],
+        [
+            { label: '黑色', bg: 'linear-gradient(135deg, #434343, #000000)', icon: 'fa-headphones' },
+            { label: '白色', bg: 'linear-gradient(135deg, #f5f7fa, #c3cfe2)', icon: 'fa-headphones' },
+            { label: '标准版' },
+            { label: '降噪版' }
+        ],
+        [
+            { label: '白色', bg: 'linear-gradient(135deg, #f5f7fa, #c3cfe2)', icon: 'fa-shoe-prints' },
+            { label: '黑色', bg: 'linear-gradient(135deg, #434343, #000000)', icon: 'fa-shoe-prints' },
+            { label: '39码' },
+            { label: '40码' },
+            { label: '41码' }
+        ],
+        [
+            { label: '经典黑', bg: 'linear-gradient(135deg, #667eea, #764ba2)', icon: 'fa-watch' },
+            { label: '银色', bg: 'linear-gradient(135deg, #f5f7fa, #c3cfe2)', icon: 'fa-watch' },
+            { label: '42mm' },
+            { label: '46mm' }
+        ]
+    ];
+
     document.querySelectorAll('.product-card').forEach((card, index) => {
         card.addEventListener('click', function() {
             const titleEl = this.querySelector('.product-title');
@@ -763,7 +807,8 @@ function initProductDetail() {
                 originalPrice: originalPriceEl ? originalPriceEl.textContent : '¥0',
                 sales: salesEl ? salesEl.textContent : '已售 0件',
                 icon: iconEl ? iconEl.className.replace('fas ', '') : 'fa-shopping-bag',
-                bg: imageEl ? imageEl.style.background : 'linear-gradient(135deg, #ffecd2, #fcb69f)'
+                bg: imageEl ? imageEl.style.background : 'linear-gradient(135deg, #ffecd2, #fcb69f)',
+                specs: productSpecs[index] || DEFAULT_SPECS
             };
 
             showProductDetail(productData);
@@ -798,6 +843,7 @@ function showProductDetail(productData) {
     const detailPrice = document.getElementById('detail-price');
     const detailOriginalPrice = document.getElementById('detail-original-price');
     const detailSales = document.getElementById('detail-sales');
+    const specOptions = document.querySelector('#product-detail-modal .spec-options');
 
     if (detailImage) {
         // 解析背景样式
@@ -813,6 +859,25 @@ function showProductDetail(productData) {
     if (detailPrice) detailPrice.textContent = productData.price;
     if (detailOriginalPrice) detailOriginalPrice.textContent = productData.originalPrice;
     if (detailSales) detailSales.textContent = productData.sales;
+
+    // 更新商品规格
+    if (specOptions && productData.specs) {
+        specOptions.innerHTML = productData.specs.map(spec => {
+            if (spec.bg && spec.icon) {
+                return `<span class="spec-tag">
+                    <span class="spec-thumb" style="background: ${spec.bg};">
+                        <i class="fas ${spec.icon}"></i>
+                    </span>
+                    ${spec.label}
+                </span>`;
+            }
+            return `<span class="spec-tag">${spec.label}</span>`;
+        }).join('');
+    }
+
+    // 确保弹窗内容滚动到顶部
+    const modalBody = document.querySelector('#product-detail-modal .modal-body');
+    if (modalBody) modalBody.scrollTop = 0;
 
     openModal('product-detail-modal');
 }
