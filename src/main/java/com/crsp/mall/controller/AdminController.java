@@ -228,8 +228,12 @@ public class AdminController {
             return "redirect:/admin/login";
         }
         
-        orderService.updateOrderStatus(id, status);
-        redirectAttributes.addFlashAttribute("success", "订单状态更新成功");
+        OrderEntity updated = orderService.updateOrderStatus(id, status);
+        if (updated == null) {
+            redirectAttributes.addFlashAttribute("error", "订单状态更新失败，请检查状态转换是否合法");
+        } else {
+            redirectAttributes.addFlashAttribute("success", "订单状态更新成功");
+        }
         return "redirect:/admin/orders";
     }
 
@@ -364,6 +368,10 @@ public class AdminController {
         }
         if (phone != null) {
             String trimmedPhone = phone.trim();
+            if (!trimmedPhone.isEmpty() && !trimmedPhone.matches("^1[3-9]\\d{9}$")) {
+                redirectAttributes.addFlashAttribute("error", "请输入正确的手机号码");
+                return "redirect:/admin/users/" + id;
+            }
             user.setPhone(trimmedPhone.isEmpty() ? null : trimmedPhone);
         }
         if (email != null) {
