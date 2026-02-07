@@ -8,6 +8,7 @@ import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import jakarta.servlet.http.HttpServletResponse;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.bind.annotation.*;
@@ -32,6 +33,9 @@ public class UserApiController {
 
     @Autowired
     private OrderService orderService;
+
+    @Value("${server.cookie.secure:false}")
+    private boolean secureCookie;
 
     /**
      * 获取或创建用户（自动注册游客）
@@ -403,7 +407,7 @@ public class UserApiController {
         cookie.setMaxAge(365 * 24 * 60 * 60); // 1年
         cookie.setPath("/");
         cookie.setHttpOnly(true);
-        cookie.setSecure(true);
+        cookie.setSecure(secureCookie);
         cookie.setAttribute("SameSite", "Lax");
         response.addCookie(cookie);
     }
