@@ -85,17 +85,14 @@ public class UserService {
      * 获取用户消费总额（非取消订单）
      */
     public double getUserTotalSpending(Long userId) {
-        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId).stream()
-                .filter(o -> !"cancelled".equals(o.getStatus()))
-                .mapToDouble(OrderEntity::getTotalAmount)
-                .sum();
+        return orderRepository.sumTotalAmountByUserIdExcludingCancelled(userId);
     }
 
     /**
      * 获取用户订单数量
      */
     public long getUserOrderCount(Long userId) {
-        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId).size();
+        return orderRepository.countByUserId(userId);
     }
 
     public UserEntity saveUser(UserEntity user) {
