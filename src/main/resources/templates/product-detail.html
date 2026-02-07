@@ -11,6 +11,7 @@
             padding-bottom: 70px;
             min-height: 100vh;
             background: #f5f5f5;
+            overflow-x: hidden;
         }
         .detail-header {
             position: fixed;
@@ -105,11 +106,13 @@
             width: 100%;
             height: 100%;
             background: #000;
+            overflow: hidden;
         }
         .media-slide .video-wrapper video {
             width: 100%;
             height: 100%;
             object-fit: cover;
+            max-height: 100%;
         }
         .media-slide .video-play-overlay {
             position: absolute;
@@ -335,6 +338,7 @@
             background: white;
             margin-top: 10px;
             padding: 15px;
+            overflow: hidden;
         }
         .detail-media-section .desc-title {
             margin-bottom: 15px;
@@ -346,7 +350,9 @@
         }
         .detail-media-item {
             width: 100%;
+            max-width: 100%;
             display: block;
+            overflow: hidden;
         }
         .detail-media-item img {
             width: 100%;
@@ -357,10 +363,13 @@
         }
         .detail-media-item video {
             width: 100%;
+            max-width: 100%;
             height: auto;
+            max-height: 400px;
             display: block;
             border-radius: 8px;
-            object-fit: cover;
+            object-fit: contain;
+            background: #000;
         }
         
         /* 规格选择 */
@@ -759,23 +768,27 @@
         }
         .spec-modal-image .spec-img-expand {
             position: absolute;
-            right: 2px;
-            bottom: 2px;
-            background: rgba(0,0,0,0.5);
-            color: white;
-            width: 28px;
-            height: 28px;
-            border-radius: 4px;
+            right: 4px;
+            bottom: 4px;
+            background: rgba(0,0,0,0.35);
+            color: rgba(255,255,255,0.9);
+            width: 20px;
+            height: 20px;
+            border-radius: 3px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 14px;
+            font-size: 10px;
             cursor: pointer;
             z-index: 2;
             -webkit-tap-highlight-color: transparent;
+            transition: background 0.2s, transform 0.2s;
+            backdrop-filter: blur(2px);
+            -webkit-backdrop-filter: blur(2px);
         }
         .spec-modal-image .spec-img-expand:hover {
-            background: rgba(0,0,0,0.7);
+            background: rgba(0,0,0,0.55);
+            transform: scale(1.1);
         }
         /* 图片预览全屏弹窗 */
         .image-preview-overlay {
