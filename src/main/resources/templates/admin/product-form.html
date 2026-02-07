@@ -579,6 +579,12 @@
                                 <button type="button" class="add-spec-btn" onclick="addSpec()">
                                     <i class="fas fa-plus"></i> 添加规格
                                 </button>
+                                <div class="upload-progress" id="specUploadProgress" style="display: none; margin-top: 10px;">
+                                    <div style="background: #eee; border-radius: 4px; height: 6px; overflow: hidden;">
+                                        <div id="specProgressBar" style="background: linear-gradient(135deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                    </div>
+                                    <span id="specProgressText" style="font-size: 12px; color: #666; margin-top: 4px; display: block;">上传中...</span>
+                                </div>
                             </div>
                         </div>
                     </div>
@@ -931,6 +937,89 @@
             document.getElementById('specificationsInput').value = JSON.stringify(specificationsData);
         }
 
+        // 下载规格图片到服务器（通过URL链接）
+        function downloadSpecImage(index, url) {
+            var progressEl = document.getElementById('specUploadProgress');
+            var progressBar = document.getElementById('specProgressBar');
+            var progressText = document.getElementById('specProgressText');
+            progressEl.style.display = 'block';
+            progressBar.style.width = '30%';
+            progressText.textContent = '正在下载规格图片到服务器...';
+
+            fetch('/admin/upload/from-url', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ url: url })
+            })
+            .then(function(resp) {
+                progressBar.style.width = '80%';
+                return resp.json();
+            })
+            .then(function(data) {
+                progressEl.style.display = 'none';
+                if (data.url) {
+                    updateSpec(index, 'image', data.url);
+                } else {
+                    showError(data.error || '图片下载失败，请重试或上传本地文件');
+                    updateSpec(index, 'image', '');
+                }
+                renderSpecList();
+            })
+            .catch(function() {
+                progressEl.style.display = 'none';
+                showError('图片下载失败，请重试或上传本地文件');
+                updateSpec(index, 'image', '');
+                renderSpecList();
+            });
+        }
+
+        // 上传本地规格图片文件
+        function uploadSpecImage(index, input) {
+            var file = input.files[0];
+            if (!file) return;
+
+            var progressEl = document.getElementById('specUploadProgress');
+            var progressBar = document.getElementById('specProgressBar');
+            var progressText = document.getElementById('specProgressText');
+            progressEl.style.display = 'block';
+            progressBar.style.width = '0%';
+            progressText.textContent = '正在上传规格图片...';
+
+            var formData = new FormData();
+            formData.append('file', file);
+
+            var xhr = new XMLHttpRequest();
+            xhr.open('POST', '/admin/upload', true);
+
+            xhr.upload.addEventListener('progress', function(e) {
+                if (e.lengthComputable) {
+                    var percent = Math.round((e.loaded / e.total) * 100);
+                    progressBar.style.width = percent + '%';
+                    progressText.textContent = '正在上传规格图片... ' + percent + '%';
+                }
+            });
+
+            xhr.addEventListener('load', function() {
+                progressEl.style.display = 'none';
+                if (xhr.status === 200) {
+                    var result = JSON.parse(xhr.responseText);
+                    updateSpec(index, 'image', result.url);
+                    renderSpecList();
+                } else {
+                    var err = '上传失败';
+                    try { err = JSON.parse(xhr.responseText).error || err; } catch(e) { console.warn('Failed to parse error response:', e); }
+                    showError(err);
+                }
+            });
+
+            xhr.addEventListener('error', function() {
+                progressEl.style.display = 'none';
+                showError('上传失败，请检查网络连接');
+            });
+
+            xhr.send(formData);
+        }
+
         // 渲染规格列表（使用安全的DOM方法防止XSS）
         function renderSpecList() {
             const listEl = document.getElementById('specList');
@@ -972,7 +1061,7 @@
                 
                 const imageInput = document.createElement('input');
                 imageInput.type = 'text';
-                imageInput.placeholder = '图片链接';
+                imageInput.placeholder = '图片链接（输入后自动下载到服务器）';
                 imageInput.style.flex = '1';
                 imageInput.value = spec.image || '';
                 imageInput.onchange = function() { 
@@ -980,35 +1069,34 @@
                     var url = inputEl.value.trim();
                     // 如果是外部链接，先下载到服务器
                     if (url && (url.startsWith('http://') || url.startsWith('https://'))) {
-                        inputEl.disabled = true;
-                        fetch('/admin/upload/from-url', {
-                            method: 'POST',
-                            headers: { 'Content-Type': 'application/json' },
-                            body: JSON.stringify({ url: url })
-                        })
-                        .then(function(resp) { return resp.json(); })
-                        .then(function(data) {
-                            inputEl.disabled = false;
-                            if (data.url) {
-                                updateSpec(index, 'image', data.url);
-                            } else {
-                                showError(data.error || '图片下载失败，请重试或上传本地文件');
-                                updateSpec(index, 'image', '');
-                            }
-                            renderSpecList();
-                        })
-                        .catch(function() {
-                            inputEl.disabled = false;
-                            showError('图片下载失败，请重试或上传本地文件');
-                            updateSpec(index, 'image', '');
-                            renderSpecList();
-                        });
+                        downloadSpecImage(index, url);
                     } else {
                         updateSpec(index, 'image', url); 
                         renderSpecList(); 
                     }
                 };
                 imageContainer.appendChild(imageInput);
+
+                // 本地上传按钮
+                const uploadBtn = document.createElement('button');
+                uploadBtn.type = 'button';
+                uploadBtn.className = 'btn btn-secondary btn-sm';
+                uploadBtn.style.cssText = 'white-space: nowrap; padding: 6px 10px;';
+                uploadBtn.innerHTML = '<i class="fas fa-upload"></i>';
+                uploadBtn.title = '上传本地图片';
+                uploadBtn.onclick = function() {
+                    var fileInput = document.createElement('input');
+                    fileInput.type = 'file';
+                    fileInput.accept = 'image/*';
+                    fileInput.style.display = 'none';
+                    fileInput.onchange = function() {
+                        uploadSpecImage(index, this);
+                        if (fileInput.parentNode) fileInput.parentNode.removeChild(fileInput);
+                    };
+                    document.body.appendChild(fileInput);
+                    fileInput.click();
+                };
+                imageContainer.appendChild(uploadBtn);
                 specItem.appendChild(imageContainer);
                 
                 // 价格输入
@@ -1038,12 +1126,66 @@
             document.getElementById('specificationsInput').value = JSON.stringify(specificationsData);
         }
 
-        // 表单提交前验证
+        // 表单提交前验证：确保所有规格图片都已下载到服务器
         document.getElementById('productForm').addEventListener('submit', function(e) {
             // 确保数据已保存到隐藏字段
             document.getElementById('displayMediaInput').value = JSON.stringify(displayMediaData);
             document.getElementById('detailMediaInput').value = JSON.stringify(detailMediaData);
-            document.getElementById('specificationsInput').value = JSON.stringify(specificationsData);
+
+            // 检查是否有规格图片仍然是外部链接（未下载到服务器）
+            var externalImageSpecs = [];
+            specificationsData.forEach(function(spec, index) {
+                if (spec.image && (spec.image.startsWith('http://') || spec.image.startsWith('https://'))) {
+                    externalImageSpecs.push(index);
+                }
+            });
+
+            if (externalImageSpecs.length > 0) {
+                // 阻止表单提交，先下载外部图片
+                e.preventDefault();
+                var progressEl = document.getElementById('specUploadProgress');
+                var progressBar = document.getElementById('specProgressBar');
+                var progressText = document.getElementById('specProgressText');
+                progressEl.style.display = 'block';
+                progressBar.style.width = '10%';
+                progressText.textContent = '正在下载规格图片到服务器（0/' + externalImageSpecs.length + '）...';
+
+                var completed = 0;
+                var promises = externalImageSpecs.map(function(specIndex) {
+                    return fetch('/admin/upload/from-url', {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ url: specificationsData[specIndex].image })
+                    })
+                    .then(function(resp) { return resp.json(); })
+                    .then(function(data) {
+                        completed++;
+                        var percent = Math.round((completed / externalImageSpecs.length) * 80) + 10;
+                        progressBar.style.width = percent + '%';
+                        progressText.textContent = '正在下载规格图片到服务器（' + completed + '/' + externalImageSpecs.length + '）...';
+                        if (data.url) {
+                            specificationsData[specIndex].image = data.url;
+                        } else {
+                            specificationsData[specIndex].image = '';
+                            showError('规格 "' + (specificationsData[specIndex].name || specIndex) + '" 的图片下载失败');
+                        }
+                    })
+                    .catch(function() {
+                        completed++;
+                        specificationsData[specIndex].image = '';
+                        showError('规格 "' + (specificationsData[specIndex].name || specIndex) + '" 的图片下载失败');
+                    });
+                });
+
+                Promise.all(promises).then(function() {
+                    progressEl.style.display = 'none';
+                    document.getElementById('specificationsInput').value = JSON.stringify(specificationsData);
+                    // 重新提交表单
+                    document.getElementById('productForm').submit();
+                });
+            } else {
+                document.getElementById('specificationsInput').value = JSON.stringify(specificationsData);
+            }
         });
     </script>
 </body>
