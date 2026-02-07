@@ -226,12 +226,30 @@
                     </div>
                     <div class="stat-card">
                         <div class="stat-card-header">
+                            <span class="stat-card-title">注册用户</span>
+                            <div class="stat-card-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                                <i class="fas fa-user-check"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" th:text="${registeredCount}">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
                             <span class="stat-card-title">游客用户</span>
                             <div class="stat-card-icon" style="background: linear-gradient(135deg, #f093fb, #f5576c);">
                                 <i class="fas fa-user-clock"></i>
                             </div>
                         </div>
                         <div class="stat-card-value" th:text="${guestCount}">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">活跃用户</span>
+                            <div class="stat-card-icon" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                                <i class="fas fa-user-shield"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" th:text="${activeCount}">0</div>
                     </div>
                 </div>
 
@@ -257,6 +275,7 @@
                                 <th>ID</th>
                                 <th>昵称</th>
                                 <th>类型</th>
+                                <th>状态</th>
                                 <th>手机</th>
                                 <th>邮箱</th>
                                 <th>最后访问</th>
@@ -275,6 +294,11 @@
                                           th:classappend="'type-' + ${user.userType}"
                                           th:text="${user.userTypeText}">类型</span>
                                 </td>
+                                <td>
+                                    <span class="type-badge"
+                                          th:classappend="${user.active} ? 'type-user' : 'type-guest'"
+                                          th:text="${user.active} ? '正常' : '已禁用'">状态</span>
+                                </td>
                                 <td th:text="${user.phone != null ? user.phone : '-'}">-</td>
                                 <td th:text="${user.email != null ? user.email : '-'}">-</td>
                                 <td th:text="${user.lastVisit != null ? #temporals.format(user.lastVisit, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
@@ -292,7 +316,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(users)}">
-                                <td colspan="8" style="text-align: center; color: #999;">暂无用户数据</td>
+                                <td colspan="9" style="text-align: center; color: #999;">暂无用户数据</td>
                             </tr>
                         </tbody>
                     </table>

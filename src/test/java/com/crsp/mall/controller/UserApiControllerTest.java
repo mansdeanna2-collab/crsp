@@ -13,6 +13,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import jakarta.servlet.http.Cookie;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
@@ -164,6 +165,45 @@ class UserApiControllerTest {
                 .content("{\"nickname\":\"\"}"))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("昵称长度须为1-20个字符"));
+    }
+
+    @Test
+    void updateProfileSavesAddress() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(put("/api/user/info").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"address\":\"北京市朝阳区测试路1号\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void updateProfileRejectsTooLongAddress() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        String longAddress = "a".repeat(501);
+        mockMvc.perform(put("/api/user/info").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"address\":\"" + longAddress + "\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("收货地址不能超过500个字符"));
+    }
+
+    @Test
+    void getUserInfoReturnsEnhancedData() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(get("/api/user/info").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.id").exists())
+                .andExpect(jsonPath("$.nickname").exists())
+                .andExpect(jsonPath("$.orderCount").value(0))
+                .andExpect(jsonPath("$.totalSpending").value(0.0))
+                .andExpect(jsonPath("$.level").value("新用户"));
     }
 
     @Test

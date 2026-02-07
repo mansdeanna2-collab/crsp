@@ -137,7 +137,7 @@
                         <div class="user-id">用户ID: user_123456</div>
                         <div class="member-tag">
                             <i class="fas fa-crown"></i>
-                            <span>VIP会员</span>
+                            <span>新用户</span>
                         </div>
                     </div>
                     <div class="profile-actions">
@@ -200,12 +200,12 @@
                     <span class="assets-label">购物车</span>
                 </div>
                 <div class="assets-item">
-                    <span class="assets-value">0.00</span>
-                    <span class="assets-label">账户余额</span>
+                    <span class="assets-value" id="profile-order-count">0</span>
+                    <span class="assets-label">订单</span>
                 </div>
                 <div class="assets-item">
-                    <span class="assets-value">0</span>
-                    <span class="assets-label">优惠券</span>
+                    <span class="assets-value" id="profile-spending">¥0</span>
+                    <span class="assets-label">累计消费</span>
                 </div>
             </div>
 
@@ -316,6 +316,10 @@
                 <label>邮箱</label>
                 <input type="email" id="editEmail" placeholder="输入邮箱地址">
             </div>
+            <div class="edit-form-group">
+                <label>收货地址</label>
+                <input type="text" id="editAddress" maxlength="500" placeholder="输入收货地址">
+            </div>
             <button class="edit-save-btn" id="editSaveBtn" onclick="saveProfile()">保存</button>
         </div>
     </div>
@@ -356,7 +360,7 @@
                     if (idEl) idEl.textContent = '用户ID: ' + data.id;
                 }
                 var typeEl = document.querySelector('.member-tag span');
-                if (typeEl) typeEl.textContent = data.userType === 'guest' ? '游客' : 'VIP会员';
+                if (typeEl) typeEl.textContent = data.userType === 'guest' ? '游客' : '会员';
 
                 // 加载用户详细信息
                 return fetch('/api/user/info');
@@ -372,6 +376,20 @@
                     var cartCountEl = document.getElementById('profile-cart-count');
                     if (cartCountEl && info.cartCount !== undefined) {
                         cartCountEl.textContent = info.cartCount;
+                    }
+                    // 更新订单数和消费金额
+                    var orderCountEl = document.getElementById('profile-order-count');
+                    if (orderCountEl && info.orderCount !== undefined) {
+                        orderCountEl.textContent = info.orderCount;
+                    }
+                    var spendingEl = document.getElementById('profile-spending');
+                    if (spendingEl && info.totalSpending !== undefined) {
+                        spendingEl.textContent = '¥' + info.totalSpending.toFixed(2);
+                    }
+                    // 更新会员等级
+                    var levelEl = document.querySelector('.member-tag span');
+                    if (levelEl && info.level) {
+                        levelEl.textContent = info.level;
                     }
                     // 更新导航购物车角标
                     var cartBadge = document.getElementById('nav-cart-badge');
@@ -426,6 +444,7 @@
                         document.getElementById('editNickname').value = info.nickname || '';
                         document.getElementById('editPhone').value = info.phone || '';
                         document.getElementById('editEmail').value = info.email || '';
+                        document.getElementById('editAddress').value = info.address || '';
                         document.getElementById('editModal').classList.add('show');
                     }
                 });
@@ -443,7 +462,8 @@
             var data = {
                 nickname: document.getElementById('editNickname').value.trim(),
                 phone: document.getElementById('editPhone').value.trim(),
-                email: document.getElementById('editEmail').value.trim()
+                email: document.getElementById('editEmail').value.trim(),
+                address: document.getElementById('editAddress').value.trim()
             };
 
             fetch('/api/user/info', {

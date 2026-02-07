@@ -30,6 +30,9 @@ public class UserEntity {
     @Column(name = "avatar")
     private String avatar;
     
+    @Column(name = "address", length = 500)
+    private String address;
+    
     // 用户类型: guest=游客, user=注册用户
     @Column(name = "user_type", nullable = false)
     private String userType = "guest";
@@ -83,6 +86,9 @@ public class UserEntity {
     public String getAvatar() { return avatar; }
     public void setAvatar(String avatar) { this.avatar = avatar; }
     
+    public String getAddress() { return address; }
+    public void setAddress(String address) { this.address = address; }
+    
     public String getUserType() { return userType; }
     public void setUserType(String userType) { this.userType = userType; }
     
@@ -104,5 +110,16 @@ public class UserEntity {
             case "user" -> "注册用户";
             default -> "未知";
         };
+    }
+
+    /**
+     * 根据消费金额计算用户等级
+     */
+    public static String calculateLevel(double totalSpending) {
+        if (totalSpending >= 10000) return "钻石会员";
+        if (totalSpending >= 5000) return "金牌会员";
+        if (totalSpending >= 1000) return "银牌会员";
+        if (totalSpending > 0) return "普通会员";
+        return "新用户";
     }
 }

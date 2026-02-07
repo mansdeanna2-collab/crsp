@@ -64,14 +64,21 @@ public class UserApiController {
         if (user == null) {
             return ResponseEntity.ok(Map.of("error", "用户未初始化"));
         }
+        double totalSpending = userService.getUserTotalSpending(user.getId());
+        long orderCount = userService.getUserOrderCount(user.getId());
         Map<String, Object> result = new HashMap<>();
         result.put("id", user.getId());
         result.put("nickname", user.getNickname());
         result.put("userType", user.getUserType());
         result.put("phone", user.getPhone());
         result.put("email", user.getEmail());
+        result.put("address", user.getAddress());
         result.put("favoriteCount", userService.getFavoriteCount(user.getId()));
         result.put("cartCount", userService.getCartItemCount(user.getId()));
+        result.put("orderCount", orderCount);
+        result.put("totalSpending", totalSpending);
+        result.put("level", UserEntity.calculateLevel(totalSpending));
+        result.put("createdAt", user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
         return ResponseEntity.ok(result);
     }
 
@@ -107,6 +114,14 @@ public class UserApiController {
                 return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的邮箱地址"));
             }
             user.setEmail(email.isEmpty() ? null : email);
+        }
+
+        if (body.containsKey("address")) {
+            String address = body.get("address") != null ? body.get("address").toString().trim() : "";
+            if (address.length() > 500) {
+                return ResponseEntity.badRequest().body(Map.of("error", "收货地址不能超过500个字符"));
+            }
+            user.setAddress(address.isEmpty() ? null : address);
         }
 
         userService.saveUser(user);
