@@ -345,14 +345,23 @@ public class AdminController {
         }
 
         UserEntity user = userOpt.get();
-        if (nickname != null && !nickname.trim().isEmpty() && nickname.trim().length() <= 20) {
-            user.setNickname(nickname.trim());
+        if (nickname != null) {
+            String trimmedNickname = nickname.trim();
+            if (!trimmedNickname.isEmpty() && trimmedNickname.length() <= 20) {
+                user.setNickname(trimmedNickname);
+            }
         }
         if (phone != null) {
-            user.setPhone(phone.trim().isEmpty() ? null : phone.trim());
+            String trimmedPhone = phone.trim();
+            user.setPhone(trimmedPhone.isEmpty() ? null : trimmedPhone);
         }
         if (email != null) {
-            user.setEmail(email.trim().isEmpty() ? null : email.trim());
+            String trimmedEmail = email.trim();
+            if (trimmedEmail.isEmpty()) {
+                user.setEmail(null);
+            } else if (trimmedEmail.matches("^[\\w]([\\w.-]*[\\w])?@[\\w]([\\w.-]*[\\w])?\\.[a-zA-Z]{2,}$")) {
+                user.setEmail(trimmedEmail);
+            }
         }
         if (userType != null && ("guest".equals(userType) || "user".equals(userType))) {
             user.setUserType(userType);

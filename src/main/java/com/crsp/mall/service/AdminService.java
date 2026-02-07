@@ -3,6 +3,7 @@ package com.crsp.mall.service;
 import com.crsp.mall.entity.AdminEntity;
 import com.crsp.mall.repository.AdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,9 @@ public class AdminService {
 
     @Autowired
     private AdminRepository adminRepository;
+
+    @Value("${admin.reset-password-on-startup:true}")
+    private boolean resetPasswordOnStartup;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -91,16 +95,18 @@ public class AdminService {
 
     /**
      * 初始化默认管理员
-     * 如果admin用户不存在则创建，如果已存在则确保密码为默认密码admin123
+     * 如果admin用户不存在则创建。
+     * 如果admin.reset-password-on-startup=true且密码不是admin123，则重置密码。
      */
     public void initDefaultAdmin() {
         Optional<AdminEntity> existing = adminRepository.findByUsername("admin");
         if (existing.isPresent()) {
-            // 确保默认管理员密码始终为admin123（解决持久化数据库中密码不一致问题）
-            AdminEntity admin = existing.get();
-            if (!passwordEncoder.matches("admin123", admin.getPassword())) {
-                admin.setPassword(passwordEncoder.encode("admin123"));
-                adminRepository.save(admin);
+            if (resetPasswordOnStartup) {
+                AdminEntity admin = existing.get();
+                if (!passwordEncoder.matches("admin123", admin.getPassword())) {
+                    admin.setPassword(passwordEncoder.encode("admin123"));
+                    adminRepository.save(admin);
+                }
             }
         } else {
             AdminEntity admin = new AdminEntity();
