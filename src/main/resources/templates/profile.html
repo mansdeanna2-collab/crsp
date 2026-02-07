@@ -107,36 +107,36 @@
             <div class="order-section">
                 <div class="section-header">
                     <span>我的订单</span>
-                    <span class="view-all">查看全部 <i class="fas fa-chevron-right"></i></span>
+                    <a href="/orders" class="view-all" style="text-decoration:none;">查看全部 <i class="fas fa-chevron-right"></i></a>
                 </div>
                 <div class="order-tabs">
-                    <div class="order-tab">
+                    <a href="/orders?status=pending" class="order-tab" style="text-decoration:none;color:inherit;">
                         <div class="order-icon">
                             <i class="fas fa-wallet"></i>
-                            <span class="tab-badge">2</span>
+                            <span class="tab-badge" id="badge-pending" style="display:none;">0</span>
                         </div>
                         <span>待付款</span>
-                    </div>
-                    <div class="order-tab">
+                    </a>
+                    <a href="/orders?status=paid" class="order-tab" style="text-decoration:none;color:inherit;">
                         <div class="order-icon">
                             <i class="fas fa-box"></i>
-                            <span class="tab-badge">1</span>
+                            <span class="tab-badge" id="badge-paid" style="display:none;">0</span>
                         </div>
                         <span>待发货</span>
-                    </div>
-                    <div class="order-tab">
+                    </a>
+                    <a href="/orders?status=shipped" class="order-tab" style="text-decoration:none;color:inherit;">
                         <div class="order-icon">
                             <i class="fas fa-truck"></i>
-                            <span class="tab-badge">3</span>
+                            <span class="tab-badge" id="badge-shipped" style="display:none;">0</span>
                         </div>
                         <span>待收货</span>
-                    </div>
-                    <div class="order-tab">
+                    </a>
+                    <a href="/orders?status=completed" class="order-tab" style="text-decoration:none;color:inherit;">
                         <div class="order-icon">
                             <i class="fas fa-comment-dots"></i>
                         </div>
                         <span>待评价</span>
-                    </div>
+                    </a>
                     <div class="order-tab">
                         <div class="order-icon">
                             <i class="fas fa-undo"></i>
@@ -149,19 +149,19 @@
             <!-- 我的资产 -->
             <div class="assets-section">
                 <div class="assets-item">
-                    <span class="assets-value">128.00</span>
-                    <span class="assets-label">红包卡券</span>
+                    <span class="assets-value" id="profile-fav-count">0</span>
+                    <span class="assets-label">收藏</span>
                 </div>
                 <div class="assets-item">
-                    <span class="assets-value">2,580</span>
-                    <span class="assets-label">积分</span>
+                    <span class="assets-value" id="profile-cart-count">0</span>
+                    <span class="assets-label">购物车</span>
                 </div>
                 <div class="assets-item">
                     <span class="assets-value">0.00</span>
                     <span class="assets-label">账户余额</span>
                 </div>
                 <div class="assets-item">
-                    <span class="assets-value">1,200</span>
+                    <span class="assets-value">0</span>
                     <span class="assets-label">优惠券</span>
                 </div>
             </div>
@@ -263,12 +263,11 @@
         <a th:href="@{/message}" class="nav-item" data-page="message">
             <i class="fas fa-comment-dots"></i>
             <span>消息</span>
-            <span class="nav-badge">7</span>
         </a>
         <a th:href="@{/cart}" class="nav-item" data-page="cart">
             <i class="fas fa-shopping-cart"></i>
             <span>购物车</span>
-            <span class="nav-badge">3</span>
+            <span class="nav-badge" id="nav-cart-badge" style="display:none;">0</span>
         </a>
         <a th:href="@{/profile}" class="nav-item active" data-page="profile">
             <i class="fas fa-user"></i>
@@ -285,11 +284,56 @@
                 if (data.nickname) {
                     var nameEl = document.querySelector('.user-details h2');
                     if (nameEl) nameEl.textContent = data.nickname;
-                    var idEl = document.querySelector('.user-id');
-                    if (idEl) idEl.textContent = '用户ID: ' + data.token.substring(0, 8);
-                    var typeEl = document.querySelector('.member-tag span');
-                    if (typeEl) typeEl.textContent = data.userType === 'guest' ? '游客' : 'VIP会员';
                 }
+                if (data.id) {
+                    var idEl = document.querySelector('.user-id');
+                    if (idEl) idEl.textContent = '用户ID: ' + data.id;
+                }
+                var typeEl = document.querySelector('.member-tag span');
+                if (typeEl) typeEl.textContent = data.userType === 'guest' ? '游客' : 'VIP会员';
+
+                // 加载用户详细信息
+                return fetch('/api/user/info');
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(info) {
+                if (info && !info.error) {
+                    // 更新收藏数和购物车数
+                    var favCountEl = document.getElementById('profile-fav-count');
+                    if (favCountEl && info.favoriteCount !== undefined) {
+                        favCountEl.textContent = info.favoriteCount;
+                    }
+                    var cartCountEl = document.getElementById('profile-cart-count');
+                    if (cartCountEl && info.cartCount !== undefined) {
+                        cartCountEl.textContent = info.cartCount;
+                    }
+                    // 更新导航购物车角标
+                    var cartBadge = document.getElementById('nav-cart-badge');
+                    if (cartBadge && info.cartCount > 0) {
+                        cartBadge.textContent = info.cartCount;
+                        cartBadge.style.display = '';
+                    } else if (cartBadge) {
+                        cartBadge.style.display = 'none';
+                    }
+                }
+            });
+
+        // 加载订单数据更新角标
+        fetch('/api/user/orders')
+            .then(function(r) { return r.json(); })
+            .then(function(orders) {
+                if (!orders || !orders.length) return;
+                var counts = { pending: 0, paid: 0, shipped: 0 };
+                orders.forEach(function(o) {
+                    if (counts[o.status] !== undefined) counts[o.status]++;
+                });
+                ['pending', 'paid', 'shipped'].forEach(function(s) {
+                    var badge = document.getElementById('badge-' + s);
+                    if (badge && counts[s] > 0) {
+                        badge.textContent = counts[s];
+                        badge.style.display = '';
+                    }
+                });
             });
 
         // 处理视频加载错误

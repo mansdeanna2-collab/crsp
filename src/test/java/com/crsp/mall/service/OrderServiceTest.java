@@ -69,4 +69,25 @@ class OrderServiceTest {
         assertNotNull(result);
         assertEquals("cancelled", result.getStatus());
     }
+
+    @Test
+    void getOrdersByUserIdReturnsOnlyUserOrders() {
+        OrderEntity order1 = new OrderEntity();
+        order1.setUserId(1L);
+        order1.setUserName("用户1");
+        order1.setTotalAmount(100.0);
+        order1.setStatus("pending");
+        orderRepository.save(order1);
+
+        OrderEntity order2 = new OrderEntity();
+        order2.setUserId(2L);
+        order2.setUserName("用户2");
+        order2.setTotalAmount(200.0);
+        order2.setStatus("paid");
+        orderRepository.save(order2);
+
+        var user1Orders = orderService.getOrdersByUserId(1L);
+        assertEquals(1, user1Orders.size());
+        assertEquals("用户1", user1Orders.get(0).getUserName());
+    }
 }

@@ -400,6 +400,58 @@ public class UserApiController {
         return ResponseEntity.ok(orderService.getOrdersByUserId(user.getId()));
     }
 
+    /**
+     * 取消订单（仅限待付款状态）
+     */
+    @PostMapping("/orders/{orderId}/cancel")
+    public ResponseEntity<?> cancelOrder(@PathVariable Long orderId, HttpServletRequest request) {
+        ResponseEntity<?> error = validateUserOrder(request, orderId, "pending", "仅待付款订单可取消");
+        if (error != null) return error;
+        OrderEntity updated = orderService.updateOrderStatus(orderId, "cancelled");
+        if (updated == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "取消失败"));
+        }
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    /**
+     * 确认收货（仅限已发货状态）
+     */
+    @PostMapping("/orders/{orderId}/confirm")
+    public ResponseEntity<?> confirmOrder(@PathVariable Long orderId, HttpServletRequest request) {
+        ResponseEntity<?> error = validateUserOrder(request, orderId, "shipped", "仅已发货订单可确认收货");
+        if (error != null) return error;
+        OrderEntity updated = orderService.updateOrderStatus(orderId, "completed");
+        if (updated == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "确认失败"));
+        }
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
+    /**
+     * 验证用户订单：检查登录、订单存在、归属权、状态
+     * @return null表示验证通过，否则返回错误响应
+     */
+    private ResponseEntity<?> validateUserOrder(HttpServletRequest request, Long orderId,
+                                                 String requiredStatus, String statusError) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+        }
+        Optional<OrderEntity> orderOpt = orderService.getOrderById(orderId);
+        if (orderOpt.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "订单不存在"));
+        }
+        OrderEntity order = orderOpt.get();
+        if (!user.getId().equals(order.getUserId())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "无权操作此订单"));
+        }
+        if (!requiredStatus.equals(order.getStatus())) {
+            return ResponseEntity.badRequest().body(Map.of("error", statusError));
+        }
+        return null;
+    }
+
     // ===== 辅助方法 =====
 
     private void setUserTokenCookie(HttpServletResponse response, String token) {

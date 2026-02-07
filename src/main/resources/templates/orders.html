@@ -1,0 +1,317 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的订单 - 成人玩具商城</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .orders-page {
+            padding: 55px 0 20px 0;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+        .page-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 15px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .page-header .back-btn {
+            color: #333;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        .page-header h1 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .order-tabs {
+            display: flex;
+            background: white;
+            border-bottom: 1px solid #f0f0f0;
+            position: sticky;
+            top: 50px;
+            z-index: 50;
+        }
+        .order-tab-btn {
+            flex: 1;
+            text-align: center;
+            padding: 12px 0;
+            font-size: 14px;
+            color: #666;
+            border: none;
+            background: none;
+            cursor: pointer;
+            position: relative;
+        }
+        .order-tab-btn.active {
+            color: #ff5722;
+            font-weight: bold;
+        }
+        .order-tab-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 24px;
+            height: 2px;
+            background: #ff5722;
+            border-radius: 1px;
+        }
+        .order-list {
+            padding: 10px;
+        }
+        .order-card {
+            background: white;
+            border-radius: 10px;
+            margin-bottom: 10px;
+            overflow: hidden;
+        }
+        .order-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 12px 15px;
+            border-bottom: 1px solid #f5f5f5;
+        }
+        .order-no {
+            font-size: 13px;
+            color: #999;
+        }
+        .order-status {
+            font-size: 13px;
+            font-weight: bold;
+        }
+        .order-status.pending { color: #ff9800; }
+        .order-status.paid { color: #2196f3; }
+        .order-status.shipped { color: #4caf50; }
+        .order-status.completed { color: #999; }
+        .order-status.cancelled { color: #f44336; }
+        .order-card-body {
+            padding: 12px 15px;
+        }
+        .order-info-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 4px 0;
+            font-size: 14px;
+            color: #333;
+        }
+        .order-amount {
+            color: #ff5722;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .order-time {
+            font-size: 12px;
+            color: #999;
+            margin-top: 6px;
+        }
+        .order-card-footer {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            padding: 10px 15px;
+            border-top: 1px solid #f5f5f5;
+        }
+        .order-action-btn {
+            padding: 6px 16px;
+            border-radius: 16px;
+            font-size: 13px;
+            cursor: pointer;
+            border: 1px solid #ddd;
+            background: white;
+            color: #666;
+        }
+        .order-action-btn.primary {
+            background: #ff5722;
+            color: white;
+            border-color: #ff5722;
+        }
+        .order-action-btn.danger {
+            color: #f44336;
+            border-color: #f44336;
+        }
+        .empty-msg {
+            text-align: center;
+            padding: 60px 0;
+            color: #999;
+        }
+        .empty-msg i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+        .empty-msg a {
+            display: inline-block;
+            margin-top: 15px;
+            background: #ff5722;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 20px;
+            text-decoration: none;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="orders-page">
+            <div class="page-header">
+                <a th:href="@{/profile}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+                <h1>我的订单</h1>
+            </div>
+
+            <div class="order-tabs">
+                <button class="order-tab-btn active" data-status="">全部</button>
+                <button class="order-tab-btn" data-status="pending">待付款</button>
+                <button class="order-tab-btn" data-status="paid">待发货</button>
+                <button class="order-tab-btn" data-status="shipped">待收货</button>
+                <button class="order-tab-btn" data-status="completed">已完成</button>
+            </div>
+
+            <div id="order-list" class="order-list">
+                <div class="empty-msg">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function escapeHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        var allOrders = [];
+        var currentFilter = '';
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/user/init', { method: 'POST' }).then(function() {
+                loadOrders();
+            });
+
+            // Tab switching
+            document.querySelectorAll('.order-tab-btn').forEach(function(btn) {
+                btn.addEventListener('click', function() {
+                    document.querySelectorAll('.order-tab-btn').forEach(function(b) { b.classList.remove('active'); });
+                    btn.classList.add('active');
+                    currentFilter = btn.getAttribute('data-status');
+                    renderOrders();
+                });
+            });
+
+            // Check URL params for initial tab
+            var params = new URLSearchParams(window.location.search);
+            var status = params.get('status');
+            if (status) {
+                currentFilter = status;
+                document.querySelectorAll('.order-tab-btn').forEach(function(b) {
+                    b.classList.toggle('active', b.getAttribute('data-status') === status);
+                });
+            }
+        });
+
+        function loadOrders() {
+            fetch('/api/user/orders')
+                .then(function(r) { return r.json(); })
+                .then(function(orders) {
+                    allOrders = orders;
+                    renderOrders();
+                })
+                .catch(function() {
+                    document.getElementById('order-list').innerHTML =
+                        '<div class="empty-msg"><i class="fas fa-exclamation-circle"></i><p>加载失败，请刷新重试</p></div>';
+                });
+        }
+
+        function getStatusText(status) {
+            var map = { pending: '待付款', paid: '已付款', shipped: '已发货', completed: '已完成', cancelled: '已取消' };
+            return map[status] || '未知';
+        }
+
+        function renderOrders() {
+            var container = document.getElementById('order-list');
+            var filtered = currentFilter ? allOrders.filter(function(o) { return o.status === currentFilter; }) : allOrders;
+
+            if (!filtered || filtered.length === 0) {
+                container.innerHTML = '<div class="empty-msg"><i class="fas fa-receipt"></i><p>暂无订单</p><a href="/">去逛逛</a></div>';
+                return;
+            }
+
+            var html = '';
+            filtered.forEach(function(order) {
+                var time = order.createdAt ? new Date(order.createdAt).toLocaleString('zh-CN') : '';
+                html += '<div class="order-card">' +
+                    '<div class="order-card-header">' +
+                    '<span class="order-no">' + escapeHtml(order.orderNo) + '</span>' +
+                    '<span class="order-status ' + order.status + '">' + getStatusText(order.status) + '</span>' +
+                    '</div>' +
+                    '<div class="order-card-body">' +
+                    '<div class="order-info-row"><span>收货人：' + escapeHtml(order.userName) + '</span><span class="order-amount">¥' + order.totalAmount.toFixed(2) + '</span></div>' +
+                    '<div class="order-info-row"><span>商品数量：' + (order.productCount || 0) + '件</span></div>' +
+                    '<div class="order-time">' + escapeHtml(time) + '</div>' +
+                    '</div>';
+
+                // Actions
+                var actions = '';
+                if (order.status === 'pending') {
+                    actions += '<button class="order-action-btn danger" onclick="cancelOrder(' + order.id + ')">取消订单</button>';
+                }
+                if (order.status === 'shipped') {
+                    actions += '<button class="order-action-btn primary" onclick="confirmOrder(' + order.id + ')">确认收货</button>';
+                }
+                if (actions) {
+                    html += '<div class="order-card-footer">' + actions + '</div>';
+                }
+                html += '</div>';
+            });
+            container.innerHTML = html;
+        }
+
+        function cancelOrder(orderId) {
+            if (!confirm('确定要取消此订单吗？')) return;
+            fetch('/api/user/orders/' + orderId + '/cancel', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        loadOrders();
+                    } else {
+                        alert(data.error || '取消失败');
+                    }
+                })
+                .catch(function() { alert('网络错误'); });
+        }
+
+        function confirmOrder(orderId) {
+            if (!confirm('确认已收到商品吗？')) return;
+            fetch('/api/user/orders/' + orderId + '/confirm', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (data.success) {
+                        loadOrders();
+                    } else {
+                        alert(data.error || '确认失败');
+                    }
+                })
+                .catch(function() { alert('网络错误'); });
+        }
+    </script>
+</body>
+</html>
