@@ -342,35 +342,6 @@
         .hidden-fields {
             display: none;
         }
-        
-        /* Tab 切换样式 */
-        .form-tabs {
-            display: flex;
-            border-bottom: 2px solid #eee;
-            margin-bottom: 20px;
-        }
-        .form-tab {
-            padding: 12px 24px;
-            cursor: pointer;
-            border-bottom: 2px solid transparent;
-            margin-bottom: -2px;
-            color: #666;
-            transition: all 0.3s;
-        }
-        .form-tab:hover {
-            color: #667eea;
-        }
-        .form-tab.active {
-            color: #667eea;
-            border-bottom-color: #667eea;
-            font-weight: 600;
-        }
-        .tab-content {
-            display: none;
-        }
-        .tab-content.active {
-            display: block;
-        }
     </style>
 </head>
 <body>
@@ -423,230 +394,191 @@
                     <input type="hidden" name="detailMedia" id="detailMediaInput" th:value="*{detailMedia}">
                     <input type="hidden" name="specifications" id="specificationsInput" th:value="*{specifications}">
                     
-                    <!-- Tab 导航 -->
-                    <div class="form-tabs">
-                        <div class="form-tab active" data-tab="basic">
-                            <i class="fas fa-info-circle"></i> 基本信息
+                    <!-- 基本信息 -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h3 class="card-title">基本信息</h3>
                         </div>
-                        <div class="form-tab" data-tab="media">
-                            <i class="fas fa-images"></i> 展示图片/视频
-                        </div>
-                        <div class="form-tab" data-tab="detail">
-                            <i class="fas fa-file-image"></i> 商品详情
-                        </div>
-                        <div class="form-tab" data-tab="specs">
-                            <i class="fas fa-list-alt"></i> 商品规格
+                        <div class="card-body">
+                            <div class="form-group">
+                                <label for="title">商品名称 *</label>
+                                <input type="text" id="title" th:field="*{title}" required placeholder="请输入商品名称">
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="price">销售价格 *</label>
+                                    <input type="number" id="price" th:field="*{price}" step="0.01" required placeholder="0.00">
+                                </div>
+                                <div class="form-group">
+                                    <label for="originalPrice">原价</label>
+                                    <input type="number" id="originalPrice" th:field="*{originalPrice}" step="0.01" placeholder="0.00">
+                                    <p class="form-hint">仅限时秒杀和天天特价标签的商品在用户端显示原价</p>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label for="tag">商品标签</label>
+                                    <select id="tag" th:field="*{tag}">
+                                        <option value="">请选择</option>
+                                        <option value="新品">新品</option>
+                                        <option value="热卖">热卖</option>
+                                        <option value="特价">特价</option>
+                                        <option value="爆款">爆款</option>
+                                        <option value="推荐">推荐</option>
+                                        <option value="精品">精品</option>
+                                        <option value="限时秒杀">限时秒杀</option>
+                                        <option value="天天特价">天天特价</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label for="sales">销量显示</label>
+                                    <input type="text" id="sales" th:field="*{sales}" placeholder="已售 0件">
+                                </div>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="description">商品描述</label>
+                                <textarea id="description" th:field="*{description}" rows="4" placeholder="请输入商品描述"></textarea>
+                            </div>
+
+                            <div class="form-group">
+                                <div class="checkbox-group">
+                                    <input type="checkbox" id="active" th:field="*{active}">
+                                    <label for="active" style="margin-bottom: 0;">上架销售</label>
+                                </div>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 基本信息 Tab -->
-                    <div class="tab-content active" id="tab-basic">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">基本信息</h3>
-                            </div>
-                            <div class="card-body">
-                                <div class="form-group">
-                                    <label for="title">商品名称 *</label>
-                                    <input type="text" id="title" th:field="*{title}" required placeholder="请输入商品名称">
+                    <!-- 商品展示图片/视频 -->
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
+                            <h3 class="card-title">商品展示图片/视频</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="form-hint" style="margin-bottom: 15px;">
+                                <i class="fas fa-info-circle"></i> 
+                                添加商品展示图片或视频，支持上传文件或填写链接地址。第一张图片将作为商品封面显示。
+                            </p>
+                            <div class="media-upload-section" id="displayMediaSection">
+                                <div class="media-list" id="displayMediaList">
+                                    <!-- 媒体项将通过JS动态添加 -->
                                 </div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="price">销售价格 *</label>
-                                        <input type="number" id="price" th:field="*{price}" step="0.01" required placeholder="0.00">
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <div class="add-media-btn" onclick="showMediaInput('display')" style="flex: 1; min-width: 120px;">
+                                        <i class="fas fa-link"></i>
+                                        <span>输入链接地址</span>
                                     </div>
-                                    <div class="form-group">
-                                        <label for="originalPrice">原价</label>
-                                        <input type="number" id="originalPrice" th:field="*{originalPrice}" step="0.01" placeholder="0.00">
+                                    <div class="add-media-btn" onclick="triggerFileUpload('display')" style="flex: 1; min-width: 120px;">
+                                        <i class="fas fa-upload"></i>
+                                        <span>本地上传文件</span>
                                     </div>
+                                    <input type="file" id="displayFileInput" accept="image/*,video/*" style="display: none;" onchange="uploadFile('display', this)">
                                 </div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="stock">库存数量</label>
-                                        <input type="number" id="stock" th:field="*{stock}" placeholder="0">
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="sales">销量显示</label>
-                                        <input type="text" id="sales" th:field="*{sales}" placeholder="已售 0件">
-                                    </div>
-                                </div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="icon">图标类名</label>
-                                        <input type="text" id="icon" th:field="*{icon}" placeholder="fa-box">
-                                        <p class="form-hint">Font Awesome图标类名，如：fa-box, fa-gift, fa-shirt</p>
-                                    </div>
-                                    <div class="form-group">
-                                        <label for="bgColor">背景颜色</label>
-                                        <input type="text" id="bgColor" th:field="*{bgColor}" placeholder="#ffecd2, #fcb69f">
-                                        <p class="form-hint">渐变色格式，如：#ffecd2, #fcb69f</p>
-                                    </div>
-                                </div>
-
-                                <div class="form-row">
-                                    <div class="form-group">
-                                        <label for="tag">商品标签</label>
-                                        <select id="tag" th:field="*{tag}">
-                                            <option value="">请选择</option>
-                                            <option value="新品">新品</option>
-                                            <option value="热卖">热卖</option>
-                                            <option value="特价">特价</option>
-                                            <option value="爆款">爆款</option>
-                                            <option value="推荐">推荐</option>
-                                            <option value="精品">精品</option>
+                                <div class="media-input-group" id="displayMediaInputGroup">
+                                    <div class="media-input-row">
+                                        <select id="displayMediaType">
+                                            <option value="image">图片</option>
+                                            <option value="video">视频</option>
                                         </select>
+                                        <input type="text" id="displayMediaUrl" placeholder="请输入图片或视频链接地址">
                                     </div>
-                                    <div class="form-group">
-                                        <label for="spec">默认规格</label>
-                                        <input type="text" id="spec" th:field="*{spec}" placeholder="默认规格">
+                                    <div class="media-input-actions">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="hideMediaInput('display')">
+                                            取消
+                                        </button>
+                                        <button type="button" class="btn btn-success btn-sm" onclick="addMedia('display')">
+                                            <i class="fas fa-check"></i> 添加
+                                        </button>
                                     </div>
                                 </div>
+                                <div class="upload-progress" id="displayUploadProgress" style="display: none; margin-top: 10px;">
+                                    <div style="background: #eee; border-radius: 4px; height: 6px; overflow: hidden;">
+                                        <div id="displayProgressBar" style="background: linear-gradient(135deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                    </div>
+                                    <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">上传中...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
 
+                    <!-- 商品详情图片/视频 -->
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
+                            <h3 class="card-title">商品详情图片/视频</h3>
+                        </div>
+                        <div class="card-body">
+                            <p class="form-hint" style="margin-bottom: 15px;">
+                                <i class="fas fa-info-circle"></i> 
+                                添加商品详情展示的图片或视频，用于在商品详情页展示更多商品信息。
+                            </p>
+                            <div class="media-upload-section" id="detailMediaSection">
+                                <div class="media-list" id="detailMediaList">
+                                    <!-- 媒体项将通过JS动态添加 -->
+                                </div>
+                                <div style="display: flex; gap: 10px; flex-wrap: wrap;">
+                                    <div class="add-media-btn" onclick="showMediaInput('detail')" style="flex: 1; min-width: 120px;">
+                                        <i class="fas fa-link"></i>
+                                        <span>输入链接地址</span>
+                                    </div>
+                                    <div class="add-media-btn" onclick="triggerFileUpload('detail')" style="flex: 1; min-width: 120px;">
+                                        <i class="fas fa-upload"></i>
+                                        <span>本地上传文件</span>
+                                    </div>
+                                    <input type="file" id="detailFileInput" accept="image/*,video/*" style="display: none;" onchange="uploadFile('detail', this)">
+                                </div>
+                                <div class="media-input-group" id="detailMediaInputGroup">
+                                    <div class="media-input-row">
+                                        <select id="detailMediaType">
+                                            <option value="image">图片</option>
+                                            <option value="video">视频</option>
+                                        </select>
+                                        <input type="text" id="detailMediaUrl" placeholder="请输入图片或视频链接地址">
+                                    </div>
+                                    <div class="media-input-actions">
+                                        <button type="button" class="btn btn-secondary btn-sm" onclick="hideMediaInput('detail')">
+                                            取消
+                                        </button>
+                                        <button type="button" class="btn btn-success btn-sm" onclick="addMedia('detail')">
+                                            <i class="fas fa-check"></i> 添加
+                                        </button>
+                                    </div>
+                                </div>
+                                <div class="upload-progress" id="detailUploadProgress" style="display: none; margin-top: 10px;">
+                                    <div style="background: #eee; border-radius: 4px; height: 6px; overflow: hidden;">
+                                        <div id="detailProgressBar" style="background: linear-gradient(135deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
+                                    </div>
+                                    <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">上传中...</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- 商品规格设置 -->
+                    <div class="card" style="margin-top: 20px;">
+                        <div class="card-header">
+                            <h3 class="card-title">商品规格设置</h3>
+                        </div>
+                        <div class="card-body">
+                            <div class="form-row" style="margin-bottom: 15px;">
                                 <div class="form-group">
-                                    <label for="description">商品描述</label>
-                                    <textarea id="description" th:field="*{description}" rows="4" placeholder="请输入商品描述"></textarea>
-                                </div>
-
-                                <div class="form-group">
-                                    <div class="checkbox-group">
-                                        <input type="checkbox" id="active" th:field="*{active}">
-                                        <label for="active" style="margin-bottom: 0;">上架销售</label>
-                                    </div>
+                                    <label for="spec">默认规格</label>
+                                    <input type="text" id="spec" th:field="*{spec}" placeholder="默认规格">
                                 </div>
                             </div>
-                        </div>
-                    </div>
-
-                    <!-- 展示图片/视频 Tab -->
-                    <div class="tab-content" id="tab-media">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">商品展示图片/视频</h3>
-                            </div>
-                            <div class="card-body">
-                                <p class="form-hint" style="margin-bottom: 15px;">
-                                    <i class="fas fa-info-circle"></i> 
-                                    添加商品展示图片或视频，支持上传文件或填写链接地址。第一张图片将作为商品封面显示。
-                                </p>
-                                <div class="media-upload-section" id="displayMediaSection">
-                                    <div class="media-list" id="displayMediaList">
-                                        <!-- 媒体项将通过JS动态添加 -->
-                                    </div>
-                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                        <div class="add-media-btn" onclick="showMediaInput('display')" style="flex: 1; min-width: 120px;">
-                                            <i class="fas fa-link"></i>
-                                            <span>输入链接地址</span>
-                                        </div>
-                                        <div class="add-media-btn" onclick="triggerFileUpload('display')" style="flex: 1; min-width: 120px;">
-                                            <i class="fas fa-upload"></i>
-                                            <span>本地上传文件</span>
-                                        </div>
-                                        <input type="file" id="displayFileInput" accept="image/*,video/*" style="display: none;" onchange="uploadFile('display', this)">
-                                    </div>
-                                    <div class="media-input-group" id="displayMediaInputGroup">
-                                        <div class="media-input-row">
-                                            <select id="displayMediaType">
-                                                <option value="image">图片</option>
-                                                <option value="video">视频</option>
-                                            </select>
-                                            <input type="text" id="displayMediaUrl" placeholder="请输入图片或视频链接地址">
-                                        </div>
-                                        <div class="media-input-actions">
-                                            <button type="button" class="btn btn-secondary btn-sm" onclick="hideMediaInput('display')">
-                                                取消
-                                            </button>
-                                            <button type="button" class="btn btn-success btn-sm" onclick="addMedia('display')">
-                                                <i class="fas fa-check"></i> 添加
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="upload-progress" id="displayUploadProgress" style="display: none; margin-top: 10px;">
-                                        <div style="background: #eee; border-radius: 4px; height: 6px; overflow: hidden;">
-                                            <div id="displayProgressBar" style="background: linear-gradient(135deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
-                                        </div>
-                                        <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">上传中...</span>
-                                    </div>
+                            <p class="form-hint" style="margin-bottom: 15px;">
+                                <i class="fas fa-info-circle"></i> 
+                                设置商品不同规格的名称、展示图片和对应价格。例如：颜色、尺寸等。
+                            </p>
+                            <div class="spec-section">
+                                <div class="spec-list" id="specList">
+                                    <!-- 规格项将通过JS动态添加 -->
                                 </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 商品详情 Tab -->
-                    <div class="tab-content" id="tab-detail">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">商品详情图片/视频</h3>
-                            </div>
-                            <div class="card-body">
-                                <p class="form-hint" style="margin-bottom: 15px;">
-                                    <i class="fas fa-info-circle"></i> 
-                                    添加商品详情展示的图片或视频，用于在商品详情页展示更多商品信息。
-                                </p>
-                                <div class="media-upload-section" id="detailMediaSection">
-                                    <div class="media-list" id="detailMediaList">
-                                        <!-- 媒体项将通过JS动态添加 -->
-                                    </div>
-                                    <div style="display: flex; gap: 10px; flex-wrap: wrap;">
-                                        <div class="add-media-btn" onclick="showMediaInput('detail')" style="flex: 1; min-width: 120px;">
-                                            <i class="fas fa-link"></i>
-                                            <span>输入链接地址</span>
-                                        </div>
-                                        <div class="add-media-btn" onclick="triggerFileUpload('detail')" style="flex: 1; min-width: 120px;">
-                                            <i class="fas fa-upload"></i>
-                                            <span>本地上传文件</span>
-                                        </div>
-                                        <input type="file" id="detailFileInput" accept="image/*,video/*" style="display: none;" onchange="uploadFile('detail', this)">
-                                    </div>
-                                    <div class="media-input-group" id="detailMediaInputGroup">
-                                        <div class="media-input-row">
-                                            <select id="detailMediaType">
-                                                <option value="image">图片</option>
-                                                <option value="video">视频</option>
-                                            </select>
-                                            <input type="text" id="detailMediaUrl" placeholder="请输入图片或视频链接地址">
-                                        </div>
-                                        <div class="media-input-actions">
-                                            <button type="button" class="btn btn-secondary btn-sm" onclick="hideMediaInput('detail')">
-                                                取消
-                                            </button>
-                                            <button type="button" class="btn btn-success btn-sm" onclick="addMedia('detail')">
-                                                <i class="fas fa-check"></i> 添加
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div class="upload-progress" id="detailUploadProgress" style="display: none; margin-top: 10px;">
-                                        <div style="background: #eee; border-radius: 4px; height: 6px; overflow: hidden;">
-                                            <div id="detailProgressBar" style="background: linear-gradient(135deg, #667eea, #764ba2); height: 100%; width: 0%; transition: width 0.3s;"></div>
-                                        </div>
-                                        <span style="font-size: 12px; color: #666; margin-top: 4px; display: block;">上传中...</span>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 商品规格 Tab -->
-                    <div class="tab-content" id="tab-specs">
-                        <div class="card">
-                            <div class="card-header">
-                                <h3 class="card-title">商品规格设置</h3>
-                            </div>
-                            <div class="card-body">
-                                <p class="form-hint" style="margin-bottom: 15px;">
-                                    <i class="fas fa-info-circle"></i> 
-                                    设置商品不同规格的名称、展示图片和对应价格。例如：颜色、尺寸等。
-                                </p>
-                                <div class="spec-section">
-                                    <div class="spec-list" id="specList">
-                                        <!-- 规格项将通过JS动态添加 -->
-                                    </div>
-                                    <button type="button" class="add-spec-btn" onclick="addSpec()">
-                                        <i class="fas fa-plus"></i> 添加规格
-                                    </button>
-                                </div>
+                                <button type="button" class="add-spec-btn" onclick="addSpec()">
+                                    <i class="fas fa-plus"></i> 添加规格
+                                </button>
                             </div>
                         </div>
                     </div>
@@ -677,28 +609,8 @@
 
         // 页面加载时初始化
         document.addEventListener('DOMContentLoaded', function() {
-            initTabs();
             loadExistingData();
         });
-
-        // 初始化Tab切换
-        function initTabs() {
-            document.querySelectorAll('.form-tab').forEach(tab => {
-                tab.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-                    
-                    // 更新tab状态
-                    document.querySelectorAll('.form-tab').forEach(t => t.classList.remove('active'));
-                    this.classList.add('active');
-                    
-                    // 更新内容显示
-                    document.querySelectorAll('.tab-content').forEach(content => {
-                        content.classList.remove('active');
-                    });
-                    document.getElementById('tab-' + tabName).classList.add('active');
-                });
-            });
-        }
 
         // 加载已有数据
         function loadExistingData() {
