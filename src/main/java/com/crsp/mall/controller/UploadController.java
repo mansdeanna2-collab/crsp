@@ -360,6 +360,16 @@ public class UploadController {
                         || addr.isSiteLocalAddress() || addr.isAnyLocalAddress()) {
                     return true;
                 }
+                // Check ranges not covered by InetAddress methods (CGNAT, 0.0.0.0/8)
+                if (addr instanceof java.net.Inet4Address) {
+                    byte[] bytes = addr.getAddress();
+                    int firstOctet = bytes[0] & 0xFF;
+                    int secondOctet = bytes[1] & 0xFF;
+                    // 0.0.0.0/8
+                    if (firstOctet == 0) return true;
+                    // 100.64.0.0/10 (CGNAT)
+                    if (firstOctet == 100 && secondOctet >= 64 && secondOctet <= 127) return true;
+                }
             }
         } catch (java.net.UnknownHostException e) {
             // Cannot resolve hostname - block it to be safe
