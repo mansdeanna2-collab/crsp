@@ -32,12 +32,31 @@
             <!-- 分类导航已移除 -->
 
             <!-- 轮播图 -->
-            <div class="banner-slider">
-                <div class="banner-item active" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
-                    <div class="banner-content">
-                        <h2>新品首发</h2>
-                        <p>限时特惠 低至5折</p>
+            <div class="banner-slider" id="bannerSlider">
+                <div class="banner-track" id="bannerTrack">
+                    <div class="banner-item" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
+                        <div class="banner-content">
+                            <h2>新品首发</h2>
+                            <p>限时特惠 低至5折</p>
+                        </div>
                     </div>
+                    <div class="banner-item" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
+                        <div class="banner-content">
+                            <h2>品牌闪购</h2>
+                            <p>大牌好物 限时抢购</p>
+                        </div>
+                    </div>
+                    <div class="banner-item" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                        <div class="banner-content">
+                            <h2>超值满减</h2>
+                            <p>满199减50 满399减100</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="banner-indicators" id="bannerIndicators">
+                    <span class="banner-dot active"></span>
+                    <span class="banner-dot"></span>
+                    <span class="banner-dot"></span>
                 </div>
             </div>
 
@@ -593,7 +612,7 @@
                 <span class="close-modal">&times;</span>
             </div>
             <div class="modal-body camera-body">
-                <video id="camera-preview" autoplay playsinline></video>
+                <video id="camera-preview" autoplay playsinline muted></video>
                 <canvas id="camera-canvas" style="display: none;"></canvas>
                 <div id="captured-image-container" style="display: none;">
                     <img id="captured-image" alt="拍摄的照片">

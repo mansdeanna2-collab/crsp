@@ -19,6 +19,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initSearch();
     // 初始化弹窗关闭功能
     initModals();
+    // 初始化轮播图
+    initBannerSlider();
 });
 
 /**
@@ -815,4 +817,81 @@ function showProductDetail(productData) {
     if (detailSales) detailSales.textContent = productData.sales;
 
     openModal('product-detail-modal');
+}
+
+/**
+ * 首页轮播图自动播放与滑动
+ */
+function initBannerSlider() {
+    var track = document.getElementById('bannerTrack');
+    var dots = document.querySelectorAll('#bannerIndicators .banner-dot');
+    if (!track || dots.length === 0) return;
+    var items = track.querySelectorAll('.banner-item');
+    var total = items.length;
+    if (total <= 0) return;
+    var current = 0;
+    var timer = null;
+
+    function goTo(index) {
+        current = ((index % total) + total) % total;
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+    }
+
+    function next() { goTo(current + 1); }
+
+    function startAutoPlay() { timer = setInterval(next, 3000); }
+    function stopAutoPlay() { clearInterval(timer); }
+
+    dots.forEach(function(dot, i) {
+        dot.addEventListener('click', function() { goTo(i); stopAutoPlay(); startAutoPlay(); });
+    });
+
+    // 触摸滑动
+    var startX = 0;
+    var startY = 0;
+    var isDragging = false;
+
+    track.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        stopAutoPlay();
+        track.style.transition = 'none';
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        var diffX = Math.abs(e.touches[0].clientX - startX);
+        var diffY = Math.abs(e.touches[0].clientY - startY);
+        if (diffX > diffY && diffX > 10) {
+            e.preventDefault();
+            var offsetX = e.touches[0].clientX - startX;
+            var baseTranslate = -current * 100;
+            var dragPercent = (offsetX / track.offsetWidth) * 100;
+            track.style.transform = 'translateX(' + (baseTranslate + dragPercent) + '%)';
+        }
+    }, { passive: false });
+
+    track.addEventListener('touchend', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        track.style.transition = 'transform 0.4s ease';
+        var diff = startX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) {
+            diff > 0 ? goTo(current + 1) : goTo(current - 1);
+        } else {
+            goTo(current);
+        }
+        startAutoPlay();
+    }, { passive: true });
+
+    track.addEventListener('touchcancel', function() {
+        isDragging = false;
+        track.style.transition = 'transform 0.4s ease';
+        goTo(current);
+        startAutoPlay();
+    }, { passive: true });
+
+    startAutoPlay();
 }
