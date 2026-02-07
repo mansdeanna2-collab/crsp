@@ -2,6 +2,7 @@ package com.crsp.mall.controller;
 
 import com.crsp.mall.entity.ProductEntity;
 import com.crsp.mall.service.ProductDbService;
+import com.crsp.mall.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -28,6 +29,9 @@ public class PageController {
 
     @Autowired
     private ProductDbService productDbService;
+
+    @Autowired
+    private UserService userService;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -128,5 +132,29 @@ public class PageController {
                 .toList();
         model.addAttribute("recommendProducts", recommendProducts);
         return "profile";
+    }
+
+    /**
+     * 结算页面
+     */
+    @GetMapping("/checkout")
+    public String checkout(Model model) {
+        return "checkout";
+    }
+
+    /**
+     * 浏览历史页面
+     */
+    @GetMapping("/history")
+    public String history(Model model) {
+        return "history";
+    }
+
+    /**
+     * 我的收藏页面
+     */
+    @GetMapping("/favorites")
+    public String favorites(Model model) {
+        return "favorites";
     }
 }

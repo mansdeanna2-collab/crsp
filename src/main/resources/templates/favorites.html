@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>我的收藏 - 成人玩具商城</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .favorites-page {
+            padding: 55px 0 20px 0;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+        .page-header {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            background: white;
+            padding: 12px 15px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .page-header .back-btn {
+            color: #333;
+            font-size: 20px;
+            text-decoration: none;
+        }
+        .page-header h1 {
+            font-size: 18px;
+            font-weight: bold;
+        }
+        .favorites-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 10px;
+            padding: 10px;
+        }
+        .favorite-card {
+            background: white;
+            border-radius: 10px;
+            overflow: hidden;
+            text-decoration: none;
+            color: inherit;
+        }
+        .favorite-image {
+            height: 140px;
+            background: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            overflow: hidden;
+            position: relative;
+        }
+        .favorite-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .favorite-image i.placeholder-icon {
+            font-size: 36px;
+            color: #ccc;
+        }
+        .unfavorite-btn {
+            position: absolute;
+            top: 8px;
+            right: 8px;
+            background: rgba(0,0,0,0.5);
+            color: #ff5722;
+            border: none;
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            font-size: 14px;
+        }
+        .favorite-info {
+            padding: 10px;
+        }
+        .favorite-title {
+            font-size: 13px;
+            color: #333;
+            margin-bottom: 6px;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+            line-height: 1.3;
+        }
+        .favorite-price {
+            color: #ff5722;
+            font-weight: bold;
+            font-size: 16px;
+        }
+        .empty-msg {
+            text-align: center;
+            padding: 60px 0;
+            color: #999;
+            grid-column: 1 / -1;
+        }
+        .empty-msg i {
+            font-size: 48px;
+            margin-bottom: 15px;
+            display: block;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="favorites-page">
+            <div class="page-header">
+                <a th:href="@{/profile}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+                <h1>我的收藏</h1>
+            </div>
+            <div id="favorites-grid" class="favorites-grid">
+                <div class="empty-msg">
+                    <i class="fas fa-spinner fa-spin"></i>
+                    <p>加载中...</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        function escapeHtml(str) {
+            if (!str) return '';
+            var div = document.createElement('div');
+            div.appendChild(document.createTextNode(str));
+            return div.innerHTML;
+        }
+
+        document.addEventListener('DOMContentLoaded', function() {
+            fetch('/api/user/init', { method: 'POST' }).then(function() {
+                loadFavorites();
+            });
+        });
+
+        function loadFavorites() {
+            fetch('/api/user/favorites')
+                .then(function(r) { return r.json(); })
+                .then(function(items) {
+                    var container = document.getElementById('favorites-grid');
+                    if (!items || items.length === 0) {
+                        container.innerHTML = '<div class="empty-msg"><i class="fas fa-heart"></i><p>暂无收藏</p></div>';
+                        return;
+                    }
+                    var html = '';
+                    items.forEach(function(item) {
+                        html += '<div class="favorite-card">' +
+                            '<a href="/product/' + item.productId + '" style="text-decoration:none;color:inherit;">' +
+                            '<div class="favorite-image">' +
+                            (item.productImage ? '<img src="' + encodeURI(item.productImage) + '" onerror="this.style.display=\'none\';this.nextElementSibling.style.display=\'block\'"><i class="fas fa-box placeholder-icon" style="display:none"></i>' : '<i class="fas fa-box placeholder-icon"></i>') +
+                            '</div>' +
+                            '<div class="favorite-info">' +
+                            '<div class="favorite-title">' + escapeHtml(item.productTitle) + '</div>' +
+                            '<div class="favorite-price">¥' + (item.productPrice ? item.productPrice.toFixed(2) : '0.00') + '</div>' +
+                            '</div></a>' +
+                            '<button class="unfavorite-btn" onclick="removeFavorite(event, ' + item.productId + ', this)" title="取消收藏"><i class="fas fa-heart"></i></button>' +
+                            '</div>';
+                    });
+                    container.innerHTML = html;
+                })
+                .catch(function() {
+                    document.getElementById('favorites-grid').innerHTML = '<div class="empty-msg"><i class="fas fa-exclamation-circle"></i><p>加载失败</p></div>';
+                });
+        }
+
+        function removeFavorite(event, productId, btn) {
+            event.preventDefault();
+            event.stopPropagation();
+            fetch('/api/user/favorite/' + productId, { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    if (!data.isFavorite) {
+                        var card = btn.closest('.favorite-card');
+                        card.remove();
+                        // Check if empty
+                        var remaining = document.querySelectorAll('.favorite-card');
+                        if (remaining.length === 0) {
+                            document.getElementById('favorites-grid').innerHTML = '<div class="empty-msg"><i class="fas fa-heart"></i><p>暂无收藏</p></div>';
+                        }
+                    }
+                });
+        }
+    </script>
+</body>
+</html>

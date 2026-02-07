@@ -237,6 +237,10 @@
                     <i class="fas fa-shopping-cart"></i>
                     <span>订单管理</span>
                 </a>
+                <a th:href="@{/admin/users}" class="menu-item" th:classappend="${currentPage == 'users'} ? ' active'">
+                    <i class="fas fa-users"></i>
+                    <span>用户管理</span>
+                </a>
                 <div class="menu-title">系统</div>
                 <a th:href="@{/}" class="menu-item" target="_blank">
                     <i class="fas fa-external-link-alt"></i>
@@ -290,6 +294,15 @@
                             </div>
                         </div>
                         <div class="stat-card-value" th:text="${pendingOrders}">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">用户总数</span>
+                            <div class="stat-card-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
+                                <i class="fas fa-users"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" th:text="${userCount}">0</div>
                     </div>
                 </div>
 

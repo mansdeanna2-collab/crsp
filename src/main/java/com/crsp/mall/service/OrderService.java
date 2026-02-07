@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 订单服务类
@@ -47,16 +48,28 @@ public class OrderService {
     }
 
     /**
+     * 根据用户ID获取订单
+     */
+    public List<OrderEntity> getOrdersByUserId(Long userId) {
+        return orderRepository.findByUserIdOrderByCreatedAtDesc(userId);
+    }
+
+    /**
      * 保存订单
      */
     public OrderEntity saveOrder(OrderEntity order) {
         return orderRepository.save(order);
     }
 
+    private static final Set<String> VALID_STATUSES = Set.of("pending", "paid", "shipped", "completed", "cancelled");
+
     /**
      * 更新订单状态
      */
     public OrderEntity updateOrderStatus(Long id, String status) {
+        if (status == null || !VALID_STATUSES.contains(status)) {
+            return null;
+        }
         Optional<OrderEntity> optionalOrder = orderRepository.findById(id);
         if (optionalOrder.isPresent()) {
             OrderEntity order = optionalOrder.get();

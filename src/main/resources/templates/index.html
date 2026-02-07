@@ -159,6 +159,9 @@
 
     <script th:src="@{/js/app.js}"></script>
     <script>
+        // 自动注册游客用户
+        fetch('/api/user/init', { method: 'POST' });
+
         // 首页轮播图自动播放
         (function() {
             const track = document.getElementById('bannerTrack');
