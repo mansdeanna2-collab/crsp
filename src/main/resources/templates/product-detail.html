@@ -230,29 +230,6 @@
             font-size: 13px;
             margin-bottom: 15px;
         }
-        .stock-status {
-            display: flex;
-            align-items: center;
-            gap: 8px;
-            font-size: 12px;
-            color: #666;
-            margin-bottom: 12px;
-        }
-        .stock-status .stock-tag {
-            padding: 2px 8px;
-            border-radius: 10px;
-            font-size: 11px;
-            background: #e8f5e9;
-            color: #2e7d32;
-        }
-        .stock-status .stock-tag.low-stock {
-            background: #fff3e0;
-            color: #ef6c00;
-        }
-        .stock-status .stock-tag.out-of-stock {
-            background: #f5f5f5;
-            color: #9e9e9e;
-        }
         .product-title-detail {
             font-size: 16px;
             font-weight: bold;
@@ -836,15 +813,15 @@
             </div>
 
             <!-- 商品主图/媒体轮播 -->
-            <div class="media-slider" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'" id="mediaSlider">
+            <div class="media-slider" style="background: #f5f5f5;" id="mediaSlider">
                 <div class="media-slider-container" id="sliderContainer">
                     <!-- 如果有展示媒体，则使用媒体，否则显示默认图标 -->
                     <th:block th:if="${displayMediaList != null and !displayMediaList.isEmpty()}">
                         <div th:each="media, iterStat : ${displayMediaList}" class="media-slide" th:data-type="${media.type}">
                             <th:block th:if="${media.type == 'image'}">
                                 <img th:src="${media.url}" th:alt="${product.title + ' - 图片' + (iterStat.index + 1)}" onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='flex';">
-                                <div class="fallback-icon" th:style="'display: none; background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
-                                    <i th:class="'fas ' + ${product.icon}"></i>
+                                <div class="fallback-icon" style="display: none; background: #f5f5f5;">
+                                    <i class="fas fa-box"></i>
                                 </div>
                             </th:block>
                             <th:block th:if="${media.type == 'video'}">
@@ -857,8 +834,8 @@
                                         <i class="fas fa-play"></i>
                                     </div>
                                 </div>
-                                <div class="fallback-icon" th:style="'display: none; background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
-                                    <i th:class="'fas ' + ${product.icon}"></i>
+                                <div class="fallback-icon" style="display: none; background: #f5f5f5;">
+                                    <i class="fas fa-box"></i>
                                 </div>
                             </th:block>
                         </div>
@@ -866,8 +843,8 @@
                     <!-- 如果没有媒体，显示默认图标 -->
                     <th:block th:if="${displayMediaList == null or displayMediaList.isEmpty()}">
                         <div class="media-slide">
-                            <div class="fallback-icon" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + '); width: 100%; height: 100%;'">
-                                <i th:class="'fas ' + ${product.icon}"></i>
+                            <div class="fallback-icon" style="background: #f5f5f5; width: 100%; height: 100%;">
+                                <i class="fas fa-box"></i>
                             </div>
                         </div>
                     </th:block>
@@ -895,17 +872,13 @@
             <div class="product-detail-info">
                 <div class="price-section">
                     <span class="current-price"><small>¥</small><span th:text="${product.price}">0</span></span>
-                    <span class="original-price-detail" th:text="'¥' + ${product.originalPrice}">¥0</span>
-                    <span class="discount-tag" th:if="${product.originalPrice > 0}" 
-                          th:text="${T(java.lang.Math).round(product.price * 10.0 / product.originalPrice)} + '折'">5折</span>
+                    <th:block th:if="${product.tag == '限时秒杀' or product.tag == '天天特价'}">
+                        <span class="original-price-detail" th:if="${product.originalPrice > 0}" th:text="'¥' + ${product.originalPrice}">¥0</span>
+                        <span class="discount-tag" th:if="${product.originalPrice > 0}" 
+                              th:text="${T(java.lang.Math).round(product.price * 10.0 / product.originalPrice)} + '折'">5折</span>
+                    </th:block>
                 </div>
                 <div class="sales-info" th:text="${product.sales}">已售 0件</div>
-                <div class="stock-status">
-                    <span>库存状态</span>
-                    <span class="stock-tag"
-                          th:classappend="${!product.inStock} ? ' out-of-stock' : (${product.lowStock} ? ' low-stock' : '')"
-                          th:text="${product.stockStatus}">有货</span>
-                </div>
                 <h1 class="product-title-detail" th:text="${product.title}">商品名称</h1>
                 <div class="tag-list">
                     <span class="tag-item">正品保证</span>
@@ -1026,14 +999,14 @@
                     <a th:each="related : ${relatedProducts}" 
                        th:href="@{/product/{id}(id=${related.id})}" 
                        class="related-card">
-                        <div class="related-image" th:style="'background: linear-gradient(135deg, ' + ${related.bgColor} + ');'">
+                        <div class="related-image" style="background: #f5f5f5;">
                             <th:block th:if="${related.hasDisplayMedia()}">
                                 <img th:src="${related.firstImageUrl}" th:alt="${related.title}" 
                                      onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='block';">
-                                <i th:class="'fas ' + ${related.icon}" style="display: none;"></i>
+                                <i class="fas fa-box" style="display: none;"></i>
                             </th:block>
                             <th:block th:unless="${related.hasDisplayMedia()}">
-                                <i th:class="'fas ' + ${related.icon}"></i>
+                                <i class="fas fa-box"></i>
                             </th:block>
                         </div>
                         <div class="related-info">
@@ -1047,23 +1020,22 @@
     </div>
 
     <!-- 规格选择弹窗 -->
-    <div class="spec-modal-overlay" id="specModal" th:attr="data-stock=${product.stock != null ? product.stock : 999}">
+    <div class="spec-modal-overlay" id="specModal">
         <div class="spec-modal">
             <button class="spec-modal-close" onclick="closeSpecModal()">
                 <i class="fas fa-times"></i>
             </button>
             <div class="spec-modal-header">
-                <div class="spec-modal-image" id="specModalImage" th:style="'background: linear-gradient(135deg, ' + ${product.bgColor} + ');'">
+                <div class="spec-modal-image" id="specModalImage" style="background: #f5f5f5;">
                     <th:block th:if="${product.hasDisplayMedia() and product.firstImageUrl != null}">
                         <img th:src="${product.firstImageUrl}" th:alt="${product.title}">
                     </th:block>
                     <th:block th:unless="${product.hasDisplayMedia() and product.firstImageUrl != null}">
-                        <i th:class="'fas ' + ${product.icon}"></i>
+                        <i class="fas fa-box"></i>
                     </th:block>
                 </div>
                 <div class="spec-modal-price-info">
                     <div class="spec-modal-price"><small>¥</small><span id="specModalPrice" th:text="${product.price}">0</span></div>
-                    <div class="spec-modal-stock">库存: <span id="specModalStock" th:text="${product.stock != null ? product.stock : 999}">999</span>件</div>
                     <div class="spec-modal-selected" id="specModalSelected">请选择规格</div>
                 </div>
             </div>
@@ -1104,10 +1076,8 @@
             </a>
         </div>
         <div class="footer-buttons">
-            <button class="add-cart-btn" onclick="openSpecModal('cart')"
-                    th:disabled="${!product.inStock}">加入购物车</button>
-            <button class="buy-now-btn" onclick="openSpecModal('buy')"
-                    th:disabled="${!product.inStock}">立即购买</button>
+            <button class="add-cart-btn" onclick="openSpecModal('cart')">加入购物车</button>
+            <button class="buy-now-btn" onclick="openSpecModal('buy')">立即购买</button>
         </div>
     </div>
 
@@ -1253,9 +1223,8 @@
         const DEFAULT_MAX_STOCK = 999;
         const specModal = document.getElementById('specModal');
         const specModalPriceEl = document.getElementById('specModalPrice');
-        const specModalStockEl = document.getElementById('specModalStock');
         const basePrice = parseFloat(specModalPriceEl ? specModalPriceEl.textContent : 0) || 0;
-        const maxStock = parseInt(specModalStockEl ? specModalStockEl.textContent : 0) || DEFAULT_MAX_STOCK;
+        const maxStock = DEFAULT_MAX_STOCK;
         let toastTimer;
 
         // 初始化规格数据
@@ -1325,22 +1294,6 @@
         }
 
         function openSpecModal(mode) {
-            var stockEl = specModalStockEl;
-            var fallbackStock = specModal ? (parseInt(specModal.dataset.stock) || 0) : 0;
-            if (!stockEl) {
-                console.warn('specModalStock element not found; check the product-detail modal markup for #specModalStock.');
-            }
-            var currentStock = fallbackStock;
-            if (stockEl) {
-                var parsedStock = parseInt(stockEl.textContent);
-                if (!Number.isNaN(parsedStock)) {
-                    currentStock = parsedStock;
-                }
-            }
-            if (currentStock <= 0) {
-                showToast('该商品已售完');
-                return;
-            }
             specModalMode = mode;
             var confirmBtn = document.getElementById('specModalConfirm');
             if (confirmBtn) {
