@@ -298,6 +298,7 @@ public class UserApiController {
         if (userName.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "请输入收货人姓名"));
         }
+        // 中国大陆手机号格式: 1[3-9]开头，11位数字
         if (userPhone.isEmpty() || !userPhone.matches("^1[3-9]\\d{9}$")) {
             return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的手机号码"));
         }
@@ -316,10 +317,13 @@ public class UserApiController {
         int totalCount = 0;
         for (CartItemEntity item : selectedItems) {
             Optional<ProductEntity> productOpt = productDbService.getProductById(item.getProductId());
-            if (productOpt.isEmpty() || !Boolean.TRUE.equals(productOpt.get().getActive())) {
+            if (productOpt.isEmpty()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 已下架"));
             }
             ProductEntity product = productOpt.get();
+            if (!Boolean.TRUE.equals(product.getActive())) {
+                return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 已下架"));
+            }
             if (!product.isInStock()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 已售罄"));
             }
