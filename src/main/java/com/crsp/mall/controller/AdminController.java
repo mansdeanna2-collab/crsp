@@ -3,9 +3,11 @@ package com.crsp.mall.controller;
 import com.crsp.mall.entity.AdminEntity;
 import com.crsp.mall.entity.OrderEntity;
 import com.crsp.mall.entity.ProductEntity;
+import com.crsp.mall.entity.UserEntity;
 import com.crsp.mall.service.AdminService;
 import com.crsp.mall.service.OrderService;
 import com.crsp.mall.service.ProductDbService;
+import com.crsp.mall.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -31,6 +33,9 @@ public class AdminController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private UserService userService;
 
     /**
      * 登录页面
@@ -82,10 +87,12 @@ public class AdminController {
         long productCount = productDbService.getAllProducts().size();
         long orderCount = orderService.getAllOrders().size();
         long pendingOrders = orderService.getOrdersByStatus("pending").size();
+        long userCount = userService.getUserCount();
         
         model.addAttribute("productCount", productCount);
         model.addAttribute("orderCount", orderCount);
         model.addAttribute("pendingOrders", pendingOrders);
+        model.addAttribute("userCount", userCount);
         model.addAttribute("recentOrders", orderService.getAllOrders().stream().limit(5).toList());
         model.addAttribute("currentPage", "dashboard");
         
@@ -230,5 +237,39 @@ public class AdminController {
         orderService.deleteOrder(id);
         redirectAttributes.addFlashAttribute("success", "订单删除成功");
         return "redirect:/admin/orders";
+    }
+
+    /**
+     * 用户管理页面
+     */
+    @GetMapping("/users")
+    public String userList(HttpSession session, Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+        
+        List<UserEntity> users = userService.getAllUsers();
+        model.addAttribute("users", users);
+        model.addAttribute("currentPage", "users");
+        model.addAttribute("guestCount", userService.getGuestCount());
+        model.addAttribute("totalCount", userService.getUserCount());
+        
+        return "admin/users";
+    }
+
+    /**
+     * 删除用户
+     */
+    @PostMapping("/users/delete/{id}")
+    public String deleteUser(@PathVariable Long id,
+                            HttpSession session,
+                            RedirectAttributes redirectAttributes) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+        
+        userService.deleteUser(id);
+        redirectAttributes.addFlashAttribute("success", "用户删除成功");
+        return "redirect:/admin/users";
     }
 }

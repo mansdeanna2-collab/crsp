@@ -47,6 +47,13 @@ public class OrderService {
     }
 
     /**
+     * 根据用户ID获取订单
+     */
+    public List<OrderEntity> getOrdersByUserId(Long userId) {
+        return orderRepository.findByUserId(userId);
+    }
+
+    /**
      * 保存订单
      */
     public OrderEntity saveOrder(OrderEntity order) {
