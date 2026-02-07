@@ -3,6 +3,8 @@ package com.crsp.mall.config;
 import com.crsp.mall.service.AdminService;
 import com.crsp.mall.service.OrderService;
 import com.crsp.mall.service.ProductDbService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
@@ -13,6 +15,8 @@ import org.springframework.stereotype.Component;
  */
 @Component
 public class DataInitializer implements CommandLineRunner {
+
+    private static final Logger log = LoggerFactory.getLogger(DataInitializer.class);
 
     @Autowired
     private ProductDbService productDbService;
@@ -34,10 +38,6 @@ public class DataInitializer implements CommandLineRunner {
         // 初始化示例订单
         orderService.initSampleOrders();
         
-        System.out.println("============================================");
-        System.out.println("数据初始化完成!");
-        System.out.println("默认管理员: admin / admin123");
-        System.out.println("后台管理地址: http://localhost:8080/admin");
-        System.out.println("============================================");
+        log.info("数据初始化完成！后台管理地址: http://localhost:8080/admin");
     }
 }

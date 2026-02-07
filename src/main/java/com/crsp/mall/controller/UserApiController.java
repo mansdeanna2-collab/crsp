@@ -42,11 +42,7 @@ public class UserApiController {
         UserEntity user = userService.getOrCreateUser(token);
         
         // 设置cookie
-        Cookie cookie = new Cookie("user_token", user.getToken());
-        cookie.setMaxAge(365 * 24 * 60 * 60); // 1年
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
+        setUserTokenCookie(response, user.getToken());
         
         Map<String, Object> result = new HashMap<>();
         result.put("id", user.getId());
@@ -316,7 +312,7 @@ public class UserApiController {
         // 验证库存并计算总价（使用当前数据库中的实际价格）
         double totalAmount = 0;
         int totalCount = 0;
-        boolean priceChanged = false;
+        StringBuilder priceChanges = new StringBuilder();
         for (CartItemEntity item : selectedItems) {
             Optional<ProductEntity> productOpt = productDbService.getProductById(item.getProductId());
             if (productOpt.isEmpty()) {
@@ -332,12 +328,24 @@ public class UserApiController {
             if (product.getStock() != null && product.getStock() < item.getQuantity()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 库存不足，当前库存: " + product.getStock()));
             }
-            // Use current product price from DB, not the stale cart snapshot
+            // 检测价格变化，若价格已变需要用户重新确认
             if (item.getProductPrice() != null && Math.abs(product.getPrice() - item.getProductPrice()) > 0.01) {
-                priceChanged = true;
+                priceChanges.append(String.format("「%s」 ¥%.2f → ¥%.2f；", 
+                    item.getProductTitle(), item.getProductPrice(), product.getPrice()));
+                // 同步更新购物车中的价格快照
+                item.setProductPrice(product.getPrice());
+                userService.saveCartItem(item);
             }
             totalAmount += product.getPrice() * item.getQuantity();
             totalCount += item.getQuantity();
+        }
+
+        // 若有价格变化，拒绝下单并告知用户
+        if (priceChanges.length() > 0) {
+            return ResponseEntity.badRequest().body(Map.of(
+                "error", "以下商品价格已变动，请确认后重新提交：" + priceChanges,
+                "priceChanged", true
+            ));
         }
 
         // 创建订单
@@ -353,9 +361,9 @@ public class UserApiController {
         
         OrderEntity savedOrder = orderService.saveOrder(order);
 
-        // 扣减库存
+        // 扣减库存（使用悲观锁防止并发超卖）
         for (CartItemEntity item : selectedItems) {
-            productDbService.getProductById(item.getProductId()).ifPresent(product -> {
+            productDbService.getProductByIdForUpdate(item.getProductId()).ifPresent(product -> {
                 if (product.getStock() != null) {
                     product.setStock(product.getStock() - item.getQuantity());
                     productDbService.saveProduct(product);
@@ -373,9 +381,6 @@ public class UserApiController {
         result.put("orderNo", savedOrder.getOrderNo());
         result.put("totalAmount", totalAmount);
         result.put("productCount", totalCount);
-        if (priceChanged) {
-            result.put("priceChanged", true);
-        }
         return ResponseEntity.ok(result);
     }
 
@@ -392,6 +397,16 @@ public class UserApiController {
     }
 
     // ===== 辅助方法 =====
+
+    private void setUserTokenCookie(HttpServletResponse response, String token) {
+        Cookie cookie = new Cookie("user_token", token);
+        cookie.setMaxAge(365 * 24 * 60 * 60); // 1年
+        cookie.setPath("/");
+        cookie.setHttpOnly(true);
+        cookie.setSecure(true);
+        cookie.setAttribute("SameSite", "Lax");
+        response.addCookie(cookie);
+    }
 
     private String getTokenFromCookie(HttpServletRequest request) {
         Cookie[] cookies = request.getCookies();
@@ -418,11 +433,7 @@ public class UserApiController {
         UserEntity user = userService.getOrCreateUser(token);
         
         // 设置cookie
-        Cookie cookie = new Cookie("user_token", user.getToken());
-        cookie.setMaxAge(365 * 24 * 60 * 60);
-        cookie.setPath("/");
-        cookie.setHttpOnly(true);
-        response.addCookie(cookie);
+        setUserTokenCookie(response, user.getToken());
         
         return user;
     }

@@ -212,6 +212,10 @@ public class UserService {
         return cartItemRepository.countByUserId(userId);
     }
 
+    public CartItemEntity saveCartItem(CartItemEntity item) {
+        return cartItemRepository.save(item);
+    }
+
     @Transactional
     public void clearCart(Long userId) {
         cartItemRepository.deleteByUserId(userId);

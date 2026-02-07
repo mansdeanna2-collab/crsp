@@ -39,6 +39,13 @@ public class ProductDbService {
     }
 
     /**
+     * 根据ID获取商品（带悲观锁，用于库存扣减等并发场景）
+     */
+    public Optional<ProductEntity> getProductByIdForUpdate(Long id) {
+        return productRepository.findByIdForUpdate(id);
+    }
+
+    /**
      * 搜索商品
      */
     public List<ProductEntity> searchProducts(String keyword) {
