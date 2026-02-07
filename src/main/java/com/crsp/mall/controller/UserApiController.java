@@ -165,9 +165,21 @@ public class UserApiController {
     @PostMapping("/cart")
     public ResponseEntity<?> addToCart(@RequestBody Map<String, Object> body, HttpServletRequest request, HttpServletResponse response) {
         UserEntity user = getOrInitUser(request, response);
-        Long productId = Long.valueOf(body.get("productId").toString());
+        
+        if (body.get("productId") == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "商品ID不能为空"));
+        }
+        
+        Long productId;
+        Integer quantity;
+        try {
+            productId = Long.valueOf(body.get("productId").toString());
+            quantity = body.get("quantity") != null ? Integer.valueOf(body.get("quantity").toString()) : 1;
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "参数格式无效"));
+        }
+        
         String specName = body.get("specName") != null ? body.get("specName").toString() : "";
-        Integer quantity = body.get("quantity") != null ? Integer.valueOf(body.get("quantity").toString()) : 1;
         
         Optional<ProductEntity> productOpt = productDbService.getProductById(productId);
         if (productOpt.isEmpty()) {
@@ -196,7 +208,15 @@ public class UserApiController {
      */
     @PutMapping("/cart/{itemId}")
     public ResponseEntity<?> updateCartItem(@PathVariable Long itemId, @RequestBody Map<String, Object> body) {
-        Integer quantity = Integer.valueOf(body.get("quantity").toString());
+        if (body.get("quantity") == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "数量不能为空"));
+        }
+        Integer quantity;
+        try {
+            quantity = Integer.valueOf(body.get("quantity").toString());
+        } catch (NumberFormatException e) {
+            return ResponseEntity.badRequest().body(Map.of("error", "数量格式无效"));
+        }
         CartItemEntity item = userService.updateCartItemQuantity(itemId, quantity);
         if (item == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "购物车项不存在"));
@@ -209,6 +229,9 @@ public class UserApiController {
      */
     @PutMapping("/cart/{itemId}/select")
     public ResponseEntity<?> updateCartItemSelected(@PathVariable Long itemId, @RequestBody Map<String, Object> body) {
+        if (body.get("selected") == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "选中状态不能为空"));
+        }
         Boolean selected = Boolean.valueOf(body.get("selected").toString());
         CartItemEntity item = userService.updateCartItemSelected(itemId, selected);
         if (item == null) {

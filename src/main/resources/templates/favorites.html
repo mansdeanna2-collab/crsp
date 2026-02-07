@@ -157,7 +157,7 @@
                             '<div class="favorite-title">' + (item.productTitle || '') + '</div>' +
                             '<div class="favorite-price">¥' + (item.productPrice ? item.productPrice.toFixed(2) : '0.00') + '</div>' +
                             '</div></a>' +
-                            '<button class="unfavorite-btn" onclick="removeFavorite(' + item.productId + ', this)" title="取消收藏"><i class="fas fa-heart"></i></button>' +
+                            '<button class="unfavorite-btn" onclick="removeFavorite(event, ' + item.productId + ', this)" title="取消收藏"><i class="fas fa-heart"></i></button>' +
                             '</div>';
                     });
                     container.innerHTML = html;
@@ -167,7 +167,7 @@
                 });
         }
 
-        function removeFavorite(productId, btn) {
+        function removeFavorite(event, productId, btn) {
             event.preventDefault();
             event.stopPropagation();
             fetch('/api/user/favorite/' + productId, { method: 'POST' })
