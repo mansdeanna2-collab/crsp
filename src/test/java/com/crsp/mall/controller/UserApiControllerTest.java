@@ -14,6 +14,7 @@ import org.springframework.transaction.annotation.Transactional;
 import jakarta.servlet.http.Cookie;
 
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
@@ -115,5 +116,62 @@ class UserApiControllerTest {
         mockMvc.perform(post("/api/user/orders/" + order.getId() + "/confirm").cookie(cookie))
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("仅已发货订单可确认收货"));
+    }
+
+    @Test
+    void updateProfileSucceedsWithValidData() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(put("/api/user/info").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"nickname\":\"新昵称\",\"phone\":\"13900139000\",\"email\":\"test@example.com\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void updateProfileRejectsInvalidPhone() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(put("/api/user/info").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"phone\":\"12345\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("请输入正确的手机号码"));
+    }
+
+    @Test
+    void updateProfileRejectsInvalidEmail() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(put("/api/user/info").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"email\":\"not-an-email\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("请输入正确的邮箱地址"));
+    }
+
+    @Test
+    void updateProfileRejectsEmptyNickname() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(put("/api/user/info").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"nickname\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("昵称长度须为1-20个字符"));
+    }
+
+    @Test
+    void updateProfileRejectsWithoutLogin() throws Exception {
+        mockMvc.perform(put("/api/user/info")
+                .contentType("application/json")
+                .content("{\"nickname\":\"test\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("用户未登录"));
     }
 }

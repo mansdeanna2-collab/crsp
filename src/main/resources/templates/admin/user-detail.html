@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>用户详情 - 成人玩具商城后台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1a1f36 0%, #252b48 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex; align-items: center; gap: 10px;
+        }
+        .sidebar-header i { font-size: 28px; color: #667eea; }
+        .sidebar-header h2 { font-size: 18px; font-weight: 600; }
+        .sidebar-header span { font-size: 12px; color: #9aa0ac; display: block; }
+        .sidebar-menu { padding: 15px 0; }
+        .menu-title {
+            padding: 10px 20px; font-size: 11px; color: #6c7293;
+            text-transform: uppercase; letter-spacing: 1px;
+        }
+        .menu-item {
+            display: flex; align-items: center; padding: 12px 20px;
+            color: #9aa0ac; text-decoration: none; gap: 12px;
+            transition: all 0.3s; border-left: 3px solid transparent;
+        }
+        .menu-item:hover { background: rgba(102,126,234,0.1); color: white; }
+        .menu-item.active { background: rgba(102,126,234,0.15); color: white; border-left-color: #667eea; }
+        .menu-item i { width: 20px; font-size: 16px; }
+        .main-content { flex: 1; margin-left: 250px; }
+        .top-header {
+            background: white; padding: 15px 30px;
+            display: flex; justify-content: space-between; align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .page-title { font-size: 20px; font-weight: 600; color: #333; }
+        .back-link { color: #667eea; text-decoration: none; font-size: 14px; margin-right: 15px; }
+        .user-info { display: flex; align-items: center; gap: 15px; }
+        .user-info span { color: #666; font-size: 14px; }
+        .logout-btn {
+            background: #f5f5f5; border: none; padding: 8px 16px;
+            border-radius: 6px; color: #666; cursor: pointer; font-size: 14px; text-decoration: none;
+        }
+        .content-area { padding: 30px; }
+        .info-grid {
+            display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 15px; margin-bottom: 30px;
+        }
+        .info-card {
+            background: white; border-radius: 10px; padding: 20px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .info-label { color: #999; font-size: 13px; margin-bottom: 6px; }
+        .info-value { color: #333; font-size: 16px; font-weight: 500; }
+        .card {
+            background: white; border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05); overflow: hidden;
+            margin-bottom: 20px;
+        }
+        .card-header {
+            padding: 16px 20px; border-bottom: 1px solid #eee;
+            display: flex; justify-content: space-between; align-items: center;
+        }
+        .card-title { font-size: 16px; font-weight: 600; color: #333; }
+        .card-count { color: #999; font-size: 13px; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td {
+            padding: 12px 20px; text-align: left; border-bottom: 1px solid #eee;
+        }
+        .table th { background: #f8f9fa; font-weight: 600; color: #333; font-size: 13px; }
+        .table td { color: #666; font-size: 14px; }
+        .status-badge {
+            display: inline-block; padding: 4px 12px;
+            border-radius: 20px; font-size: 12px; font-weight: 500;
+        }
+        .status-pending { background: #fff3cd; color: #856404; }
+        .status-paid { background: #cce5ff; color: #004085; }
+        .status-shipped { background: #d4edda; color: #155724; }
+        .status-completed { background: #d1e7dd; color: #0f5132; }
+        .status-cancelled { background: #f8d7da; color: #721c24; }
+        .type-badge { display: inline-block; padding: 4px 12px; border-radius: 20px; font-size: 12px; }
+        .type-guest { background: #fff3cd; color: #856404; }
+        .type-user { background: #d4edda; color: #155724; }
+        .empty-row { text-align: center; color: #999; padding: 20px; }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-store"></i>
+                <div><h2>后台管理</h2><span>成人玩具商城</span></div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-title">主菜单</div>
+                <a th:href="@{/admin}" class="menu-item"><i class="fas fa-tachometer-alt"></i><span>仪表盘</span></a>
+                <a th:href="@{/admin/products}" class="menu-item"><i class="fas fa-box"></i><span>商品管理</span></a>
+                <a th:href="@{/admin/orders}" class="menu-item"><i class="fas fa-shopping-cart"></i><span>订单管理</span></a>
+                <a th:href="@{/admin/users}" class="menu-item active"><i class="fas fa-users"></i><span>用户管理</span></a>
+                <div class="menu-title">系统</div>
+                <a th:href="@{/}" class="menu-item" target="_blank"><i class="fas fa-external-link-alt"></i><span>查看商城</span></a>
+                <a th:href="@{/admin/logout}" class="menu-item"><i class="fas fa-sign-out-alt"></i><span>退出登录</span></a>
+            </div>
+        </div>
+
+        <div class="main-content">
+            <div class="top-header">
+                <div style="display:flex;align-items:center;">
+                    <a th:href="@{/admin/users}" class="back-link"><i class="fas fa-arrow-left"></i> 返回列表</a>
+                    <h1 class="page-title">用户详情</h1>
+                </div>
+                <div class="user-info">
+                    <span><i class="fas fa-user"></i> <span th:text="${session.admin.name}">管理员</span></span>
+                    <a th:href="@{/admin/logout}" class="logout-btn"><i class="fas fa-sign-out-alt"></i> 退出</a>
+                </div>
+            </div>
+
+            <div class="content-area">
+                <!-- 用户基本信息 -->
+                <div class="info-grid">
+                    <div class="info-card">
+                        <div class="info-label">用户ID</div>
+                        <div class="info-value" th:text="${user.id}">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">昵称</div>
+                        <div class="info-value" th:text="${user.nickname}">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">类型</div>
+                        <div class="info-value">
+                            <span class="type-badge" th:classappend="'type-' + ${user.userType}" th:text="${user.userTypeText}">-</span>
+                        </div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">手机号</div>
+                        <div class="info-value" th:text="${user.phone != null ? user.phone : '未设置'}">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">邮箱</div>
+                        <div class="info-value" th:text="${user.email != null ? user.email : '未设置'}">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">注册时间</div>
+                        <div class="info-value" th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}">-</div>
+                    </div>
+                    <div class="info-card">
+                        <div class="info-label">最后访问</div>
+                        <div class="info-value" th:text="${user.lastVisit != null ? #temporals.format(user.lastVisit, 'yyyy-MM-dd HH:mm') : '-'}">-</div>
+                    </div>
+                </div>
+
+                <!-- 用户订单 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-receipt"></i> 订单记录</h3>
+                        <span class="card-count" th:text="${#lists.size(orders)} + '条'">0条</span>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr><th>订单号</th><th>金额</th><th>数量</th><th>状态</th><th>时间</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="order : ${orders}">
+                                <td th:text="${order.orderNo}">-</td>
+                                <td th:text="'¥' + ${#numbers.formatDecimal(order.totalAmount, 1, 2)}">¥0</td>
+                                <td th:text="${order.productCount} + '件'">0件</td>
+                                <td><span class="status-badge" th:classappend="'status-' + ${order.status}" th:text="${order.statusText}">-</span></td>
+                                <td th:text="${#temporals.format(order.createdAt, 'yyyy-MM-dd HH:mm')}">-</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(orders)}"><td colspan="5" class="empty-row">暂无订单</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 收藏商品 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-heart"></i> 收藏商品</h3>
+                        <span class="card-count" th:text="${#lists.size(favorites)} + '件'">0件</span>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr><th>商品名称</th><th>价格</th><th>收藏时间</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="fav : ${favorites}">
+                                <td th:text="${fav.productTitle}">-</td>
+                                <td th:text="'¥' + ${#numbers.formatDecimal(fav.productPrice, 1, 2)}">¥0</td>
+                                <td th:text="${#temporals.format(fav.createdAt, 'yyyy-MM-dd HH:mm')}">-</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(favorites)}"><td colspan="3" class="empty-row">暂无收藏</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 购物车 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-shopping-cart"></i> 购物车</h3>
+                        <span class="card-count" th:text="${#lists.size(cartItems)} + '件'">0件</span>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr><th>商品名称</th><th>规格</th><th>价格</th><th>数量</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="item : ${cartItems}">
+                                <td th:text="${item.productTitle}">-</td>
+                                <td th:text="${item.specName != null and item.specName != '' ? item.specName : '-'}">-</td>
+                                <td th:text="'¥' + ${#numbers.formatDecimal(item.productPrice, 1, 2)}">¥0</td>
+                                <td th:text="${item.quantity}">0</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(cartItems)}"><td colspan="4" class="empty-row">购物车为空</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+
+                <!-- 浏览历史 -->
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title"><i class="fas fa-history"></i> 浏览历史</h3>
+                        <span class="card-count" th:text="${#lists.size(browsingHistory)} + '条'">0条</span>
+                    </div>
+                    <table class="table">
+                        <thead>
+                            <tr><th>商品名称</th><th>价格</th><th>浏览时间</th></tr>
+                        </thead>
+                        <tbody>
+                            <tr th:each="h : ${browsingHistory}">
+                                <td th:text="${h.productTitle}">-</td>
+                                <td th:text="'¥' + ${#numbers.formatDecimal(h.productPrice, 1, 2)}">¥0</td>
+                                <td th:text="${#temporals.format(h.viewedAt, 'yyyy-MM-dd HH:mm')}">-</td>
+                            </tr>
+                            <tr th:if="${#lists.isEmpty(browsingHistory)}"><td colspan="3" class="empty-row">暂无浏览记录</td></tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>

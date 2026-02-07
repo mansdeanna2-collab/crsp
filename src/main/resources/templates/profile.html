@@ -7,6 +7,50 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        .edit-modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        .edit-modal-overlay.show { display: flex; }
+        .edit-modal {
+            background: white;
+            border-radius: 16px 16px 0 0;
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .edit-modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .edit-modal-header h3 { font-size: 18px; color: #333; }
+        .edit-modal-header .close-btn {
+            background: none; border: none; font-size: 20px; color: #999; cursor: pointer;
+        }
+        .edit-form-group { margin-bottom: 16px; }
+        .edit-form-group label {
+            display: block; font-size: 14px; color: #666; margin-bottom: 6px;
+        }
+        .edit-form-group input {
+            width: 100%; padding: 10px 12px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 14px; outline: none;
+        }
+        .edit-form-group input:focus { border-color: #ff5722; }
+        .edit-save-btn {
+            width: 100%; background: linear-gradient(135deg, #ff5722, #ff8a65);
+            color: white; border: none; padding: 12px; border-radius: 25px;
+            font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px;
+        }
+        .edit-save-btn:disabled { background: #ccc; cursor: not-allowed; }
         .recommend-section {
             background: white;
             margin-top: 10px;
@@ -97,8 +141,7 @@
                         </div>
                     </div>
                     <div class="profile-actions">
-                        <i class="fas fa-cog"></i>
-                        <i class="fas fa-qrcode"></i>
+                        <i class="fas fa-cog" onclick="openEditProfile()" style="cursor:pointer;"></i>
                     </div>
                 </div>
             </div>
@@ -254,6 +297,29 @@
         </div>
     </div>
 
+    <!-- 编辑资料弹窗 -->
+    <div class="edit-modal-overlay" id="editModal">
+        <div class="edit-modal">
+            <div class="edit-modal-header">
+                <h3>编辑资料</h3>
+                <button class="close-btn" onclick="closeEditProfile()">&times;</button>
+            </div>
+            <div class="edit-form-group">
+                <label>昵称</label>
+                <input type="text" id="editNickname" maxlength="20" placeholder="输入昵称">
+            </div>
+            <div class="edit-form-group">
+                <label>手机号码</label>
+                <input type="tel" id="editPhone" maxlength="11" placeholder="输入手机号码">
+            </div>
+            <div class="edit-form-group">
+                <label>邮箱</label>
+                <input type="email" id="editEmail" placeholder="输入邮箱地址">
+            </div>
+            <button class="edit-save-btn" id="editSaveBtn" onclick="saveProfile()">保存</button>
+        </div>
+    </div>
+
     <!-- 底部导航栏 -->
     <nav class="bottom-nav">
         <a th:href="@{/}" class="nav-item" data-page="home">
@@ -346,6 +412,66 @@
                     if (fb) fb.style.display = 'block';
                 }
             });
+        });
+
+        // 编辑资料功能
+        var currentUserInfo = {};
+
+        function openEditProfile() {
+            fetch('/api/user/info')
+                .then(function(r) { return r.json(); })
+                .then(function(info) {
+                    if (info && !info.error) {
+                        currentUserInfo = info;
+                        document.getElementById('editNickname').value = info.nickname || '';
+                        document.getElementById('editPhone').value = info.phone || '';
+                        document.getElementById('editEmail').value = info.email || '';
+                        document.getElementById('editModal').classList.add('show');
+                    }
+                });
+        }
+
+        function closeEditProfile() {
+            document.getElementById('editModal').classList.remove('show');
+        }
+
+        function saveProfile() {
+            var btn = document.getElementById('editSaveBtn');
+            btn.disabled = true;
+            btn.textContent = '保存中...';
+
+            var data = {
+                nickname: document.getElementById('editNickname').value.trim(),
+                phone: document.getElementById('editPhone').value.trim(),
+                email: document.getElementById('editEmail').value.trim()
+            };
+
+            fetch('/api/user/info', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(data)
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.success) {
+                    closeEditProfile();
+                    // 更新页面上的显示
+                    var nameEl = document.querySelector('.user-details h2');
+                    if (nameEl && data.nickname) nameEl.textContent = data.nickname;
+                } else {
+                    alert(result.error || '保存失败');
+                }
+            })
+            .catch(function() { alert('网络错误'); })
+            .finally(function() {
+                btn.disabled = false;
+                btn.textContent = '保存';
+            });
+        }
+
+        // 点击遮罩关闭弹窗
+        document.getElementById('editModal').addEventListener('click', function(e) {
+            if (e.target === this) closeEditProfile();
         });
     </script>
 </body>

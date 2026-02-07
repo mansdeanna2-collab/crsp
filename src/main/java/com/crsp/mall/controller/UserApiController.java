@@ -75,6 +75,44 @@ public class UserApiController {
         return ResponseEntity.ok(result);
     }
 
+    /**
+     * 更新用户个人信息
+     */
+    @PutMapping("/info")
+    public ResponseEntity<?> updateUserInfo(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+        }
+
+        if (body.containsKey("nickname")) {
+            String nickname = body.get("nickname") != null ? body.get("nickname").toString().trim() : "";
+            if (nickname.isEmpty() || nickname.length() > 20) {
+                return ResponseEntity.badRequest().body(Map.of("error", "昵称长度须为1-20个字符"));
+            }
+            user.setNickname(nickname);
+        }
+
+        if (body.containsKey("phone")) {
+            String phone = body.get("phone") != null ? body.get("phone").toString().trim() : "";
+            if (!phone.isEmpty() && !phone.matches("^1[3-9]\\d{9}$")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的手机号码"));
+            }
+            user.setPhone(phone.isEmpty() ? null : phone);
+        }
+
+        if (body.containsKey("email")) {
+            String email = body.get("email") != null ? body.get("email").toString().trim() : "";
+            if (!email.isEmpty() && !email.matches("^[\\w]([\\w.-]*[\\w])?@[\\w]([\\w.-]*[\\w])?\\.[a-zA-Z]{2,}$")) {
+                return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的邮箱地址"));
+            }
+            user.setEmail(email.isEmpty() ? null : email);
+        }
+
+        userService.saveUser(user);
+        return ResponseEntity.ok(Map.of("success", true));
+    }
+
     // ===== 浏览历史 =====
 
     /**
