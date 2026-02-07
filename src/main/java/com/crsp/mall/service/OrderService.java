@@ -4,6 +4,7 @@ import com.crsp.mall.entity.OrderEntity;
 import com.crsp.mall.repository.OrderRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
 import java.util.List;
@@ -76,6 +77,7 @@ public class OrderService {
     /**
      * 更新订单状态（验证状态转换合法性）
      */
+    @Transactional
     public OrderEntity updateOrderStatus(Long id, String status) {
         if (status == null || !VALID_STATUSES.contains(status)) {
             return null;

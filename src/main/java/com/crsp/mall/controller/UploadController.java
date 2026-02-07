@@ -306,8 +306,14 @@ public class UploadController {
         }
 
         Path filePath = Paths.get(uploadDir, filename);
+        // Defense-in-depth: verify resolved path is within upload directory
         try {
-            Files.deleteIfExists(filePath);
+            Path resolvedPath = filePath.toAbsolutePath().normalize();
+            Path uploadRoot = Paths.get(uploadDir).toAbsolutePath().normalize();
+            if (!resolvedPath.startsWith(uploadRoot)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "无效的文件路径"));
+            }
+            Files.deleteIfExists(resolvedPath);
             return ResponseEntity.ok(Map.of("message", "文件删除成功"));
         } catch (IOException e) {
             return ResponseEntity.internalServerError().body(Map.of("error", "文件删除失败"));
@@ -325,7 +331,7 @@ public class UploadController {
             return true;
         }
         // IPv4 私有/保留地址
-        if (h.startsWith("10.") || h.startsWith("192.168.") || h.startsWith("169.254.") || h.startsWith("127.")) {
+        if (h.startsWith("0.") || h.startsWith("10.") || h.startsWith("192.168.") || h.startsWith("169.254.") || h.startsWith("127.")) {
             return true;
         }
         // 172.16.0.0 - 172.31.255.255
@@ -335,8 +341,38 @@ public class UploadController {
                 if (second >= 16 && second <= 31) return true;
             } catch (NumberFormatException ignored) {}
         }
+        // 100.64.0.0 - 100.127.255.255 (CGNAT / Shared Address Space RFC 6598)
+        if (h.startsWith("100.")) {
+            try {
+                int second = Integer.parseInt(h.split("\\.")[1]);
+                if (second >= 64 && second <= 127) return true;
+            } catch (NumberFormatException ignored) {}
+        }
         // IPv6 私有地址
         if (h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80")) {
+            return true;
+        }
+        // DNS rebinding protection: resolve hostname and check if it resolves to a private IP
+        try {
+            java.net.InetAddress[] addresses = java.net.InetAddress.getAllByName(h);
+            for (java.net.InetAddress addr : addresses) {
+                if (addr.isLoopbackAddress() || addr.isLinkLocalAddress()
+                        || addr.isSiteLocalAddress() || addr.isAnyLocalAddress()) {
+                    return true;
+                }
+                // Check ranges not covered by InetAddress methods (CGNAT, 0.0.0.0/8)
+                if (addr instanceof java.net.Inet4Address) {
+                    byte[] bytes = addr.getAddress();
+                    int firstOctet = bytes[0] & 0xFF;
+                    int secondOctet = bytes[1] & 0xFF;
+                    // 0.0.0.0/8
+                    if (firstOctet == 0) return true;
+                    // 100.64.0.0/10 (CGNAT)
+                    if (firstOctet == 100 && secondOctet >= 64 && secondOctet <= 127) return true;
+                }
+            }
+        } catch (java.net.UnknownHostException e) {
+            // Cannot resolve hostname - block it to be safe
             return true;
         }
         return false;
