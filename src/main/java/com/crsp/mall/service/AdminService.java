@@ -3,6 +3,7 @@ package com.crsp.mall.service;
 import com.crsp.mall.entity.AdminEntity;
 import com.crsp.mall.repository.AdminRepository;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -18,6 +19,9 @@ public class AdminService {
 
     @Autowired
     private AdminRepository adminRepository;
+
+    @Value("${admin.reset-password-on-startup:true}")
+    private boolean resetPasswordOnStartup;
 
     private final BCryptPasswordEncoder passwordEncoder = new BCryptPasswordEncoder();
 
@@ -73,10 +77,38 @@ public class AdminService {
     }
 
     /**
+     * 修改管理员密码
+     */
+    public boolean changePassword(Long adminId, String oldPassword, String newPassword) {
+        Optional<AdminEntity> adminOpt = adminRepository.findById(adminId);
+        if (adminOpt.isEmpty()) {
+            return false;
+        }
+        AdminEntity admin = adminOpt.get();
+        if (!passwordEncoder.matches(oldPassword, admin.getPassword())) {
+            return false;
+        }
+        admin.setPassword(passwordEncoder.encode(newPassword));
+        adminRepository.save(admin);
+        return true;
+    }
+
+    /**
      * 初始化默认管理员
+     * 如果admin用户不存在则创建。
+     * 如果admin.reset-password-on-startup=true且密码不是admin123，则重置密码。
      */
     public void initDefaultAdmin() {
-        if (!adminRepository.existsByUsername("admin")) {
+        Optional<AdminEntity> existing = adminRepository.findByUsername("admin");
+        if (existing.isPresent()) {
+            if (resetPasswordOnStartup) {
+                AdminEntity admin = existing.get();
+                if (!passwordEncoder.matches("admin123", admin.getPassword())) {
+                    admin.setPassword(passwordEncoder.encode("admin123"));
+                    adminRepository.save(admin);
+                }
+            }
+        } else {
             AdminEntity admin = new AdminEntity();
             admin.setUsername("admin");
             admin.setPassword(passwordEncoder.encode("admin123"));

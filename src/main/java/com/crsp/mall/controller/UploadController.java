@@ -99,7 +99,7 @@ public class UploadController {
                 "filename", filename
             ));
         } catch (IOException e) {
-            return ResponseEntity.internalServerError().body(Map.of("error", "文件上传失败: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "文件上传失败"));
         }
     }
 
@@ -107,6 +107,8 @@ public class UploadController {
     private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of(".mp4", ".webm", ".ogg");
     private static final long MAX_DOWNLOAD_SIZE = 50L * 1024 * 1024; // 50MB
     private static final Duration DOWNLOAD_TIMEOUT = Duration.ofSeconds(30);
+    private static final int MAX_REDIRECTS = 5;
+    private static final Set<Integer> REDIRECT_STATUS_CODES = Set.of(301, 302, 307, 308);
 
     /**
      * 从URL下载图片或视频到服务器
@@ -184,10 +186,10 @@ public class UploadController {
             String filename = UUID.randomUUID().toString() + "_" + safeFilename;
             Path filePath = Paths.get(uploadDir, filename);
 
-            // 下载文件
+            // 下载文件 (disable automatic redirects to prevent SSRF via redirect)
             HttpClient client = HttpClient.newBuilder()
                     .connectTimeout(DOWNLOAD_TIMEOUT)
-                    .followRedirects(HttpClient.Redirect.NORMAL)
+                    .followRedirects(HttpClient.Redirect.NEVER)
                     .build();
             HttpRequest httpRequest = HttpRequest.newBuilder()
                     .uri(uri)
@@ -196,8 +198,39 @@ public class UploadController {
                     .build();
             HttpResponse<InputStream> response = client.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
 
+            // Handle redirects manually with SSRF validation
+            int redirectCount = 0;
+            URI currentUri = uri;
+            while (REDIRECT_STATUS_CODES.contains(response.statusCode())
+                    && redirectCount < MAX_REDIRECTS) {
+                String location = response.headers().firstValue("Location").orElse(null);
+                if (location == null) break;
+                URI redirectUri;
+                try {
+                    redirectUri = currentUri.resolve(location);
+                } catch (IllegalArgumentException e) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "重定向URL无效"));
+                }
+                String redirectHost = redirectUri.getHost();
+                if (redirectHost == null || isPrivateOrReservedHost(redirectHost)) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "不允许重定向到内网地址"));
+                }
+                String redirectScheme = redirectUri.getScheme();
+                if (!"http".equals(redirectScheme) && !"https".equals(redirectScheme)) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "仅支持http和https链接"));
+                }
+                currentUri = redirectUri;
+                httpRequest = HttpRequest.newBuilder()
+                        .uri(redirectUri)
+                        .timeout(DOWNLOAD_TIMEOUT)
+                        .GET()
+                        .build();
+                response = client.send(httpRequest, HttpResponse.BodyHandlers.ofInputStream());
+                redirectCount++;
+            }
+
             if (response.statusCode() != 200) {
-                return ResponseEntity.badRequest().body(Map.of("error", "下载失败，远程服务器返回状态码: " + response.statusCode()));
+                return ResponseEntity.badRequest().body(Map.of("error", "下载失败，远程服务器返回非成功状态码"));
             }
 
             // 检查Content-Length防止下载过大文件
@@ -242,7 +275,7 @@ public class UploadController {
             if (e instanceof InterruptedException) {
                 Thread.currentThread().interrupt();
             }
-            return ResponseEntity.internalServerError().body(Map.of("error", "下载文件失败: " + e.getMessage()));
+            return ResponseEntity.internalServerError().body(Map.of("error", "下载文件失败"));
         }
     }
 

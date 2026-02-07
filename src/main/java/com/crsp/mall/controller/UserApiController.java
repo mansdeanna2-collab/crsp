@@ -337,12 +337,21 @@ public class UserApiController {
         if (userName.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "请输入收货人姓名"));
         }
+        if (userName.length() > 50) {
+            return ResponseEntity.badRequest().body(Map.of("error", "收货人姓名不能超过50个字符"));
+        }
         // 中国大陆手机号格式: 1[3-9]开头，11位数字
         if (userPhone.isEmpty() || !userPhone.matches("^1[3-9]\\d{9}$")) {
             return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的手机号码"));
         }
         if (shippingAddress.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "请输入收货地址"));
+        }
+        if (shippingAddress.length() > 500) {
+            return ResponseEntity.badRequest().body(Map.of("error", "收货地址不能超过500个字符"));
+        }
+        if (remark.length() > 500) {
+            return ResponseEntity.badRequest().body(Map.of("error", "备注长度不能超过500个字符"));
         }
 
         // 获取选中的购物车商品
@@ -390,7 +399,23 @@ public class UserApiController {
             ));
         }
 
-        // 创建订单
+        // 扣减库存（使用悲观锁防止并发超卖，必须在创建订单前完成）
+        for (CartItemEntity item : selectedItems) {
+            Optional<ProductEntity> lockedProductOpt = productDbService.getProductByIdForUpdate(item.getProductId());
+            if (lockedProductOpt.isEmpty()) {
+                return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 已下架"));
+            }
+            ProductEntity lockedProduct = lockedProductOpt.get();
+            if (lockedProduct.getStock() != null) {
+                if (lockedProduct.getStock() < item.getQuantity()) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 库存不足，当前库存: " + lockedProduct.getStock()));
+                }
+                lockedProduct.setStock(lockedProduct.getStock() - item.getQuantity());
+                productDbService.saveProduct(lockedProduct);
+            }
+        }
+
+        // 创建订单（库存已扣减）
         OrderEntity order = new OrderEntity();
         order.setUserId(user.getId());
         order.setUserName(userName);
@@ -402,16 +427,6 @@ public class UserApiController {
         order.setStatus("pending");
         
         OrderEntity savedOrder = orderService.saveOrder(order);
-
-        // 扣减库存（使用悲观锁防止并发超卖）
-        for (CartItemEntity item : selectedItems) {
-            productDbService.getProductByIdForUpdate(item.getProductId()).ifPresent(product -> {
-                if (product.getStock() != null) {
-                    product.setStock(product.getStock() - item.getQuantity());
-                    productDbService.saveProduct(product);
-                }
-            });
-        }
 
         // 清除已下单的购物车商品
         for (CartItemEntity item : selectedItems) {

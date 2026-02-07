@@ -49,25 +49,63 @@ class OrderServiceTest {
         order.setStatus("pending");
         order = orderRepository.save(order);
 
-        // Valid status should work
+        // Valid transition: pending -> paid
         OrderEntity result = orderService.updateOrderStatus(order.getId(), "paid");
         assertNotNull(result);
         assertEquals("paid", result.getStatus());
         assertNotNull(result.getPaidAt());
 
+        // Valid transition: paid -> shipped
         result = orderService.updateOrderStatus(order.getId(), "shipped");
         assertNotNull(result);
         assertEquals("shipped", result.getStatus());
         assertNotNull(result.getShippedAt());
 
+        // Valid transition: shipped -> completed
         result = orderService.updateOrderStatus(order.getId(), "completed");
         assertNotNull(result);
         assertEquals("completed", result.getStatus());
         assertNotNull(result.getCompletedAt());
 
+        // Invalid transition: completed -> cancelled (not allowed)
         result = orderService.updateOrderStatus(order.getId(), "cancelled");
+        assertNull(result);
+    }
+
+    @Test
+    void updateOrderStatusAllowsCancelFromPending() {
+        OrderEntity order = new OrderEntity();
+        order.setUserName("测试");
+        order.setTotalAmount(100.0);
+        order.setStatus("pending");
+        order = orderRepository.save(order);
+
+        // Valid transition: pending -> cancelled
+        OrderEntity result = orderService.updateOrderStatus(order.getId(), "cancelled");
         assertNotNull(result);
         assertEquals("cancelled", result.getStatus());
+    }
+
+    @Test
+    void updateOrderStatusRejectsInvalidTransitions() {
+        OrderEntity order = new OrderEntity();
+        order.setUserName("测试");
+        order.setTotalAmount(100.0);
+        order.setStatus("pending");
+        order = orderRepository.save(order);
+
+        // Invalid transition: pending -> shipped (must go through paid first)
+        OrderEntity result = orderService.updateOrderStatus(order.getId(), "shipped");
+        assertNull(result);
+
+        // Invalid transition: pending -> completed
+        result = orderService.updateOrderStatus(order.getId(), "completed");
+        assertNull(result);
+
+        // Verify order still has original status
+        OrderEntity unchanged = orderRepository.findById(order.getId()).orElse(null);
+        assertNotNull(unchanged);
+        assertEquals("pending", unchanged.getStatus());
     }
 
     @Test

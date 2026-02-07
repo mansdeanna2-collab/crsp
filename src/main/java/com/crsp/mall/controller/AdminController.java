@@ -321,4 +321,101 @@ public class AdminController {
         redirectAttributes.addFlashAttribute("success", "用户删除成功");
         return "redirect:/admin/users";
     }
+
+    /**
+     * 编辑用户信息
+     */
+    @PostMapping("/users/edit/{id}")
+    public String editUser(@PathVariable Long id,
+                          @RequestParam(required = false) String nickname,
+                          @RequestParam(required = false) String phone,
+                          @RequestParam(required = false) String email,
+                          @RequestParam(required = false) String userType,
+                          @RequestParam(required = false) Boolean active,
+                          HttpSession session,
+                          RedirectAttributes redirectAttributes) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        Optional<UserEntity> userOpt = userService.getUserById(id);
+        if (userOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "用户不存在");
+            return "redirect:/admin/users";
+        }
+
+        UserEntity user = userOpt.get();
+        if (nickname != null) {
+            String trimmedNickname = nickname.trim();
+            if (!trimmedNickname.isEmpty() && trimmedNickname.length() <= 20) {
+                user.setNickname(trimmedNickname);
+            }
+        }
+        if (phone != null) {
+            String trimmedPhone = phone.trim();
+            user.setPhone(trimmedPhone.isEmpty() ? null : trimmedPhone);
+        }
+        if (email != null) {
+            String trimmedEmail = email.trim();
+            if (trimmedEmail.isEmpty()) {
+                user.setEmail(null);
+            } else if (trimmedEmail.matches("^[\\w]([\\w.-]*[\\w])?@[\\w]([\\w.-]*[\\w])?\\.[a-zA-Z]{2,}$")) {
+                user.setEmail(trimmedEmail);
+            }
+        }
+        if (userType != null && ("guest".equals(userType) || "user".equals(userType))) {
+            user.setUserType(userType);
+        }
+        if (active != null) {
+            user.setActive(active);
+        }
+
+        userService.saveUser(user);
+        redirectAttributes.addFlashAttribute("success", "用户信息更新成功");
+        return "redirect:/admin/users/" + id;
+    }
+
+    /**
+     * 修改密码页面
+     */
+    @GetMapping("/password")
+    public String passwordPage(HttpSession session, Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+        model.addAttribute("currentPage", "password");
+        return "admin/password";
+    }
+
+    /**
+     * 修改密码处理
+     */
+    @PostMapping("/password")
+    public String changePassword(@RequestParam String oldPassword,
+                                @RequestParam String newPassword,
+                                @RequestParam String confirmPassword,
+                                HttpSession session,
+                                RedirectAttributes redirectAttributes) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        if (newPassword == null || newPassword.length() < 6 || newPassword.length() > 32) {
+            redirectAttributes.addFlashAttribute("error", "新密码长度须为6-32个字符");
+            return "redirect:/admin/password";
+        }
+        if (!newPassword.equals(confirmPassword)) {
+            redirectAttributes.addFlashAttribute("error", "两次输入的密码不一致");
+            return "redirect:/admin/password";
+        }
+
+        AdminEntity admin = (AdminEntity) session.getAttribute("admin");
+        boolean success = adminService.changePassword(admin.getId(), oldPassword, newPassword);
+        if (success) {
+            redirectAttributes.addFlashAttribute("success", "密码修改成功");
+        } else {
+            redirectAttributes.addFlashAttribute("error", "原密码错误");
+        }
+        return "redirect:/admin/password";
+    }
 }
