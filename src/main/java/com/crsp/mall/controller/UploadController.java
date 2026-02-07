@@ -107,6 +107,8 @@ public class UploadController {
     private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of(".mp4", ".webm", ".ogg");
     private static final long MAX_DOWNLOAD_SIZE = 50L * 1024 * 1024; // 50MB
     private static final Duration DOWNLOAD_TIMEOUT = Duration.ofSeconds(30);
+    private static final int MAX_REDIRECTS = 5;
+    private static final Set<Integer> REDIRECT_STATUS_CODES = Set.of(301, 302, 307, 308);
 
     /**
      * 从URL下载图片或视频到服务器
@@ -198,14 +200,14 @@ public class UploadController {
 
             // Handle redirects manually with SSRF validation
             int redirectCount = 0;
-            while ((response.statusCode() == 301 || response.statusCode() == 302
-                    || response.statusCode() == 307 || response.statusCode() == 308)
-                    && redirectCount < 5) {
+            URI currentUri = uri;
+            while (REDIRECT_STATUS_CODES.contains(response.statusCode())
+                    && redirectCount < MAX_REDIRECTS) {
                 String location = response.headers().firstValue("Location").orElse(null);
                 if (location == null) break;
                 URI redirectUri;
                 try {
-                    redirectUri = uri.resolve(location);
+                    redirectUri = currentUri.resolve(location);
                 } catch (IllegalArgumentException e) {
                     return ResponseEntity.badRequest().body(Map.of("error", "重定向URL无效"));
                 }
@@ -217,6 +219,7 @@ public class UploadController {
                 if (!"http".equals(redirectScheme) && !"https".equals(redirectScheme)) {
                     return ResponseEntity.badRequest().body(Map.of("error", "仅支持http和https链接"));
                 }
+                currentUri = redirectUri;
                 httpRequest = HttpRequest.newBuilder()
                         .uri(redirectUri)
                         .timeout(DOWNLOAD_TIMEOUT)

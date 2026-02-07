@@ -334,15 +334,21 @@ public class UserApiController {
         String remark = body.get("remark") != null ? body.get("remark").toString().trim() : "";
 
         // 输入验证
-        if (userName.isEmpty() || userName.length() > 50) {
-            return ResponseEntity.badRequest().body(Map.of("error", "收货人姓名长度须为1-50个字符"));
+        if (userName.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请输入收货人姓名"));
+        }
+        if (userName.length() > 50) {
+            return ResponseEntity.badRequest().body(Map.of("error", "收货人姓名不能超过50个字符"));
         }
         // 中国大陆手机号格式: 1[3-9]开头，11位数字
         if (userPhone.isEmpty() || !userPhone.matches("^1[3-9]\\d{9}$")) {
             return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的手机号码"));
         }
-        if (shippingAddress.isEmpty() || shippingAddress.length() > 500) {
-            return ResponseEntity.badRequest().body(Map.of("error", "收货地址长度须为1-500个字符"));
+        if (shippingAddress.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请输入收货地址"));
+        }
+        if (shippingAddress.length() > 500) {
+            return ResponseEntity.badRequest().body(Map.of("error", "收货地址不能超过500个字符"));
         }
         if (remark.length() > 500) {
             return ResponseEntity.badRequest().body(Map.of("error", "备注长度不能超过500个字符"));
