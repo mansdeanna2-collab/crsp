@@ -176,10 +176,7 @@ class OrderServiceTest {
     }
 
     @Test
-    void initSampleOrdersDoesNotSeedOrders() {
-        long before = orderRepository.count();
-        orderService.initSampleOrders();
-        long after = orderRepository.count();
-        assertEquals(before, after);
+    void startupDoesNotSeedOrders() {
+        assertEquals(0, orderRepository.count());
     }
 }

@@ -1,7 +1,6 @@
 package com.crsp.mall.config;
 
 import com.crsp.mall.service.AdminService;
-import com.crsp.mall.service.OrderService;
 import com.crsp.mall.service.ProductDbService;
 import com.crsp.mall.service.PromotionService;
 import org.slf4j.Logger;
@@ -23,9 +22,6 @@ public class DataInitializer implements CommandLineRunner {
     private ProductDbService productDbService;
 
     @Autowired
-    private OrderService orderService;
-
-    @Autowired
     private AdminService adminService;
 
     @Autowired
@@ -45,13 +41,6 @@ public class DataInitializer implements CommandLineRunner {
             productDbService.initDefaultProducts();
         } catch (Exception e) {
             log.error("初始化默认商品失败: {}", e.getMessage(), e);
-        }
-
-        try {
-            // 初始化示例订单
-            orderService.initSampleOrders();
-        } catch (Exception e) {
-            log.error("初始化示例订单失败: {}", e.getMessage(), e);
         }
 
         try {

@@ -112,22 +112,4 @@ public class OrderService {
         orderRepository.deleteById(id);
     }
 
-    /**
-     * 初始化示例订单数据（已移除默认示例订单）
-     */
-    public void initSampleOrders() {
-        // no-op
-    }
-
-    private void createSampleOrder(String userName, String phone, String address, 
-                                    double amount, int count, String status) {
-        OrderEntity order = new OrderEntity();
-        order.setUserName(userName);
-        order.setUserPhone(phone);
-        order.setShippingAddress(address);
-        order.setTotalAmount(amount);
-        order.setProductCount(count);
-        order.setStatus(status);
-        orderRepository.save(order);
-    }
 }
