@@ -1229,48 +1229,61 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: #ffffff;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     justify-content: space-around;
-    padding: 10px 8px;
-    border-top: 1px solid var(--accent-border-light);
+    padding: 8px 8px 12px;
+    border-top: none;
     z-index: 1000;
-    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     position: relative;
     cursor: pointer;
-    padding: 0 15px;
+    padding: 6px 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item i {
-    font-size: 20px;
-    color: #999;
+    font-size: 22px;
+    color: #b0b0b0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item span {
-    font-size: 11px;
-    color: #999;
+    font-size: 10px;
+    color: #b0b0b0;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-item.active i,
+.nav-item.active i {
+    color: var(--accent);
+    transform: scale(1.15);
+    filter: drop-shadow(0 2px 4px rgba(255, 87, 34, 0.3));
+}
+
 .nav-item.active span {
     color: var(--accent);
+    font-weight: 600;
 }
+
 .nav-item.active {
     background: linear-gradient(180deg, var(--accent-bg-start), var(--accent-bg-end));
-    border-radius: 12px;
+    border-radius: 14px;
 }
 
 .nav-badge {
     position: absolute;
-    top: -6px;
-    right: 6px;
+    top: 0;
+    right: 4px;
     background: linear-gradient(135deg, var(--badge-grad-start), var(--badge-grad-end));
     color: #fff;
     font-size: 10px;
@@ -1283,7 +1296,7 @@ body {
     align-items: center;
     justify-content: center;
     box-shadow: 0 4px 10px rgba(255, 61, 104, 0.25);
-    border: 1px solid rgba(255, 255, 255, 0.6);
+    border: 2px solid #fff;
 }
 
 /* ==================== 响应式适配 ==================== */

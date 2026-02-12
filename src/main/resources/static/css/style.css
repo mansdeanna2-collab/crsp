@@ -939,48 +939,70 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: white;
+    background: rgba(255, 255, 255, 0.95);
+    backdrop-filter: blur(12px);
+    -webkit-backdrop-filter: blur(12px);
     display: flex;
     justify-content: space-around;
-    padding: 8px 0;
-    border-top: 1px solid #eee;
+    padding: 8px 8px 12px;
+    border-top: none;
     z-index: 1000;
+    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
 }
 
 .nav-item {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 3px;
+    gap: 4px;
     position: relative;
     cursor: pointer;
-    padding: 0 15px;
+    padding: 6px 16px;
+    text-decoration: none;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item i {
-    font-size: 20px;
-    color: #999;
+    font-size: 22px;
+    color: #b0b0b0;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item span {
-    font-size: 11px;
-    color: #999;
+    font-size: 10px;
+    color: #b0b0b0;
+    font-weight: 500;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-.nav-item.active i,
+.nav-item.active i {
+    color: #ff5722;
+    transform: scale(1.15);
+    filter: drop-shadow(0 2px 4px rgba(255, 87, 34, 0.3));
+}
+
 .nav-item.active span {
     color: #ff5722;
+    font-weight: 600;
 }
 
 .nav-badge {
     position: absolute;
-    top: -5px;
-    right: 5px;
-    background: #ff5722;
+    top: 0;
+    right: 4px;
+    background: linear-gradient(135deg, #ff3d68, #ff5722);
     color: white;
     font-size: 10px;
-    padding: 1px 5px;
-    border-radius: 8px;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(255, 61, 104, 0.25);
+    border: 2px solid #fff;
 }
 
 /* ==================== 响应式适配 ==================== */
