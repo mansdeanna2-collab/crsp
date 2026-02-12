@@ -50,7 +50,7 @@
             display: flex;
             align-items: center;
             justify-content: center;
-            margin-top: 50px;
+            margin-top: 55px;
             position: relative;
             overflow: hidden;
         }
@@ -74,7 +74,7 @@
             position: relative;
             height: 75vw;
             max-height: 350px;
-            margin-top: 50px;
+            margin-top: 55px;
             background: #f5f5f5;
             overflow: hidden;
         }
@@ -104,6 +104,7 @@
             -webkit-user-drag: none;
             user-select: none;
             cursor: pointer;
+            touch-action: none;
         }
         .media-slide video {
             width: 100%;
@@ -1390,6 +1391,7 @@
         let isDragging = false;
         let isVerticalScroll = false;
         let touchStartTime = 0;
+        let justSwiped = false;
 
         function resetTouchState() {
             touchStartX = 0;
@@ -1461,6 +1463,9 @@
                 sliderContainer.style.transition = 'transform 0.3s ease';
 
                 if (wasSwiping) {
+                    // 标记刚刚完成了滑动，防止后续click事件误触发图片预览
+                    justSwiped = true;
+                    setTimeout(function() { justSwiped = false; }, 300);
                     handleSwipe(savedStartX, endX);
                 } else {
                     // 短暂点击且未滑动 = 点击图片展开预览
@@ -1487,8 +1492,9 @@
                 }
             }, { passive: true });
 
-            // 桌面端点击图片展开预览
+            // 桌面端点击图片展开预览（触摸滑动后不触发）
             sliderContainer.addEventListener('click', function(e) {
+                if (justSwiped) return;
                 var slide = slides[currentSlide];
                 if (!slide || slide.getAttribute('data-type') === 'video') return;
                 var img = slide.querySelector('img');
