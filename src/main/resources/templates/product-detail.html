@@ -1529,17 +1529,12 @@
                 } else {
                     prevSlide();
                 }
-            } else {
-                updateSlider();
+                return;
             }
-            // Ensure index stays within valid range to avoid rare out-of-bounds lockups
-            if (currentSlide < 0) {
-                currentSlide = 0;
-                updateSlider();
-            } else if (currentSlide >= totalSlides) {
-                currentSlide = totalSlides - 1;
-                updateSlider();
-            }
+            // Snap back when swipe is too small and clamp index just in case
+            if (currentSlide < 0) currentSlide = 0;
+            else if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            updateSlider();
         }
 
         // 规格选择弹窗功能
