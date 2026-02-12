@@ -1532,8 +1532,7 @@
                 return;
             }
             // Snap back when swipe is too small and clamp index just in case
-            if (currentSlide < 0) currentSlide = 0;
-            else if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+            currentSlide = Math.max(0, Math.min(currentSlide, totalSlides - 1));
             updateSlider();
         }
 
