@@ -9,6 +9,7 @@
     <style>
         .detail-page {
             padding-bottom: 70px;
+            padding-top: 64px;
             min-height: 100vh;
             background: #f5f5f5;
             overflow-x: hidden;
@@ -74,16 +75,17 @@
             position: relative;
             height: 75vw;
             max-height: 350px;
-            margin-top: 55px;
+            margin-top: 0;
             background: #f5f5f5;
             overflow: hidden;
+            touch-action: pan-y pinch-zoom;
         }
         .media-slider-container {
             display: flex;
             transition: transform 0.3s ease;
             height: 100%;
             will-change: transform;
-            touch-action: pan-y;
+            touch-action: pan-x;
             -webkit-user-select: none;
             user-select: none;
         }
@@ -1167,7 +1169,7 @@
         let currentSlide = 0;
         const sliderContainer = document.getElementById('sliderContainer');
         const indicators = document.querySelectorAll('.media-indicator');
-        const slides = sliderContainer ? sliderContainer.querySelectorAll('.media-slide') : [];
+        const slides = sliderContainer ? Array.from(sliderContainer.querySelectorAll('.media-slide')) : [];
         const totalSlides = slides.length;
 
         function updateSlider() {
@@ -1529,6 +1531,9 @@
             } else {
                 updateSlider();
             }
+            // 确保索引保持在有效范围，避免偶发的越界导致无法继续滑动
+            if (currentSlide < 0) currentSlide = 0;
+            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
         }
 
         // 规格选择弹窗功能
