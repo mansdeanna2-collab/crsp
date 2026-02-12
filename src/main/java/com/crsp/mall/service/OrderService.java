@@ -97,6 +97,7 @@ public class OrderService {
                 case "paid" -> order.setPaidAt(LocalDateTime.now());
                 case "shipped" -> order.setShippedAt(LocalDateTime.now());
                 case "completed" -> order.setCompletedAt(LocalDateTime.now());
+                case "cancelled" -> order.setCancelledAt(LocalDateTime.now());
             }
             
             return orderRepository.save(order);

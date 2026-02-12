@@ -84,6 +84,26 @@ class OrderServiceTest {
         OrderEntity result = orderService.updateOrderStatus(order.getId(), "cancelled");
         assertNotNull(result);
         assertEquals("cancelled", result.getStatus());
+        assertNotNull(result.getCancelledAt());
+    }
+
+    @Test
+    void updateOrderStatusAllowsCancelFromPaid() {
+        OrderEntity order = new OrderEntity();
+        order.setUserName("测试");
+        order.setTotalAmount(100.0);
+        order.setStatus("pending");
+        order = orderRepository.save(order);
+
+        // pending -> paid
+        OrderEntity paid = orderService.updateOrderStatus(order.getId(), "paid");
+        assertNotNull(paid);
+
+        // paid -> cancelled
+        OrderEntity result = orderService.updateOrderStatus(order.getId(), "cancelled");
+        assertNotNull(result);
+        assertEquals("cancelled", result.getStatus());
+        assertNotNull(result.getCancelledAt());
     }
 
     @Test

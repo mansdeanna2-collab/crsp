@@ -58,6 +58,9 @@ public class OrderEntity {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
     
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+    
     @PrePersist
     protected void onCreate() {
         createdAt = LocalDateTime.now();
@@ -118,6 +121,9 @@ public class OrderEntity {
     
     public LocalDateTime getCompletedAt() { return completedAt; }
     public void setCompletedAt(LocalDateTime completedAt) { this.completedAt = completedAt; }
+    
+    public LocalDateTime getCancelledAt() { return cancelledAt; }
+    public void setCancelledAt(LocalDateTime cancelledAt) { this.cancelledAt = cancelledAt; }
     
     public String getStatusText() {
         return switch (status) {

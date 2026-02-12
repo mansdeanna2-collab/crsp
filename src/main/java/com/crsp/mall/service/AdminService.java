@@ -80,6 +80,9 @@ public class AdminService {
      * 修改管理员密码
      */
     public boolean changePassword(Long adminId, String oldPassword, String newPassword) {
+        if (newPassword == null || newPassword.length() < 6) {
+            return false;
+        }
         Optional<AdminEntity> adminOpt = adminRepository.findById(adminId);
         if (adminOpt.isEmpty()) {
             return false;

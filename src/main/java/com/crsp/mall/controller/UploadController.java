@@ -36,6 +36,13 @@ public class UploadController {
         "video/mp4", "video/webm", "video/ogg"
     );
 
+    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
+    private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of(".mp4", ".webm", ".ogg");
+    private static final long MAX_DOWNLOAD_SIZE = 50L * 1024 * 1024; // 50MB
+    private static final Duration DOWNLOAD_TIMEOUT = Duration.ofSeconds(30);
+    private static final int MAX_REDIRECTS = 5;
+    private static final Set<Integer> REDIRECT_STATUS_CODES = Set.of(301, 302, 307, 308);
+
     @Value("${app.upload.dir:/data/uploads}")
     private String uploadDir;
 
@@ -107,13 +114,6 @@ public class UploadController {
             return ResponseEntity.internalServerError().body(Map.of("error", "文件上传失败"));
         }
     }
-
-    private static final Set<String> ALLOWED_IMAGE_EXTENSIONS = Set.of(".jpg", ".jpeg", ".png", ".gif", ".webp");
-    private static final Set<String> ALLOWED_VIDEO_EXTENSIONS = Set.of(".mp4", ".webm", ".ogg");
-    private static final long MAX_DOWNLOAD_SIZE = 50L * 1024 * 1024; // 50MB
-    private static final Duration DOWNLOAD_TIMEOUT = Duration.ofSeconds(30);
-    private static final int MAX_REDIRECTS = 5;
-    private static final Set<Integer> REDIRECT_STATUS_CODES = Set.of(301, 302, 307, 308);
 
     /**
      * 从URL下载图片或视频到服务器
