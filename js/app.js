@@ -1093,8 +1093,8 @@ function showProductDetail(productData) {
         detailTrack.style.transition = 'none';
         detailTrack.style.transform = 'translateX(0)';
     }
-    var dots = document.querySelectorAll('#detail-image-indicators .detail-dot');
-    dots.forEach(function(d, i) { d.classList.toggle('active', i === 0); });
+    var detailDots = document.querySelectorAll('#detail-image-indicators .detail-dot');
+    detailDots.forEach(function(d, i) { d.classList.toggle('active', i === 0); });
 
     openModal('product-detail-modal');
     initDetailImageSlider();
@@ -1330,7 +1330,7 @@ function initChatInput() {
 
     chatInput.addEventListener('focus', function(e) {
         e.stopPropagation();
-        // 防止移动端键盘弹出导致页面变化
+        // 等待移动端键盘弹出后滚动到底部（键盘动画约需300ms）
         setTimeout(function() {
             window.scrollTo(0, document.body.scrollHeight);
         }, 300);
