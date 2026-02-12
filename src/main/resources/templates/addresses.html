@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>收货地址 - 成人玩具商城</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .addresses-page {
+            padding: 55px 0 80px 0;
+            min-height: 100vh;
+            background: #f5f5f5;
+        }
+        .page-header {
+            position: fixed;
+            top: 0; left: 0; right: 0;
+            background: white;
+            padding: 12px 15px;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            max-width: 480px;
+            margin: 0 auto;
+        }
+        .page-header .back-btn {
+            color: #333; font-size: 18px; text-decoration: none;
+        }
+        .page-header h1 { font-size: 17px; color: #333; font-weight: 600; }
+        .address-card {
+            background: white;
+            margin: 10px;
+            border-radius: 10px;
+            padding: 15px;
+        }
+        .address-card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 10px;
+        }
+        .address-name {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+        }
+        .address-phone {
+            font-size: 13px;
+            color: #666;
+        }
+        .address-detail {
+            font-size: 14px;
+            color: #666;
+            line-height: 1.5;
+        }
+        .address-actions {
+            display: flex;
+            justify-content: flex-end;
+            gap: 15px;
+            margin-top: 12px;
+            padding-top: 12px;
+            border-top: 1px solid #f0f0f0;
+        }
+        .address-actions button {
+            background: none;
+            border: none;
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+        }
+        .address-actions button:hover { color: #ff5722; }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+        }
+        .empty-state i { font-size: 48px; color: #ddd; margin-bottom: 15px; }
+        .empty-state p { color: #999; font-size: 14px; }
+        .add-btn {
+            position: fixed;
+            bottom: 70px;
+            left: 50%;
+            transform: translateX(-50%);
+            max-width: 440px;
+            width: calc(100% - 40px);
+            background: linear-gradient(135deg, #ff5722, #ff8a65);
+            color: white;
+            border: none;
+            padding: 14px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            z-index: 50;
+        }
+        .modal-overlay {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            z-index: 200;
+            justify-content: center;
+            align-items: flex-end;
+        }
+        .modal-overlay.show { display: flex; }
+        .modal {
+            background: white;
+            border-radius: 16px 16px 0 0;
+            width: 100%;
+            max-width: 480px;
+            padding: 20px;
+            animation: slideUp 0.3s ease;
+        }
+        @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+        .modal-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 20px;
+        }
+        .modal-header h3 { font-size: 18px; color: #333; }
+        .modal-header .close-btn {
+            background: none; border: none; font-size: 20px; color: #999; cursor: pointer;
+        }
+        .form-group { margin-bottom: 16px; }
+        .form-group label {
+            display: block; font-size: 14px; color: #666; margin-bottom: 6px;
+        }
+        .form-group input, .form-group textarea {
+            width: 100%; padding: 10px 12px; border: 1px solid #ddd;
+            border-radius: 8px; font-size: 14px; outline: none;
+        }
+        .form-group input:focus, .form-group textarea:focus { border-color: #ff5722; }
+        .form-group textarea { resize: vertical; min-height: 60px; }
+        .modal-save-btn {
+            width: 100%;
+            background: linear-gradient(135deg, #ff5722, #ff8a65);
+            color: white;
+            border: none;
+            padding: 12px;
+            border-radius: 25px;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+        .modal-save-btn:disabled { background: #ccc; cursor: not-allowed; }
+        .toast {
+            display: none;
+            position: fixed;
+            top: 50%; left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0,0,0,0.75);
+            color: white;
+            padding: 12px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            z-index: 999;
+        }
+        .toast.show { display: block; }
+        .default-tag {
+            display: inline-block;
+            padding: 2px 6px;
+            border-radius: 3px;
+            font-size: 10px;
+            background: #ff5722;
+            color: white;
+            margin-left: 6px;
+        }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="page active">
+            <div class="addresses-page">
+                <div class="page-header">
+                    <a th:href="@{/profile}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+                    <h1>收货地址</h1>
+                </div>
+
+                <div id="addressList"></div>
+
+                <div class="empty-state" id="emptyState" style="display:none;">
+                    <i class="fas fa-map-marker-alt"></i>
+                    <p>暂无收货地址</p>
+                    <p style="font-size: 12px; margin-top: 5px;">点击下方按钮添加收货地址</p>
+                </div>
+
+                <button class="add-btn" onclick="openAddressModal()">
+                    <i class="fas fa-plus"></i> 添加收货地址
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 编辑/添加地址弹窗 -->
+    <div class="modal-overlay" id="addressModal">
+        <div class="modal">
+            <div class="modal-header">
+                <h3 id="modalTitle">添加收货地址</h3>
+                <button class="close-btn" onclick="closeAddressModal()">&times;</button>
+            </div>
+            <div class="form-group">
+                <label>收货地址 <span style="color:#ff5722;">*</span></label>
+                <textarea id="addressInput" maxlength="500" placeholder="请输入详细收货地址"></textarea>
+            </div>
+            <button class="modal-save-btn" id="addressSaveBtn" onclick="saveAddress()">保存</button>
+        </div>
+    </div>
+
+    <div class="toast" id="toast"></div>
+
+    <nav class="bottom-nav">
+        <a th:href="@{/}" class="nav-item" data-page="home">
+            <i class="fas fa-home"></i><span>首页</span>
+        </a>
+        <a th:href="@{/message}" class="nav-item" data-page="message">
+            <i class="fas fa-comment-dots"></i><span>消息</span>
+        </a>
+        <a th:href="@{/cart}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i><span>购物车</span>
+        </a>
+        <a th:href="@{/profile}" class="nav-item active" data-page="profile">
+            <i class="fas fa-user"></i><span>我的</span>
+        </a>
+    </nav>
+
+    <script th:src="@{/js/app.js}"></script>
+    <script>
+        var currentAddress = '';
+
+        function showToast(msg) {
+            var toast = document.getElementById('toast');
+            toast.textContent = msg;
+            toast.classList.add('show');
+            setTimeout(function() { toast.classList.remove('show'); }, 2000);
+        }
+
+        function loadAddress() {
+            fetch('/api/user/init', { method: 'POST' })
+                .then(function(r) { return r.json(); })
+                .then(function() { return fetch('/api/user/info'); })
+                .then(function(r) { return r.json(); })
+                .then(function(info) {
+                    var listEl = document.getElementById('addressList');
+                    var emptyEl = document.getElementById('emptyState');
+                    if (info && info.address) {
+                        currentAddress = info.address;
+                        listEl.innerHTML = '<div class="address-card">' +
+                            '<div class="address-card-header">' +
+                            '<span class="address-name">' + (info.nickname || '用户') +
+                            '<span class="default-tag">默认</span></span>' +
+                            '<span class="address-phone">' + (info.phone || '未设置手机号') + '</span>' +
+                            '</div>' +
+                            '<div class="address-detail">' + info.address + '</div>' +
+                            '<div class="address-actions">' +
+                            '<button onclick="editAddress()"><i class="fas fa-edit"></i> 编辑</button>' +
+                            '<button onclick="deleteAddress()"><i class="fas fa-trash"></i> 删除</button>' +
+                            '</div>' +
+                            '</div>';
+                        emptyEl.style.display = 'none';
+                    } else {
+                        currentAddress = '';
+                        listEl.innerHTML = '';
+                        emptyEl.style.display = '';
+                    }
+                });
+        }
+
+        function openAddressModal() {
+            document.getElementById('modalTitle').textContent = '添加收货地址';
+            document.getElementById('addressInput').value = '';
+            document.getElementById('addressModal').classList.add('show');
+        }
+
+        function editAddress() {
+            document.getElementById('modalTitle').textContent = '编辑收货地址';
+            document.getElementById('addressInput').value = currentAddress;
+            document.getElementById('addressModal').classList.add('show');
+        }
+
+        function closeAddressModal() {
+            document.getElementById('addressModal').classList.remove('show');
+        }
+
+        function saveAddress() {
+            var btn = document.getElementById('addressSaveBtn');
+            var address = document.getElementById('addressInput').value.trim();
+            if (!address) {
+                showToast('请输入收货地址');
+                return;
+            }
+            btn.disabled = true;
+            btn.textContent = '保存中...';
+
+            fetch('/api/user/info', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: address })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.success) {
+                    closeAddressModal();
+                    showToast('保存成功');
+                    loadAddress();
+                } else {
+                    showToast(result.error || '保存失败');
+                }
+            })
+            .catch(function() { showToast('网络错误'); })
+            .finally(function() {
+                btn.disabled = false;
+                btn.textContent = '保存';
+            });
+        }
+
+        function deleteAddress() {
+            if (!confirm('确定删除此收货地址？')) return;
+            fetch('/api/user/info', {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ address: '' })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(result) {
+                if (result.success) {
+                    showToast('地址已删除');
+                    loadAddress();
+                } else {
+                    showToast(result.error || '删除失败');
+                }
+            });
+        }
+
+        document.getElementById('addressModal').addEventListener('click', function(e) {
+            if (e.target === this) closeAddressModal();
+        });
+
+        loadAddress();
+    </script>
+</body>
+</html>

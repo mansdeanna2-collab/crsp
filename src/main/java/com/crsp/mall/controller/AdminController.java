@@ -293,6 +293,9 @@ public class AdminController {
         model.addAttribute("totalCount", userService.getUserCount());
         model.addAttribute("registeredCount", userService.getRegisteredCount());
         model.addAttribute("activeCount", userService.getActiveCount());
+        model.addAttribute("newToday", userService.getNewUserCount(1));
+        model.addAttribute("newThisWeek", userService.getNewUserCount(7));
+        model.addAttribute("newThisMonth", userService.getNewUserCount(30));
         model.addAttribute("keyword", keyword);
         model.addAttribute("selectedType", type);
         
@@ -353,6 +356,8 @@ public class AdminController {
                           @RequestParam(required = false) String phone,
                           @RequestParam(required = false) String email,
                           @RequestParam(required = false) String address,
+                          @RequestParam(required = false) String gender,
+                          @RequestParam(required = false) String remark,
                           @RequestParam(required = false) String userType,
                           @RequestParam(required = false) Boolean active,
                           HttpSession session,
@@ -394,6 +399,13 @@ public class AdminController {
             String trimmedAddress = address.trim();
             user.setAddress(trimmedAddress.isEmpty() ? null : trimmedAddress);
         }
+        if (gender != null && ("male".equals(gender) || "female".equals(gender) || "unknown".equals(gender))) {
+            user.setGender(gender);
+        }
+        if (remark != null) {
+            String trimmedRemark = remark.trim();
+            user.setRemark(trimmedRemark.isEmpty() ? null : trimmedRemark);
+        }
         if (userType != null && ("guest".equals(userType) || "user".equals(userType))) {
             user.setUserType(userType);
         }
@@ -404,6 +416,31 @@ public class AdminController {
         userService.saveUser(user);
         redirectAttributes.addFlashAttribute("success", "用户信息更新成功");
         return "redirect:/admin/users/" + id;
+    }
+
+    /**
+     * 切换用户启用/禁用状态
+     */
+    @PostMapping("/users/toggle-status/{id}")
+    public String toggleUserStatus(@PathVariable Long id,
+                                   HttpSession session,
+                                   RedirectAttributes redirectAttributes) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        Optional<UserEntity> userOpt = userService.getUserById(id);
+        if (userOpt.isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "用户不存在");
+            return "redirect:/admin/users";
+        }
+
+        UserEntity user = userOpt.get();
+        user.setActive(!Boolean.TRUE.equals(user.getActive()));
+        userService.saveUser(user);
+        redirectAttributes.addFlashAttribute("success",
+                Boolean.TRUE.equals(user.getActive()) ? "用户已启用" : "用户已禁用");
+        return "redirect:/admin/users";
     }
 
     /**

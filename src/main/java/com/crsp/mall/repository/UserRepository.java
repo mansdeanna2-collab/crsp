@@ -24,4 +24,8 @@ public interface UserRepository extends JpaRepository<UserEntity, Long> {
     long countByActive(Boolean active);
     
     boolean existsByToken(String token);
+    
+    long countByCreatedAtAfter(java.time.LocalDateTime dateTime);
+    
+    long countByUserTypeAndCreatedAtAfter(String userType, java.time.LocalDateTime dateTime);
 }

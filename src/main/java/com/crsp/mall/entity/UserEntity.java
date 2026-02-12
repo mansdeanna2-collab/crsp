@@ -33,6 +33,14 @@ public class UserEntity {
     @Column(name = "address", length = 500)
     private String address;
     
+    // 性别: unknown=未知, male=男, female=女
+    @Column(name = "gender")
+    private String gender = "unknown";
+    
+    // 管理员备注
+    @Column(name = "remark", length = 500)
+    private String remark;
+    
     // 用户类型: guest=游客, user=注册用户
     @Column(name = "user_type", nullable = false)
     private String userType = "guest";
@@ -89,6 +97,12 @@ public class UserEntity {
     public String getAddress() { return address; }
     public void setAddress(String address) { this.address = address; }
     
+    public String getGender() { return gender; }
+    public void setGender(String gender) { this.gender = gender; }
+    
+    public String getRemark() { return remark; }
+    public void setRemark(String remark) { this.remark = remark; }
+    
     public String getUserType() { return userType; }
     public void setUserType(String userType) { this.userType = userType; }
     
@@ -108,6 +122,15 @@ public class UserEntity {
         return switch (userType) {
             case "guest" -> "游客";
             case "user" -> "注册用户";
+            default -> "未知";
+        };
+    }
+
+    public String getGenderText() {
+        if (gender == null) return "未知";
+        return switch (gender) {
+            case "male" -> "男";
+            case "female" -> "女";
             default -> "未知";
         };
     }

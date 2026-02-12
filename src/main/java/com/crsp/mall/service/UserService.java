@@ -82,6 +82,29 @@ public class UserService {
     }
 
     /**
+     * 获取最近N天新增用户数
+     */
+    public long getNewUserCount(int days) {
+        LocalDateTime since = LocalDateTime.now().minusDays(days);
+        return userRepository.countByCreatedAtAfter(since);
+    }
+
+    /**
+     * 获取用户统计信息
+     */
+    public java.util.Map<String, Object> getUserStatistics() {
+        java.util.Map<String, Object> stats = new java.util.HashMap<>();
+        stats.put("totalCount", getUserCount());
+        stats.put("registeredCount", getRegisteredCount());
+        stats.put("guestCount", getGuestCount());
+        stats.put("activeCount", getActiveCount());
+        stats.put("newToday", getNewUserCount(1));
+        stats.put("newThisWeek", getNewUserCount(7));
+        stats.put("newThisMonth", getNewUserCount(30));
+        return stats;
+    }
+
+    /**
      * 获取用户消费总额（非取消订单）
      */
     public double getUserTotalSpending(Long userId) {

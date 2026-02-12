@@ -212,6 +212,22 @@ public class PageController {
     }
 
     /**
+     * 用户设置页面
+     */
+    @GetMapping("/settings")
+    public String settings(Model model) {
+        return "settings";
+    }
+
+    /**
+     * 收货地址管理页面
+     */
+    @GetMapping("/addresses")
+    public String addresses(Model model) {
+        return "addresses";
+    }
+
+    /**
      * 限时秒杀页面
      */
     @GetMapping("/flash-sale")

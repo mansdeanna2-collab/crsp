@@ -176,6 +176,10 @@
                         </div>
                     </div>
                     <div class="info-card">
+                        <div class="info-label">性别</div>
+                        <div class="info-value" th:text="${user.genderText}">未知</div>
+                    </div>
+                    <div class="info-card">
                         <div class="info-label">会员等级</div>
                         <div class="info-value" style="color: #ff9800;" th:text="${userLevel}">新用户</div>
                     </div>
@@ -214,6 +218,10 @@
                         <div class="info-label">最后访问</div>
                         <div class="info-value" th:text="${user.lastVisit != null ? #temporals.format(user.lastVisit, 'yyyy-MM-dd HH:mm') : '-'}">-</div>
                     </div>
+                    <div class="info-card" style="grid-column: 1 / -1;" th:if="${user.remark != null}">
+                        <div class="info-label">管理员备注</div>
+                        <div class="info-value" th:text="${user.remark}">-</div>
+                    </div>
                 </div>
 
                 <!-- 编辑用户信息 -->
@@ -244,6 +252,14 @@
                         </div>
                         <div class="form-row">
                             <div class="form-group">
+                                <label>性别</label>
+                                <select name="gender">
+                                    <option value="unknown" th:selected="${user.gender == null or user.gender == 'unknown'}">未知</option>
+                                    <option value="male" th:selected="${user.gender == 'male'}">男</option>
+                                    <option value="female" th:selected="${user.gender == 'female'}">女</option>
+                                </select>
+                            </div>
+                            <div class="form-group">
                                 <label>用户类型</label>
                                 <select name="userType">
                                     <option value="guest" th:selected="${user.userType == 'guest'}">游客</option>
@@ -256,6 +272,12 @@
                                     <option value="true" th:selected="${user.active}">正常</option>
                                     <option value="false" th:selected="${!user.active}">禁用</option>
                                 </select>
+                            </div>
+                        </div>
+                        <div class="form-row">
+                            <div class="form-group" style="flex:2;">
+                                <label>管理员备注</label>
+                                <input type="text" name="remark" th:value="${user.remark}" maxlength="500" placeholder="管理员备注（仅后台可见）">
                             </div>
                         </div>
                         <div class="form-actions">
