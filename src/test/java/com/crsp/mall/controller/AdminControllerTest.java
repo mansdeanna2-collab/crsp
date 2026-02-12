@@ -140,7 +140,7 @@ class AdminControllerTest {
         // Invalid type parameter should be ignored
         mockMvc.perform(get("/admin/users")
                 .session(adminSession)
-                .param("type", "admin"))
+                .param("type", "invalid_type"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/users"));
     }
