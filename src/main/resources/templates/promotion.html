@@ -236,10 +236,16 @@
 
     <script th:src="@{/js/app.js}"></script>
     <script th:if="${pageType == 'flash_sale'}">
-        // 秒杀倒计时（假设今天23:59:59结束）
+        // 秒杀倒计时（使用实际促销结束时间）
         (function() {
-            var now = new Date();
-            var end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            var endTimeStr = '[[${countdownEndTime}]]';
+            var end;
+            if (endTimeStr && endTimeStr !== '') {
+                end = new Date(endTimeStr.replace('T', ' ').replace(/-/g, '/'));
+            } else {
+                var now = new Date();
+                end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            }
             function update() {
                 var diff = Math.max(0, Math.floor((end - new Date()) / 1000));
                 var h = Math.floor(diff / 3600);

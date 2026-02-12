@@ -51,6 +51,18 @@ public class PromotionService {
     }
 
     /**
+     * 获取指定类型促销活动中最早的结束时间（用于倒计时显示）
+     */
+    public LocalDateTime getEarliestEndTime(String type) {
+        List<PromotionEntity> promotions = getActivePromotionsByType(type);
+        return promotions.stream()
+                .map(PromotionEntity::getEndTime)
+                .filter(t -> t != null)
+                .min(LocalDateTime::compareTo)
+                .orElse(null);
+    }
+
+    /**
      * 获取促销活动及其关联的商品信息
      */
     public List<Map<String, Object>> getPromotionsWithProducts(String type) {

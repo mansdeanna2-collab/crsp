@@ -219,6 +219,8 @@ public class PageController {
         model.addAttribute("promotionItems", promotionService.getPromotionsWithProducts("flash_sale"));
         model.addAttribute("pageTitle", "限时秒杀");
         model.addAttribute("pageType", "flash_sale");
+        java.time.LocalDateTime endTime = promotionService.getEarliestEndTime("flash_sale");
+        model.addAttribute("countdownEndTime", endTime);
         return "promotion";
     }
 
