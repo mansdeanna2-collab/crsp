@@ -14,6 +14,15 @@ body {
     overflow-x: hidden;
 }
 
+:root {
+    --accent: #ff5722;
+    --badge-grad-start: #ff7a45;
+    --badge-grad-end: #ff3d68;
+    --accent-border-light: rgba(255, 87, 34, 0.08);
+    --accent-bg-start: rgba(255, 87, 34, 0.12);
+    --accent-bg-end: rgba(255, 87, 34, 0.02);
+}
+
 .app-container {
     padding-bottom: 60px;
     min-height: 100vh;
@@ -435,12 +444,18 @@ body {
 }
 
 .message-badge {
-    background: #ff5722;
-    color: white;
+    background: linear-gradient(135deg, var(--badge-grad-start), var(--badge-grad-end));
+    color: #fff;
     font-size: 11px;
-    padding: 2px 6px;
-    border-radius: 10px;
-    flex-shrink: 0;
+    font-weight: 600;
+    padding: 2px 8px;
+    border-radius: 12px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    box-shadow: 0 4px 10px rgba(255, 61, 104, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 /* 消息项隐藏状态（用于Tab过滤） */
@@ -1129,11 +1144,14 @@ body {
     position: absolute;
     top: -2px;
     right: -2px;
-    background: #ff5722;
-    color: white;
+    background: linear-gradient(135deg, var(--badge-grad-start), var(--badge-grad-end));
+    color: #fff;
     font-size: 10px;
-    padding: 1px 5px;
-    border-radius: 8px;
+    font-weight: 600;
+    padding: 2px 7px;
+    border-radius: 999px;
+    box-shadow: 0 4px 10px rgba(255, 61, 104, 0.2);
+    border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 .order-tab span {
@@ -1211,12 +1229,13 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: white;
+    background: #ffffff;
     display: flex;
     justify-content: space-around;
-    padding: 8px 0;
-    border-top: 1px solid #eee;
+    padding: 10px 8px;
+    border-top: 1px solid var(--accent-border-light);
     z-index: 1000;
+    box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
 }
 
 .nav-item {
@@ -1241,18 +1260,30 @@ body {
 
 .nav-item.active i,
 .nav-item.active span {
-    color: #ff5722;
+    color: var(--accent);
+}
+.nav-item.active {
+    background: linear-gradient(180deg, var(--accent-bg-start), var(--accent-bg-end));
+    border-radius: 12px;
 }
 
 .nav-badge {
     position: absolute;
-    top: -5px;
-    right: 5px;
-    background: #ff5722;
-    color: white;
+    top: -6px;
+    right: 6px;
+    background: linear-gradient(135deg, var(--badge-grad-start), var(--badge-grad-end));
+    color: #fff;
     font-size: 10px;
-    padding: 1px 5px;
-    border-radius: 8px;
+    font-weight: 600;
+    min-width: 18px;
+    height: 18px;
+    padding: 0 6px;
+    border-radius: 999px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 4px 10px rgba(255, 61, 104, 0.25);
+    border: 1px solid rgba(255, 255, 255, 0.6);
 }
 
 /* ==================== 响应式适配 ==================== */

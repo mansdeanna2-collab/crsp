@@ -2,6 +2,8 @@
  * 成人玩具商城 - JavaScript交互
  */
 
+let bottomNavEl = null;
+
 document.addEventListener('DOMContentLoaded', function() {
     // 初始化导航
     initNavigation();
@@ -29,6 +31,11 @@ document.addEventListener('DOMContentLoaded', function() {
     initChatSwipePrevention();
     // 初始化订单页面
     initOrderPage();
+    // 初始化角标数据
+    bottomNavEl = document.querySelector('.bottom-nav');
+    primeBadgeCounts();
+    // 初始化底部角标状态
+    refreshBottomNavBadges();
 });
 
 /**
@@ -63,6 +70,92 @@ function initNavigation() {
             }
         });
     });
+}
+
+/**
+ * 初始化角标的数值来源
+ */
+function primeBadgeCounts() {
+    document.querySelectorAll('.message-item .message-badge').forEach(badge => {
+        const raw = (badge.textContent || '').replace(/[^\d]/g, '');
+        const val = parseInt(raw, 10);
+        badge.dataset.count = isNaN(val) ? '0' : String(val);
+    });
+    document.querySelectorAll('.nav-item .nav-badge').forEach(badge => {
+        const raw = (badge.textContent || '').replace(/[^\d]/g, '');
+        const val = parseInt(raw, 10);
+        badge.dataset.count = isNaN(val) ? '0' : String(val);
+    });
+}
+
+/**
+ * 统一的角标展示
+ * @param {HTMLElement} badgeEl 需要更新的角标元素
+ * @param {number} count 展示的数量，0则隐藏
+ */
+function setBadgeValue(badgeEl, count) {
+    if (!badgeEl) return;
+    if (count > 0) {
+        badgeEl.dataset.count = String(count);
+        badgeEl.style.display = 'inline-flex';
+        badgeEl.textContent = count > 99 ? '99+' : String(count);
+    } else {
+        badgeEl.style.display = 'none';
+        badgeEl.dataset.count = '0';
+    }
+}
+
+/**
+ * 未读消息总数 -> 底部导航
+ */
+function updateMessageNavBadge() {
+    const messageBadges = document.querySelectorAll('.message-item .message-badge');
+    let total = 0;
+    messageBadges.forEach(badge => {
+        const val = parseInt(badge.dataset.count || '0', 10);
+        if (!isNaN(val)) {
+            total += val;
+        }
+    });
+    const navBadge = document.querySelector('.nav-item[data-page=\"message\"] .nav-badge');
+    setBadgeValue(navBadge, total);
+}
+
+/**
+ * 购物车选中数量 -> 底部导航
+ * @returns {number} 选中商品的数量总和
+ */
+function getSelectedCartQuantity() {
+    const cartItems = document.querySelectorAll('.cart-item');
+    let count = 0;
+    cartItems.forEach(item => {
+        const checkbox = item.querySelector('.item-checkbox');
+        if (checkbox && checkbox.checked) {
+            const qtyEl = item.querySelector('.qty-num');
+            const qty = parseInt(qtyEl ? qtyEl.textContent : '0', 10);
+            count += isNaN(qty) ? 0 : qty;
+        }
+    });
+    return count;
+}
+
+/**
+ * 更新购物车角标
+ * @param {number} [precomputedCount] 预先计算的数量，未提供则自动计算
+ */
+function updateCartNavBadge(precomputedCount) {
+    const navBadge = document.querySelector('.nav-item[data-page=\"cart\"] .nav-badge');
+    const count = typeof precomputedCount === 'number' ? precomputedCount : getSelectedCartQuantity();
+    setBadgeValue(navBadge, count);
+}
+
+/**
+ * 刷新底部导航角标（消息、购物车）
+ */
+function refreshBottomNavBadges() {
+    if (!bottomNavEl) return;
+    updateMessageNavBadge();
+    updateCartNavBadge();
 }
 
 /**
@@ -186,6 +279,8 @@ function updateCartTotal() {
     if (checkoutBtn) {
         checkoutBtn.textContent = `结算(${count})`;
     }
+
+    updateCartNavBadge(count);
 }
 
 /**
@@ -251,6 +346,7 @@ document.querySelectorAll('.message-item').forEach(item => {
         if (badge) {
             badge.remove();
         }
+        updateMessageNavBadge();
         showChatDetail(title, msgType, avatarStyle, avatarIcon);
     });
 });
