@@ -188,7 +188,7 @@ function initMessageTabs() {
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
 
-            var category = this.getAttribute('data-category');
+            const category = this.getAttribute('data-category');
             messageItems.forEach(function(item) {
                 if (category === 'all' || item.getAttribute('data-category') === category) {
                     item.classList.remove('hidden');
@@ -206,10 +206,10 @@ function initMessageTabs() {
  */
 document.querySelectorAll('.message-item').forEach(item => {
     item.addEventListener('click', function() {
-        var title = this.querySelector('.message-title').textContent;
-        var msgType = this.getAttribute('data-msg-type');
-        var avatarStyle = this.querySelector('.message-avatar').getAttribute('style');
-        var avatarIcon = this.querySelector('.message-avatar i').className;
+        const title = this.querySelector('.message-title').textContent;
+        const msgType = this.getAttribute('data-msg-type');
+        const avatarStyle = this.querySelector('.message-avatar').getAttribute('style');
+        const avatarIcon = this.querySelector('.message-avatar i').className;
         showChatDetail(title, msgType, avatarStyle, avatarIcon);
     });
 });
@@ -218,10 +218,10 @@ document.querySelectorAll('.message-item').forEach(item => {
  * 显示聊天详情页
  */
 function showChatDetail(title, msgType, avatarStyle, avatarIcon) {
-    var chatPage = document.getElementById('page-chat-detail');
-    var chatTitle = document.getElementById('chatDetailTitle');
-    var chatBody = document.getElementById('chatDetailBody');
-    var messagePage = document.getElementById('page-message');
+    const chatPage = document.getElementById('page-chat-detail');
+    const chatTitle = document.getElementById('chatDetailTitle');
+    const chatBody = document.getElementById('chatDetailBody');
+    const messagePage = document.getElementById('page-message');
 
     if (!chatPage || !chatBody) return;
 
@@ -382,11 +382,11 @@ function renderSystemDetail() {
  * 初始化聊天详情返回按钮
  */
 function initChatDetail() {
-    var backBtn = document.getElementById('chatBackBtn');
+    const backBtn = document.getElementById('chatBackBtn');
     if (backBtn) {
         backBtn.addEventListener('click', function() {
-            var chatPage = document.getElementById('page-chat-detail');
-            var messagePage = document.getElementById('page-message');
+            const chatPage = document.getElementById('page-chat-detail');
+            const messagePage = document.getElementById('page-message');
             chatPage.classList.remove('active');
             messagePage.classList.add('active');
         });
@@ -1041,11 +1041,11 @@ function initBannerSlider() {
     });
 
     // 触摸滑动
-    var startX = 0;
-    var startY = 0;
-    var isDragging = false;
-    var directionLocked = false;
-    var isHorizontal = false;
+    let startX = 0;
+    let startY = 0;
+    let isDragging = false;
+    let directionLocked = false;
+    let isHorizontal = false;
 
     track.addEventListener('touchstart', function(e) {
         startX = e.touches[0].clientX;
@@ -1107,8 +1107,8 @@ function initBannerSlider() {
     }, { passive: true });
 
     // 鼠标拖拽支持（桌面端）
-    var mouseStartX = 0;
-    var mouseIsDragging = false;
+    let mouseStartX = 0;
+    let mouseIsDragging = false;
 
     track.addEventListener('mousedown', function(e) {
         mouseStartX = e.clientX;
