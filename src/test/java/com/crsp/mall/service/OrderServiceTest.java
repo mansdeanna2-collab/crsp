@@ -174,4 +174,12 @@ class OrderServiceTest {
         assertNotNull(found2);
         assertEquals("alipay", found2.getPaymentMethod());
     }
+
+    @Test
+    void initSampleOrdersDoesNotSeedOrders() {
+        long before = orderRepository.count();
+        orderService.initSampleOrders();
+        long after = orderRepository.count();
+        assertEquals(before, after);
+    }
 }

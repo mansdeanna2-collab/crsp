@@ -113,15 +113,10 @@ public class OrderService {
     }
 
     /**
-     * 初始化示例订单数据
+     * 初始化示例订单数据（已移除默认示例订单）
      */
     public void initSampleOrders() {
-        if (orderRepository.count() == 0) {
-            createSampleOrder("张三", "13800138001", "北京市朝阳区xxx街道", 128.00, 1, "pending");
-            createSampleOrder("李四", "13800138002", "上海市浦东新区xxx路", 256.00, 2, "paid");
-            createSampleOrder("王五", "13800138003", "广州市天河区xxx大道", 89.00, 1, "shipped");
-            createSampleOrder("赵六", "13800138004", "深圳市南山区xxx中心", 458.00, 3, "completed");
-        }
+        // no-op
     }
 
     private void createSampleOrder(String userName, String phone, String address, 
