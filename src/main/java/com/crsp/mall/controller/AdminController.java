@@ -1,11 +1,13 @@
 package com.crsp.mall.controller;
 
 import com.crsp.mall.entity.AdminEntity;
+import com.crsp.mall.entity.MessageEntity;
 import com.crsp.mall.entity.OrderEntity;
 import com.crsp.mall.entity.ProductEntity;
 import com.crsp.mall.entity.PromotionEntity;
 import com.crsp.mall.entity.UserEntity;
 import com.crsp.mall.service.AdminService;
+import com.crsp.mall.service.MessageService;
 import com.crsp.mall.service.OrderService;
 import com.crsp.mall.service.ProductDbService;
 import com.crsp.mall.service.PromotionService;
@@ -17,6 +19,10 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
+import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -46,6 +52,9 @@ public class AdminController {
 
     @Autowired
     private PromotionService promotionService;
+
+    @Autowired
+    private MessageService messageService;
 
     /**
      * 登录页面
@@ -80,7 +89,7 @@ public class AdminController {
      */
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.removeAttribute("admin");
+        session.invalidate();
         return "redirect:/admin/login";
     }
 
@@ -590,5 +599,102 @@ public class AdminController {
         promotionService.deletePromotion(id);
         redirectAttributes.addFlashAttribute("success", "促销活动删除成功");
         return "redirect:/admin/promotions";
+    }
+
+    // ==================== 消息管理 ====================
+
+    /**
+     * 消息管理页面 - 显示所有有消息的用户列表
+     */
+    @GetMapping("/messages")
+    public String messageList(HttpSession session, Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        List<Object[]> userMessages = messageService.getUserIdsWithLatestMessageTime();
+        List<Map<String, Object>> userList = new ArrayList<>();
+        for (Object[] row : userMessages) {
+            Long userId = (Long) row[0];
+            Optional<UserEntity> userOpt = userService.getUserById(userId);
+            if (userOpt.isPresent()) {
+                Map<String, Object> item = new HashMap<>();
+                item.put("user", userOpt.get());
+                MessageEntity latest = messageService.getLatestMessage(userId);
+                item.put("latestMessage", latest != null ? latest.getContent() : "");
+                item.put("latestTime", latest != null ? latest.getCreatedAt() : null);
+                userList.add(item);
+            }
+        }
+
+        model.addAttribute("userList", userList);
+        model.addAttribute("currentPage", "messages");
+        return "admin/messages";
+    }
+
+    /**
+     * 查看与某用户的聊天详情
+     */
+    @GetMapping("/messages/chat/{userId}")
+    public String messageChat(@PathVariable Long userId,
+                              @RequestParam(required = false, defaultValue = "service") String chatType,
+                              HttpSession session, Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        Optional<UserEntity> userOpt = userService.getUserById(userId);
+        if (userOpt.isEmpty()) {
+            return "redirect:/admin/messages";
+        }
+
+        if (!messageService.isValidChatType(chatType)) {
+            chatType = "service";
+        }
+
+        List<MessageEntity> messages = messageService.getChatHistory(userId, chatType);
+        model.addAttribute("chatUser", userOpt.get());
+        model.addAttribute("messages", messages);
+        model.addAttribute("chatType", chatType);
+        model.addAttribute("currentPage", "messages");
+        return "admin/message-chat";
+    }
+
+    /**
+     * 后台发送消息给用户
+     */
+    @PostMapping("/messages/send")
+    public String sendMessage(@RequestParam Long userId,
+                             @RequestParam String chatType,
+                             @RequestParam String senderName,
+                             @RequestParam String content,
+                             HttpSession session,
+                             RedirectAttributes redirectAttributes) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        if (!messageService.isValidChatType(chatType)) {
+            redirectAttributes.addFlashAttribute("error", "无效的聊天类型");
+            return "redirect:/admin/messages";
+        }
+
+        if (senderName == null || senderName.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "发送者名称不能为空");
+            return "redirect:/admin/messages/chat/" + userId + "?chatType=" + URLEncoder.encode(chatType, StandardCharsets.UTF_8);
+        }
+        String trimmedSenderName = senderName.trim();
+        if (trimmedSenderName.length() > 50) {
+            trimmedSenderName = trimmedSenderName.substring(0, 50);
+        }
+
+        if (content == null || content.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "消息内容不能为空");
+            return "redirect:/admin/messages/chat/" + userId + "?chatType=" + URLEncoder.encode(chatType, StandardCharsets.UTF_8);
+        }
+
+        messageService.sendAdminMessage(userId, chatType, trimmedSenderName, content.trim());
+        redirectAttributes.addFlashAttribute("success", "消息发送成功");
+        return "redirect:/admin/messages/chat/" + userId + "?chatType=" + URLEncoder.encode(chatType, StandardCharsets.UTF_8);
     }
 }

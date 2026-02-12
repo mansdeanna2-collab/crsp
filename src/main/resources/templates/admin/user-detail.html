@@ -132,6 +132,10 @@
                 <a th:href="@{/admin/promotions}" class="menu-item"><i class="fas fa-bullhorn"></i><span>促销活动</span></a>
                 <a th:href="@{/admin/orders}" class="menu-item"><i class="fas fa-shopping-cart"></i><span>订单管理</span></a>
                 <a th:href="@{/admin/users}" class="menu-item active"><i class="fas fa-users"></i><span>用户管理</span></a>
+                <a th:href="@{/admin/messages}" class="menu-item" th:classappend="${currentPage == 'messages'} ? ' active'">
+                    <i class="fas fa-envelope"></i>
+                    <span>消息管理</span>
+                </a>
                 <div class="menu-title">系统</div>
                 <a th:href="@{/admin/password}" class="menu-item"><i class="fas fa-key"></i><span>修改密码</span></a>
                 <a th:href="@{/}" class="menu-item" target="_blank"><i class="fas fa-external-link-alt"></i><span>查看商城</span></a>

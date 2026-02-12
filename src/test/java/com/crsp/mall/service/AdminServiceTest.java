@@ -114,4 +114,36 @@ class AdminServiceTest {
         // Original password should still work
         assertNotNull(adminService.login("admin", "admin123"));
     }
+
+    @Test
+    void changePasswordRejectsTooLongPassword() {
+        adminService.initDefaultAdmin();
+        AdminEntity admin = adminService.login("admin", "admin123");
+        assertNotNull(admin);
+
+        // Password too long (more than 32 chars)
+        String longPassword = "a".repeat(33);
+        boolean result = adminService.changePassword(admin.getId(), "admin123", longPassword);
+        assertFalse(result);
+
+        // Original password should still work
+        assertNotNull(adminService.login("admin", "admin123"));
+    }
+
+    @Test
+    void loginFailsForDisabledAdmin() {
+        adminService.initDefaultAdmin();
+
+        // First verify login works
+        AdminEntity admin = adminService.login("admin", "admin123");
+        assertNotNull(admin);
+
+        // Disable the admin
+        admin.setActive(false);
+        adminService.saveAdmin(admin);
+
+        // Login should now fail
+        AdminEntity result = adminService.login("admin", "admin123");
+        assertNull(result);
+    }
 }

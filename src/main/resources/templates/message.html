@@ -29,6 +29,11 @@
         .msg-send-btn:active { opacity:0.8; }
         .msg-empty { text-align:center; padding:60px 20px; color:#999; }
         .msg-empty i { font-size:48px; margin-bottom:12px; display:block; color:#ddd; }
+        .msg-card { background:#fff; border-radius:12px; margin:8px 12px; padding:14px; box-shadow:0 1px 4px rgba(0,0,0,0.06); }
+        .msg-card .card-title { font-size:14px; font-weight:600; color:#333; margin-bottom:6px; }
+        .msg-card .card-content { font-size:13px; color:#666; line-height:1.5; }
+        .msg-card .card-time { font-size:11px; color:#999; margin-top:6px; }
+        .notification-cards { padding:8px 0; }
     </style>
 </head>
 <body>
@@ -59,11 +64,11 @@
                         <div class="message-content">
                             <div class="message-header">
                                 <span class="message-title">物流通知</span>
-                                <span class="message-time">10:30</span>
+                                <span class="message-time" id="time-logistics"></span>
                             </div>
-                            <p class="message-text">您的包裹已到达北京转运中心，预计明天送达</p>
+                            <p class="message-text" id="preview-logistics">点击查看物流通知</p>
                         </div>
-                        <span class="message-badge">2</span>
+                        <span class="message-badge" id="badge-logistics" style="display:none;">0</span>
                     </div>
                     <div class="message-item" data-chat="store" data-type="promo">
                         <div class="message-avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
@@ -72,10 +77,11 @@
                         <div class="message-content">
                             <div class="message-header">
                                 <span class="message-title">成人用品旗舰店</span>
-                                <span class="message-time">昨天</span>
+                                <span class="message-time" id="time-store"></span>
                             </div>
-                            <p class="message-text">亲，您关注的商品正在限时特惠中~</p>
+                            <p class="message-text" id="preview-store">点击开始对话</p>
                         </div>
+                        <span class="message-badge" id="badge-store" style="display:none;">0</span>
                     </div>
                     <div class="message-item" data-chat="promo" data-type="promo">
                         <div class="message-avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
@@ -84,11 +90,11 @@
                         <div class="message-content">
                             <div class="message-header">
                                 <span class="message-title">优惠活动</span>
-                                <span class="message-time">昨天</span>
+                                <span class="message-time" id="time-promo"></span>
                             </div>
-                            <p class="message-text">新人专享优惠即将开始，领取专属优惠券</p>
+                            <p class="message-text" id="preview-promo">点击查看优惠活动</p>
                         </div>
-                        <span class="message-badge">5</span>
+                        <span class="message-badge" id="badge-promo" style="display:none;">0</span>
                     </div>
                     <div class="message-item" data-chat="service" data-type="service">
                         <div class="message-avatar" style="background: linear-gradient(135deg, #fa709a, #fee140);">
@@ -97,10 +103,11 @@
                         <div class="message-content">
                             <div class="message-header">
                                 <span class="message-title">客服小蜜</span>
-                                <span class="message-time">周一</span>
+                                <span class="message-time" id="time-service"></span>
                             </div>
-                            <p class="message-text">您好，有什么可以帮助您的吗？</p>
+                            <p class="message-text" id="preview-service">点击联系客服</p>
                         </div>
+                        <span class="message-badge" id="badge-service" style="display:none;">0</span>
                     </div>
                     <div class="message-item" data-chat="system" data-type="service">
                         <div class="message-avatar" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
@@ -109,10 +116,11 @@
                         <div class="message-content">
                             <div class="message-header">
                                 <span class="message-title">系统通知</span>
-                                <span class="message-time">上周</span>
+                                <span class="message-time" id="time-system"></span>
                             </div>
-                            <p class="message-text">您的账户安全等级已更新，请查看详情</p>
+                            <p class="message-text" id="preview-system">点击查看系统通知</p>
                         </div>
+                        <span class="message-badge" id="badge-system" style="display:none;">0</span>
                     </div>
                 </div>
             </div>
@@ -126,7 +134,7 @@
                 <div class="msg-chat-body" id="chatBody">
                     <!-- 聊天消息会动态填充 -->
                 </div>
-                <div class="msg-input-bar">
+                <div class="msg-input-bar" id="chatInputBar">
                     <input type="text" id="chatInput" placeholder="输入消息..." maxlength="500">
                     <button class="msg-send-btn" id="chatSendBtn"><i class="fas fa-paper-plane"></i></button>
                 </div>
@@ -168,59 +176,46 @@
             })
             .catch(function() {});
 
-        // 预置聊天数据
-        var chatData = {
-            logistics: {
-                name: '物流通知',
-                messages: [
-                    { type: 'received', text: '您的包裹已从发货仓库发出', time: '09:00' },
-                    { type: 'received', text: '您的包裹已到达北京转运中心，预计明天送达', time: '10:30' }
-                ]
-            },
-            store: {
-                name: '成人用品旗舰店',
-                messages: [
-                    { type: 'received', text: '亲，欢迎光临本店！', time: '昨天 14:00' },
-                    { type: 'received', text: '亲，您关注的商品正在限时特惠中~', time: '昨天 15:30' }
-                ]
-            },
-            promo: {
-                name: '优惠活动',
-                messages: [
-                    { type: 'received', text: '🎉 新人专享优惠即将开始，领取专属优惠券', time: '昨天 10:00' },
-                    { type: 'received', text: '满100减20，满200减50，限时抢购！', time: '昨天 10:01' }
-                ]
-            },
-            service: {
-                name: '客服小蜜',
-                messages: [
-                    { type: 'received', text: '您好，我是客服小蜜，有什么可以帮助您的吗？', time: '周一 09:00' }
-                ]
-            },
-            system: {
-                name: '系统通知',
-                messages: [
-                    { type: 'received', text: '欢迎注册成人玩具商城！', time: '上周' },
-                    { type: 'received', text: '您的账户安全等级已更新，请查看详情', time: '上周' }
-                ]
-            }
+        // 聊天类型名称映射
+        var chatNames = {
+            logistics: '物流通知',
+            store: '成人用品旗舰店',
+            promo: '优惠活动',
+            service: '客服小蜜',
+            system: '系统通知'
         };
+
+        // 通知类型（以卡片形式展示，不显示输入框）
+        var notificationTypes = ['logistics', 'promo', 'system'];
+
         var currentChat = null;
 
-        // 自动回复映射
-        var autoReplies = {
-            service: [
-                '好的，我已记录您的问题，稍后会有专人处理。',
-                '感谢您的耐心等待，我们正在为您查询。',
-                '请问还有其他需要帮助的吗？',
-                '您的问题我们已经收到，会尽快回复您。'
-            ],
-            store: [
-                '亲，感谢您的关注！有什么需要了解的可以随时问我哦~',
-                '亲，这款商品现在有优惠活动，需要了解详情吗？',
-                '好的亲，已为您记录，有新品会第一时间通知您！'
-            ]
-        };
+        // 初始化用户
+        fetch('/api/user/init', { method: 'POST' }).catch(function(err) { console.error('User init failed:', err); });
+
+        // 加载未读消息数
+        function loadUnreadCounts() {
+            fetch('/api/user/message/unread')
+                .then(function(r) { return r.json(); })
+                .then(function(data) {
+                    ['logistics', 'store', 'promo', 'service', 'system'].forEach(function(type) {
+                        var count = data[type] || 0;
+                        var badge = document.getElementById('badge-' + type);
+                        if (badge) {
+                            if (count > 0) {
+                                badge.textContent = count;
+                                badge.style.display = '';
+                            } else {
+                                badge.style.display = 'none';
+                            }
+                        }
+                    });
+                })
+                .catch(function(err) { console.error('Failed to load unread counts:', err); });
+        }
+
+        // 页面加载时获取未读消息
+        loadUnreadCounts();
 
         // Tab切换过滤
         document.querySelectorAll('#messageTabs .message-tab').forEach(function(tab) {
@@ -243,27 +238,88 @@
             item.addEventListener('click', function() {
                 var chatId = this.getAttribute('data-chat');
                 openChat(chatId);
-                // 清除未读角标
-                var badge = this.querySelector('.message-badge');
-                if (badge) badge.remove();
             });
         });
 
+        function formatTime(date) {
+            return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        }
+
+        function formatMessageTime(timeStr) {
+            if (!timeStr) return '';
+            try {
+                var d = new Date(timeStr);
+                var now = new Date();
+                var diffMs = now.getTime() - d.getTime();
+                var diffDays = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+                if (diffDays === 0) {
+                    return formatTime(d);
+                } else if (diffDays === 1) {
+                    return '昨天 ' + formatTime(d);
+                } else if (diffDays < 7) {
+                    var days = ['周日', '周一', '周二', '周三', '周四', '周五', '周六'];
+                    return days[d.getDay()] + ' ' + formatTime(d);
+                } else {
+                    return (d.getMonth() + 1) + '/' + d.getDate() + ' ' + formatTime(d);
+                }
+            } catch (e) {
+                return timeStr;
+            }
+        }
+
         function openChat(chatId) {
             currentChat = chatId;
-            var data = chatData[chatId];
-            if (!data) return;
-            document.getElementById('chatName').textContent = data.name;
+            document.getElementById('chatName').textContent = chatNames[chatId] || chatId;
             var body = document.getElementById('chatBody');
-            body.innerHTML = '';
-            data.messages.forEach(function(msg) {
-                appendBubble(msg.type, msg.text, msg.time);
-            });
+            body.innerHTML = '<div style="text-align:center;padding:20px;color:#999;">加载中...</div>';
+
+            // 判断是否为通知类型（卡片展示，隐藏输入框）
+            var inputBar = document.getElementById('chatInputBar');
+            if (notificationTypes.indexOf(chatId) !== -1) {
+                inputBar.style.display = 'none';
+            } else {
+                inputBar.style.display = '';
+            }
+
             document.getElementById('msgListView').style.display = 'none';
             document.getElementById('messageTabs').style.display = 'none';
             document.getElementById('msgChatView').classList.add('active');
             document.getElementById('bottomNav').style.display = 'none';
-            body.scrollTop = body.scrollHeight;
+
+            // 从后端加载聊天历史
+            fetch('/api/user/message/history/' + chatId)
+                .then(function(r) { return r.json(); })
+                .then(function(messages) {
+                    body.innerHTML = '';
+                    if (notificationTypes.indexOf(chatId) !== -1) {
+                        // 通知类型用卡片方式显示
+                        if (messages.length === 0) {
+                            body.innerHTML = '<div class="msg-empty"><i class="fas fa-inbox"></i>暂无通知</div>';
+                        } else {
+                            messages.forEach(function(msg) {
+                                appendCard(msg.text, formatMessageTime(msg.time));
+                            });
+                        }
+                    } else {
+                        // 聊天类型用气泡方式显示
+                        if (messages.length === 0) {
+                            body.innerHTML = '<div class="msg-empty"><i class="fas fa-comment-dots"></i>暂无消息，发送一条开始对话吧</div>';
+                        } else {
+                            messages.forEach(function(msg) {
+                                appendBubble(msg.type, msg.text, formatMessageTime(msg.time));
+                            });
+                        }
+                    }
+                    body.scrollTop = body.scrollHeight;
+
+                    // 清除该聊天的未读角标
+                    var badge = document.getElementById('badge-' + chatId);
+                    if (badge) badge.style.display = 'none';
+                })
+                .catch(function(err) {
+                    console.error('Failed to load chat history:', err);
+                    body.innerHTML = '<div class="msg-empty"><i class="fas fa-exclamation-circle"></i>加载失败，请重试</div>';
+                });
         }
 
         function closeChat() {
@@ -272,12 +328,18 @@
             document.getElementById('msgListView').style.display = '';
             document.getElementById('messageTabs').style.display = '';
             document.getElementById('bottomNav').style.display = '';
+            // 刷新未读数
+            loadUnreadCounts();
         }
 
         document.getElementById('chatBackBtn').addEventListener('click', closeChat);
 
         function appendBubble(type, text, time) {
             var body = document.getElementById('chatBody');
+            // 移除空状态提示
+            var empty = body.querySelector('.msg-empty');
+            if (empty) empty.remove();
+
             var div = document.createElement('div');
             div.className = 'msg-bubble ' + type;
             div.textContent = text;
@@ -291,47 +353,55 @@
             body.scrollTop = body.scrollHeight;
         }
 
-        function formatTime(date) {
-            return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        function appendCard(text, time) {
+            var body = document.getElementById('chatBody');
+            var card = document.createElement('div');
+            card.className = 'msg-card';
+            var contentDiv = document.createElement('div');
+            contentDiv.className = 'card-content';
+            contentDiv.textContent = text;
+            card.appendChild(contentDiv);
+            if (time) {
+                var timeDiv = document.createElement('div');
+                timeDiv.className = 'card-time';
+                timeDiv.textContent = time;
+                card.appendChild(timeDiv);
+            }
+            body.appendChild(card);
+            body.scrollTop = body.scrollHeight;
         }
 
         function sendMessage() {
             var input = document.getElementById('chatInput');
             var text = input.value.trim();
             if (!text || !currentChat) return;
+            if (notificationTypes.indexOf(currentChat) !== -1) return;
+
             var timeStr = formatTime(new Date());
             appendBubble('sent', text, timeStr);
-            chatData[currentChat].messages.push({ type: 'sent', text: text, time: timeStr });
             input.value = '';
 
-            // 更新消息列表预览
-            var listItem = document.querySelector('.message-item[data-chat="' + currentChat + '"]');
-            if (listItem) {
-                var preview = listItem.querySelector('.message-text');
+            // 发送到后端
+            fetch('/api/user/message/send', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ chatType: currentChat, content: text })
+            })
+            .then(function(r) { return r.json(); })
+            .then(function(data) {
+                if (!data.success) {
+                    appendBubble('received', '消息发送失败: ' + (data.error || '未知错误'), formatTime(new Date()));
+                }
+                // 更新列表预览
+                var preview = document.getElementById('preview-' + currentChat);
                 if (preview) preview.textContent = text;
-                var timeEl = listItem.querySelector('.message-time');
+                var timeEl = document.getElementById('time-' + currentChat);
                 if (timeEl) timeEl.textContent = timeStr;
-            }
-
-            // 自动回复（随机延迟1~2.5秒模拟真实对话）
-            var replies = autoReplies[currentChat];
-            if (replies) {
-                var chatId = currentChat;
-                setTimeout(function() {
-                    if (currentChat !== chatId) return;
-                    var replyText = replies[Math.floor(Math.random() * replies.length)];
-                    var replyTimeStr = formatTime(new Date());
-                    appendBubble('received', replyText, replyTimeStr);
-                    if (chatData[chatId]) {
-                        chatData[chatId].messages.push({ type: 'received', text: replyText, time: replyTimeStr });
-                    }
-                    // 更新列表预览
-                    if (listItem) {
-                        var p = listItem.querySelector('.message-text');
-                        if (p) p.textContent = replyText;
-                    }
-                }, 1000 + Math.random() * 1500);
-            }
+            })
+            .catch(function(err) {
+                console.error('Message send failed:', err);
+                appendBubble('received', '网络错误，消息发送失败', formatTime(new Date()));
+            });
         }
 
         document.getElementById('chatSendBtn').addEventListener('click', sendMessage);

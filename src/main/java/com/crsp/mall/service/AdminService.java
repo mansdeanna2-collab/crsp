@@ -46,6 +46,9 @@ public class AdminService {
         Optional<AdminEntity> adminOpt = adminRepository.findByUsername(username);
         if (adminOpt.isPresent()) {
             AdminEntity admin = adminOpt.get();
+            if (!Boolean.TRUE.equals(admin.getActive())) {
+                return null; // 账号已禁用
+            }
             if (passwordEncoder.matches(password, admin.getPassword())) {
                 admin.setLastLogin(LocalDateTime.now());
                 adminRepository.save(admin);
@@ -80,7 +83,7 @@ public class AdminService {
      * 修改管理员密码
      */
     public boolean changePassword(Long adminId, String oldPassword, String newPassword) {
-        if (newPassword == null || newPassword.length() < 6) {
+        if (newPassword == null || newPassword.length() < 6 || newPassword.length() > 32) {
             return false;
         }
         Optional<AdminEntity> adminOpt = adminRepository.findById(adminId);

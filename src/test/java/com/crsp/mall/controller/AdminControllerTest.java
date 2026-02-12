@@ -15,6 +15,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -143,5 +144,45 @@ class AdminControllerTest {
                 .param("type", "invalid_type"))
                 .andExpect(status().isOk())
                 .andExpect(view().name("admin/users"));
+    }
+
+    @Test
+    void logoutInvalidatesSession() throws Exception {
+        mockMvc.perform(get("/admin/logout")
+                .session(adminSession))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/login"));
+
+        // Session should be invalidated
+        assertTrue(adminSession.isInvalid());
+    }
+
+    @Test
+    void sendMessageRejectsInvalidChatType() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+
+        mockMvc.perform(post("/admin/messages/send")
+                .session(adminSession)
+                .param("userId", user.getId().toString())
+                .param("chatType", "hacked_type")
+                .param("senderName", "客服")
+                .param("content", "测试消息"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(redirectedUrl("/admin/messages"))
+                .andExpect(flash().attribute("error", "无效的聊天类型"));
+    }
+
+    @Test
+    void sendMessageRejectsEmptySenderName() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+
+        mockMvc.perform(post("/admin/messages/send")
+                .session(adminSession)
+                .param("userId", user.getId().toString())
+                .param("chatType", "service")
+                .param("senderName", "  ")
+                .param("content", "测试消息"))
+                .andExpect(status().is3xxRedirection())
+                .andExpect(flash().attribute("error", "发送者名称不能为空"));
     }
 }
