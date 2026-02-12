@@ -21,6 +21,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initModals();
     // 初始化轮播图
     initBannerSlider();
+    // 初始化聊天详情返回
+    initChatDetail();
 });
 
 /**
@@ -47,6 +49,12 @@ function initNavigation() {
                     window.scrollTo(0, 0);
                 }
             });
+
+            // 确保底部导航可见（从聊天详情页返回时）
+            const bottomNav = document.querySelector('.bottom-nav');
+            if (bottomNav) {
+                bottomNav.style.display = '';
+            }
         });
     });
 }
@@ -175,30 +183,285 @@ function updateCartTotal() {
 }
 
 /**
- * 消息Tab切换
+ * 消息Tab切换（带过滤功能）
  */
 function initMessageTabs() {
     const tabs = document.querySelectorAll('.message-tab');
-    
+    const messageItems = document.querySelectorAll('.message-item');
+    const messageList = document.querySelector('.message-list');
+
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
             tabs.forEach(t => t.classList.remove('active'));
             this.classList.add('active');
+
+            const category = this.getAttribute('data-category');
+            let visibleMessageCount = 0;
+            messageItems.forEach(function(item) {
+                if (category === 'all' || item.getAttribute('data-category') === category) {
+                    item.classList.remove('hidden');
+                    visibleMessageCount++;
+                } else {
+                    item.classList.add('hidden');
+                }
+            });
+
+            // 显示/隐藏空状态提示
+            let emptyTip = messageList.querySelector('.message-empty');
+            if (visibleMessageCount === 0) {
+                if (!emptyTip) {
+                    emptyTip = document.createElement('div');
+                    emptyTip.className = 'message-empty';
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-inbox';
+                    const text = document.createElement('p');
+                    text.textContent = '暂无消息';
+                    emptyTip.appendChild(icon);
+                    emptyTip.appendChild(text);
+                    messageList.appendChild(emptyTip);
+                }
+                emptyTip.style.display = '';
+            } else {
+                if (emptyTip) {
+                    emptyTip.style.display = 'none';
+                }
+            }
         });
     });
 }
 
 
 /**
- * 消息项点击
+ * 消息项点击 - 打开聊天详情页
  */
 document.querySelectorAll('.message-item').forEach(item => {
     item.addEventListener('click', function() {
         const title = this.querySelector('.message-title').textContent;
-        // 实际项目中这里会跳转到消息详情页
-        alert(`打开消息: ${title}`);
+        const msgType = this.getAttribute('data-msg-type');
+        const avatarStyle = this.querySelector('.message-avatar').getAttribute('style');
+        const avatarIcon = this.querySelector('.message-avatar i').className;
+        // 清除该消息的未读角标
+        const badge = this.querySelector('.message-badge');
+        if (badge) {
+            badge.remove();
+        }
+        showChatDetail(title, msgType, avatarStyle, avatarIcon);
     });
 });
+
+/**
+ * 显示聊天详情页
+ */
+function showChatDetail(title, msgType, avatarStyle, avatarIcon) {
+    const chatPage = document.getElementById('page-chat-detail');
+    const chatTitle = document.getElementById('chatDetailTitle');
+    const chatBody = document.getElementById('chatDetailBody');
+    const messagePage = document.getElementById('page-message');
+    const bottomNav = document.querySelector('.bottom-nav');
+
+    if (!chatPage || !chatBody) return;
+
+    // 简单清理输入以防注入
+    const safeStyle = sanitizeStyleAttr(avatarStyle);
+    const safeIcon = sanitizeClassName(avatarIcon);
+
+    chatTitle.textContent = title;
+    chatBody.innerHTML = '';
+
+    if (msgType === 'logistics') {
+        chatBody.innerHTML = renderLogisticsDetail();
+    } else if (msgType === 'trade') {
+        chatBody.innerHTML = renderTradeDetail();
+    } else if (msgType === 'promo') {
+        chatBody.innerHTML = renderPromoDetail();
+    } else if (msgType === 'store') {
+        chatBody.innerHTML = renderStoreChatDetail(safeStyle, safeIcon);
+    } else if (msgType === 'service') {
+        chatBody.innerHTML = renderServiceChatDetail(safeStyle, safeIcon);
+    } else {
+        chatBody.innerHTML = renderSystemDetail();
+    }
+
+    // 切换页面
+    messagePage.classList.remove('active');
+    chatPage.classList.add('active');
+    // 隐藏底部导航
+    if (bottomNav) {
+        bottomNav.style.display = 'none';
+    }
+    window.scrollTo(0, 0);
+}
+
+/**
+ * 清理样式属性值，仅允许安全的CSS渐变背景
+ */
+function sanitizeStyleAttr(style) {
+    if (!style) return '';
+    // 仅允许 background 属性中使用 linear-gradient 和安全的颜色值
+    const match = style.match(/background:\s*(linear-gradient\(\s*\d+deg,\s*#[0-9a-fA-F]{3,8}(?:,\s*#[0-9a-fA-F]{3,8})*\s*\))/);
+    if (match) {
+        return 'background: ' + match[1];
+    }
+    return '';
+}
+
+/**
+ * 清理CSS类名，仅允许合法的类名字符
+ */
+function sanitizeClassName(className) {
+    if (!className) return '';
+    return className.replace(/[^a-zA-Z0-9\s\-_]/g, '');
+}
+
+/**
+ * 物流详情渲染
+ */
+function renderLogisticsDetail() {
+    return '<div class="logistics-timeline">' +
+        '<div class="logistics-timeline-header">' +
+            '<i class="fas fa-truck"></i>' +
+            '<div>' +
+                '<div class="logistics-title">包裹运输中</div>' +
+                '<div class="logistics-order">订单号: 2024021200001</div>' +
+            '</div>' +
+        '</div>' +
+        '<div class="timeline-list">' +
+            '<div class="timeline-item active">' +
+                '<span class="timeline-dot"></span>' +
+                '<div class="timeline-info">您的包裹已到达北京转运中心，预计明天送达<div class="timeline-date">2024-02-12 10:30</div></div>' +
+            '</div>' +
+            '<div class="timeline-item active">' +
+                '<span class="timeline-dot"></span>' +
+                '<div class="timeline-info">包裹已从上海发出<div class="timeline-date">2024-02-11 15:20</div></div>' +
+            '</div>' +
+            '<div class="timeline-item">' +
+                '<span class="timeline-dot"></span>' +
+                '<div class="timeline-info">卖家已发货，等待揽收<div class="timeline-date">2024-02-11 09:00</div></div>' +
+            '</div>' +
+            '<div class="timeline-item">' +
+                '<span class="timeline-dot"></span>' +
+                '<div class="timeline-info">订单已支付<div class="timeline-date">2024-02-10 22:15</div></div>' +
+            '</div>' +
+        '</div>' +
+    '</div>' +
+    '<div class="notification-card">' +
+        '<div class="notification-card-header">' +
+            '<div class="notification-card-icon" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);"><i class="fas fa-box"></i></div>' +
+            '<div class="notification-card-title"><h4>商品信息</h4><span class="notification-time">时尚女装夏季新款连衣裙</span></div>' +
+        '</div>' +
+        '<div class="notification-card-body"><p>颜色: 粉色 | 尺码: M</p><p>数量: 1件</p></div>' +
+    '</div>';
+}
+
+/**
+ * 交易详情渲染
+ */
+function renderTradeDetail() {
+    return '<div class="notification-card">' +
+        '<div class="notification-card-header">' +
+            '<div class="notification-card-icon" style="background: linear-gradient(135deg, #667eea, #764ba2);"><i class="fas fa-check-circle"></i></div>' +
+            '<div class="notification-card-title"><h4>交易完成</h4><span class="notification-time">昨天 14:30</span></div>' +
+        '</div>' +
+        '<div class="notification-card-body"><p>您的订单已确认收货。</p><p>订单号: 2024020800002</p><p>商品: 休闲运动鞋 透气舒适</p><p>金额: ¥168.00</p></div>' +
+    '</div>' +
+    '<div class="notification-card">' +
+        '<div class="notification-card-header">' +
+            '<div class="notification-card-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"><i class="fas fa-star"></i></div>' +
+            '<div class="notification-card-title"><h4>评价提醒</h4><span class="notification-time">待评价</span></div>' +
+        '</div>' +
+        '<div class="notification-card-body"><p>快来分享您的使用体验吧，还可获得积分奖励！</p></div>' +
+    '</div>';
+}
+
+/**
+ * 优惠活动详情渲染
+ */
+function renderPromoDetail() {
+    return '<div class="notification-card">' +
+        '<div class="notification-card-header">' +
+            '<div class="notification-card-icon" style="background: linear-gradient(135deg, #43e97b, #38f9d7);"><i class="fas fa-percent"></i></div>' +
+            '<div class="notification-card-title"><h4>618大促即将开始</h4><span class="notification-time">昨天 09:00</span></div>' +
+        '</div>' +
+        '<div class="notification-card-body"><p>618年中大促即将开始，以下优惠券已为您准备好：</p><p>🎫 满200减30 通用券</p><p>🎫 满500减80 品类券</p><p>🎫 满1000减150 大额券</p><p>活动时间: 6月1日-6月18日</p></div>' +
+    '</div>';
+}
+
+/**
+ * 店铺聊天详情渲染
+ */
+function renderStoreChatDetail(avatarStyle, avatarIcon) {
+    return '<div class="chat-message">' +
+        '<div class="chat-message-time">昨天 14:20</div>' +
+        '<div class="chat-bubble-row from-other">' +
+            '<div class="chat-bubble-avatar" style="' + avatarStyle + '"><i class="' + avatarIcon + '"></i></div>' +
+            '<div class="chat-bubble">亲，您关注的商品正在限时特惠中~ 现在下单还能享受满减优惠哦！</div>' +
+        '</div>' +
+    '</div>' +
+    '<div class="chat-message">' +
+        '<div class="chat-bubble-row from-other">' +
+            '<div class="chat-bubble-avatar" style="' + avatarStyle + '"><i class="' + avatarIcon + '"></i></div>' +
+            '<div class="chat-bubble">限时特价 ¥128，原价 ¥256，仅剩最后50件！</div>' +
+        '</div>' +
+    '</div>';
+}
+
+/**
+ * 客服聊天详情渲染
+ */
+function renderServiceChatDetail(avatarStyle, avatarIcon) {
+    return '<div class="chat-message">' +
+        '<div class="chat-message-time">周一 10:00</div>' +
+        '<div class="chat-bubble-row from-other">' +
+            '<div class="chat-bubble-avatar" style="' + avatarStyle + '"><i class="' + avatarIcon + '"></i></div>' +
+            '<div class="chat-bubble">您好，有什么可以帮助您的吗？</div>' +
+        '</div>' +
+    '</div>' +
+    '<div class="chat-message">' +
+        '<div class="chat-bubble-row from-self">' +
+            '<div class="chat-bubble-avatar" style="background: linear-gradient(135deg, #ff6b35, #ff5722);"><i class="fas fa-user"></i></div>' +
+            '<div class="chat-bubble">我想问一下退货流程</div>' +
+        '</div>' +
+    '</div>' +
+    '<div class="chat-message">' +
+        '<div class="chat-bubble-row from-other">' +
+            '<div class="chat-bubble-avatar" style="' + avatarStyle + '"><i class="' + avatarIcon + '"></i></div>' +
+            '<div class="chat-bubble">好的，您可以在"我的订单"中找到需要退货的订单，点击"退换/售后"即可发起退货申请。如有疑问可随时联系我~</div>' +
+        '</div>' +
+    '</div>';
+}
+
+/**
+ * 系统通知详情渲染
+ */
+function renderSystemDetail() {
+    return '<div class="notification-card">' +
+        '<div class="notification-card-header">' +
+            '<div class="notification-card-icon" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);"><i class="fas fa-bell"></i></div>' +
+            '<div class="notification-card-title"><h4>系统通知</h4><span class="notification-time">上周</span></div>' +
+        '</div>' +
+        '<div class="notification-card-body"><p>您的账户安全等级已更新为"高"。</p><p>建议定期修改密码以确保账户安全。</p></div>' +
+    '</div>';
+}
+
+/**
+ * 初始化聊天详情返回按钮
+ */
+function initChatDetail() {
+    const backBtn = document.getElementById('chatBackBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', function() {
+            const chatPage = document.getElementById('page-chat-detail');
+            const messagePage = document.getElementById('page-message');
+            const bottomNav = document.querySelector('.bottom-nav');
+            chatPage.classList.remove('active');
+            messagePage.classList.add('active');
+            // 恢复底部导航
+            if (bottomNav) {
+                bottomNav.style.display = '';
+            }
+        });
+    }
+}
 
 /**
  * 菜单项点击
@@ -848,34 +1111,53 @@ function initBannerSlider() {
     });
 
     // 触摸滑动
-    var startX = 0;
-    var startY = 0;
-    var isDragging = false;
+    let startX = 0;
+    let startY = 0;
+    let isDragging = false;
+    let directionLocked = false;
+    let isHorizontal = false;
 
     track.addEventListener('touchstart', function(e) {
         startX = e.touches[0].clientX;
         startY = e.touches[0].clientY;
         isDragging = true;
+        directionLocked = false;
+        isHorizontal = false;
         stopAutoPlay();
         track.style.transition = 'none';
     }, { passive: true });
 
     track.addEventListener('touchmove', function(e) {
         if (!isDragging) return;
-        var diffX = Math.abs(e.touches[0].clientX - startX);
-        var diffY = Math.abs(e.touches[0].clientY - startY);
-        if (diffX > diffY && diffX > 10) {
-            e.preventDefault();
-            var offsetX = e.touches[0].clientX - startX;
-            var baseTranslate = -current * 100;
-            var dragPercent = (offsetX / track.offsetWidth) * 100;
-            track.style.transform = 'translateX(' + (baseTranslate + dragPercent) + '%)';
+        var diffX = e.touches[0].clientX - startX;
+        var diffY = e.touches[0].clientY - startY;
+
+        // Lock direction on first significant move
+        if (!directionLocked && (Math.abs(diffX) > 5 || Math.abs(diffY) > 5)) {
+            directionLocked = true;
+            isHorizontal = Math.abs(diffX) > Math.abs(diffY);
         }
+
+        if (!directionLocked || !isHorizontal) return;
+
+        e.preventDefault();
+
+        // Apply boundary resistance at edges
+        var atStart = current === 0 && diffX > 0;
+        var atEnd = current === total - 1 && diffX < 0;
+        if (atStart || atEnd) {
+            diffX = diffX * 0.3; // dampen drag at boundaries
+        }
+
+        var baseTranslate = -current * 100;
+        var dragPercent = (diffX / track.offsetWidth) * 100;
+        track.style.transform = 'translateX(' + (baseTranslate + dragPercent) + '%)';
     }, { passive: false });
 
     track.addEventListener('touchend', function(e) {
         if (!isDragging) return;
         isDragging = false;
+        directionLocked = false;
         track.style.transition = 'transform 0.4s ease';
         var diff = startX - e.changedTouches[0].clientX;
         if (Math.abs(diff) > 40) {
@@ -888,10 +1170,51 @@ function initBannerSlider() {
 
     track.addEventListener('touchcancel', function() {
         isDragging = false;
+        directionLocked = false;
         track.style.transition = 'transform 0.4s ease';
         goTo(current);
         startAutoPlay();
     }, { passive: true });
+
+    // 鼠标拖拽支持（桌面端）
+    let mouseStartX = 0;
+    let mouseIsDragging = false;
+
+    track.addEventListener('mousedown', function(e) {
+        mouseStartX = e.clientX;
+        mouseIsDragging = true;
+        stopAutoPlay();
+        track.style.transition = 'none';
+        e.preventDefault();
+    });
+
+    document.addEventListener('mousemove', function(e) {
+        if (!mouseIsDragging) return;
+        var diffX = e.clientX - mouseStartX;
+
+        var atStart = current === 0 && diffX > 0;
+        var atEnd = current === total - 1 && diffX < 0;
+        if (atStart || atEnd) {
+            diffX = diffX * 0.3;
+        }
+
+        var baseTranslate = -current * 100;
+        var dragPercent = (diffX / track.offsetWidth) * 100;
+        track.style.transform = 'translateX(' + (baseTranslate + dragPercent) + '%)';
+    });
+
+    document.addEventListener('mouseup', function(e) {
+        if (!mouseIsDragging) return;
+        mouseIsDragging = false;
+        track.style.transition = 'transform 0.4s ease';
+        var diff = mouseStartX - e.clientX;
+        if (Math.abs(diff) > 40) {
+            diff > 0 ? goTo(current + 1) : goTo(current - 1);
+        } else {
+            goTo(current);
+        }
+        startAutoPlay();
+    });
 
     startAutoPlay();
 }

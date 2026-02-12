@@ -189,15 +189,15 @@
 
             <!-- 消息分类 -->
             <div class="message-tabs">
-                <div class="message-tab active">全部</div>
-                <div class="message-tab">交易物流</div>
-                <div class="message-tab">活动</div>
-                <div class="message-tab">服务</div>
+                <div class="message-tab active" data-category="all">全部</div>
+                <div class="message-tab" data-category="logistics">交易物流</div>
+                <div class="message-tab" data-category="activity">活动</div>
+                <div class="message-tab" data-category="service">服务</div>
             </div>
 
             <!-- 消息列表 -->
             <div class="message-list">
-                <div class="message-item">
+                <div class="message-item" data-category="logistics" data-msg-type="logistics">
                     <div class="message-avatar" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
                         <i class="fas fa-truck"></i>
                     </div>
@@ -207,10 +207,29 @@
                             <span class="message-time">10:30</span>
                         </div>
                         <p class="message-text">您的包裹已到达北京转运中心，预计明天送达</p>
+                        <div class="message-extra logistics-brief">
+                            <span class="logistics-status-tag status-transit"><i class="fas fa-shipping-fast"></i> 运输中</span>
+                            <span class="logistics-order-no">订单号: 2024021200001</span>
+                        </div>
                     </div>
                     <span class="message-badge">2</span>
                 </div>
-                <div class="message-item">
+                <div class="message-item" data-category="logistics" data-msg-type="trade">
+                    <div class="message-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">
+                        <i class="fas fa-comment-dollar"></i>
+                    </div>
+                    <div class="message-content">
+                        <div class="message-header">
+                            <span class="message-title">交易提醒</span>
+                            <span class="message-time">昨天</span>
+                        </div>
+                        <p class="message-text">您的订单已确认收货，欢迎评价~</p>
+                        <div class="message-extra">
+                            <span class="logistics-status-tag status-delivered"><i class="fas fa-check-circle"></i> 已签收</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="message-item" data-category="service" data-msg-type="store">
                     <div class="message-avatar" style="background: linear-gradient(135deg, #4facfe, #00f2fe);">
                         <i class="fas fa-store"></i>
                     </div>
@@ -222,7 +241,7 @@
                         <p class="message-text">亲，您关注的商品正在限时特惠中~</p>
                     </div>
                 </div>
-                <div class="message-item">
+                <div class="message-item" data-category="activity" data-msg-type="promo">
                     <div class="message-avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
                         <i class="fas fa-percent"></i>
                     </div>
@@ -232,10 +251,14 @@
                             <span class="message-time">昨天</span>
                         </div>
                         <p class="message-text">618大促即将开始，领取专属优惠券</p>
+                        <div class="message-extra promo-brief">
+                            <span class="promo-tag"><i class="fas fa-ticket-alt"></i> 满200减30</span>
+                            <span class="promo-tag"><i class="fas fa-ticket-alt"></i> 满500减80</span>
+                        </div>
                     </div>
                     <span class="message-badge">5</span>
                 </div>
-                <div class="message-item">
+                <div class="message-item" data-category="service" data-msg-type="service">
                     <div class="message-avatar" style="background: linear-gradient(135deg, #fa709a, #fee140);">
                         <i class="fas fa-headset"></i>
                     </div>
@@ -247,7 +270,7 @@
                         <p class="message-text">您好，有什么可以帮助您的吗？</p>
                     </div>
                 </div>
-                <div class="message-item">
+                <div class="message-item" data-category="service" data-msg-type="system">
                     <div class="message-avatar" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
                         <i class="fas fa-bell"></i>
                     </div>
@@ -259,18 +282,22 @@
                         <p class="message-text">您的账户安全等级已更新，请查看详情</p>
                     </div>
                 </div>
-                <div class="message-item">
-                    <div class="message-avatar" style="background: linear-gradient(135deg, #667eea, #764ba2);">
-                        <i class="fas fa-comment-dollar"></i>
-                    </div>
-                    <div class="message-content">
-                        <div class="message-header">
-                            <span class="message-title">交易提醒</span>
-                            <span class="message-time">上周</span>
-                        </div>
-                        <p class="message-text">您的订单已确认收货，欢迎评价~</p>
-                    </div>
+            </div>
+        </div>
+
+        <!-- 聊天详情页面 -->
+        <div id="page-chat-detail" class="page">
+            <div class="header chat-detail-header">
+                <div class="chat-back-btn" id="chatBackBtn">
+                    <i class="fas fa-arrow-left"></i>
                 </div>
+                <h1 id="chatDetailTitle">消息详情</h1>
+                <div class="header-right">
+                    <i class="fas fa-ellipsis-v"></i>
+                </div>
+            </div>
+            <div class="chat-detail-body" id="chatDetailBody">
+                <!-- 聊天内容将动态生成 -->
             </div>
         </div>
 
