@@ -16,6 +16,7 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -124,9 +125,12 @@ public class PageController {
         List<Map<String, String>> detailMediaList = parseMediaJson(product.getDetailMedia());
         model.addAttribute("detailMediaList", detailMediaList);
         
-        // 获取相关推荐商品
-        List<ProductEntity> relatedProducts = productDbService.getActiveProducts().stream()
+        // 获取相关推荐商品（随机显示）
+        List<ProductEntity> allRelated = new ArrayList<>(productDbService.getActiveProducts().stream()
                 .filter(p -> !p.getId().equals(id))
+                .toList());
+        Collections.shuffle(allRelated);
+        List<ProductEntity> relatedProducts = allRelated.stream()
                 .limit(MAX_RELATED_PRODUCTS)
                 .toList();
         model.addAttribute("relatedProducts", relatedProducts);
