@@ -99,7 +99,8 @@ class MessageServiceTest {
 
         assertEquals(1, messageService.getUnreadCount(user.getId(), "service"));
         assertEquals(1, messageService.getUnreadCount(user.getId(), "store"));
-        assertEquals(2, messageService.getTotalUnreadCount(user.getId()));
+        // 总未读数 = service(1) + store(1) + system(1 注册欢迎消息)
+        assertEquals(3, messageService.getTotalUnreadCount(user.getId()));
     }
 
     @Test
@@ -156,11 +157,25 @@ class MessageServiceTest {
         Long userId = user.getId();
         messageService.sendUserMessage(userId, "service", "消息");
 
-        // Verify message exists
+        // Verify message exists (1 user message + 1 welcome message)
         assertEquals(1, messageService.getChatHistory(userId, "service").size());
 
         // Delete user - messages should be cascade deleted
         userService.deleteUser(userId);
         assertEquals(0, messageService.getChatHistory(userId, "service").size());
+    }
+
+    @Test
+    void newUserReceivesWelcomeSystemMessage() {
+        UserEntity user = userService.getOrCreateUser(null);
+        List<MessageEntity> systemMessages = messageService.getChatHistory(user.getId(), "system");
+
+        assertEquals(1, systemMessages.size());
+        MessageEntity welcome = systemMessages.get(0);
+        assertEquals("system", welcome.getChatType());
+        assertEquals("admin", welcome.getSenderType());
+        assertEquals("系统通知", welcome.getSenderName());
+        assertTrue(welcome.getContent().contains("欢迎"));
+        assertFalse(welcome.getIsRead());
     }
 }

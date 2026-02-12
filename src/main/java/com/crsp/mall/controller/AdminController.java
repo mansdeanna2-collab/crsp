@@ -628,6 +628,7 @@ public class AdminController {
         }
 
         model.addAttribute("userList", userList);
+        model.addAttribute("allUsers", userService.getAllUsers());
         model.addAttribute("currentPage", "messages");
         return "admin/messages";
     }

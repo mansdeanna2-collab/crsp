@@ -611,6 +611,15 @@ public class UserApiController {
             return ResponseEntity.badRequest().body(Map.of("error", "消息发送失败"));
         }
 
+        // 客服小蜜和成人用品旗舰店自动回复
+        if ("service".equals(chatType)) {
+            messageService.sendAdminMessage(user.getId(), chatType, "客服小蜜",
+                    "您好，您的消息已收到，客服正在为您处理中，请稍候~");
+        } else if ("store".equals(chatType)) {
+            messageService.sendAdminMessage(user.getId(), chatType, "成人用品旗舰店",
+                    "亲，感谢您的咨询！我们会尽快为您回复，请耐心等待~");
+        }
+
         Map<String, Object> result = new HashMap<>();
         result.put("success", true);
         result.put("id", message.getId());
