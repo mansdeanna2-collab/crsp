@@ -1404,7 +1404,7 @@
             isVerticalScroll = false;
         }
 
-        // 触摸事件绑定在外层容器，避免媒体元素遮挡手势，滑动仍通过内部轨道更新
+        // 触摸事件绑定在 mediaSlider 容器，避免媒体元素遮挡手势，滑动仍通过内部轨道更新
         if (hasRequiredSliderElements) {
             mediaSlider.addEventListener('touchstart', function(e) {
                 // 完全重置状态，确保每次触摸都从干净状态开始
