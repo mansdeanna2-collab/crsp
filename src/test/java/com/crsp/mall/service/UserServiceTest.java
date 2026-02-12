@@ -42,6 +42,8 @@ class UserServiceTest {
         assertNotNull(user.getToken());
         assertEquals("guest", user.getUserType());
         assertTrue(user.getNickname().startsWith("游客"));
+        // Guest nickname should be 游客 + 5 digits
+        assertTrue(user.getNickname().matches("游客\\d{5}"));
     }
 
     @Test
@@ -230,6 +232,24 @@ class UserServiceTest {
         long initialCount = userService.getNewUserCount(1);
         userService.getOrCreateUser(null);
         assertEquals(initialCount + 1, userService.getNewUserCount(1));
+    }
+
+    @Test
+    void getOrCreateUserRecordsIpAddress() {
+        UserEntity user = userService.getOrCreateUser(null, "192.168.1.100");
+        assertNotNull(user.getId());
+        assertEquals("192.168.1.100", user.getRegisterIp());
+    }
+
+    @Test
+    void getOrCreateUserExistingDoesNotOverwriteIp() {
+        UserEntity user = userService.getOrCreateUser(null, "10.0.0.1");
+        assertEquals("10.0.0.1", user.getRegisterIp());
+
+        // Re-fetch same user by token - IP should not change
+        UserEntity same = userService.getOrCreateUser(user.getToken(), "10.0.0.2");
+        assertEquals(user.getId(), same.getId());
+        assertEquals("10.0.0.1", same.getRegisterIp());
     }
 
     @Test

@@ -53,6 +53,11 @@ public class UploadController {
             return ResponseEntity.badRequest().body(Map.of("error", "请选择文件"));
         }
 
+        // 检查文件大小（最大50MB）
+        if (file.getSize() > MAX_DOWNLOAD_SIZE) {
+            return ResponseEntity.badRequest().body(Map.of("error", "文件过大，最大支持50MB"));
+        }
+
         String contentType = file.getContentType();
         if (contentType == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "无法识别文件类型"));
@@ -335,18 +340,12 @@ public class UploadController {
             return true;
         }
         // 172.16.0.0 - 172.31.255.255
-        if (h.startsWith("172.")) {
-            try {
-                int second = Integer.parseInt(h.split("\\.")[1]);
-                if (second >= 16 && second <= 31) return true;
-            } catch (NumberFormatException ignored) {}
+        if (h.startsWith("172.") && isSecondOctetInRange(h, 16, 31)) {
+            return true;
         }
         // 100.64.0.0 - 100.127.255.255 (CGNAT / Shared Address Space RFC 6598)
-        if (h.startsWith("100.")) {
-            try {
-                int second = Integer.parseInt(h.split("\\.")[1]);
-                if (second >= 64 && second <= 127) return true;
-            } catch (NumberFormatException ignored) {}
+        if (h.startsWith("100.") && isSecondOctetInRange(h, 64, 127)) {
+            return true;
         }
         // IPv6 私有地址
         if (h.startsWith("fc") || h.startsWith("fd") || h.startsWith("fe80")) {
@@ -375,6 +374,20 @@ public class UploadController {
             // Cannot resolve hostname - block it to be safe
             return true;
         }
+        return false;
+    }
+
+    /**
+     * 检查IPv4地址的第二个八位组是否在指定范围内
+     */
+    private static boolean isSecondOctetInRange(String host, int min, int max) {
+        try {
+            String[] parts = host.split("\\.");
+            if (parts.length >= 2) {
+                int second = Integer.parseInt(parts[1]);
+                return second >= min && second <= max;
+            }
+        } catch (NumberFormatException ignored) {}
         return false;
     }
 }

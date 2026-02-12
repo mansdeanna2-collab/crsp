@@ -20,6 +20,7 @@ import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 /**
  * 后台管理控制器
@@ -27,6 +28,9 @@ import java.util.Optional;
 @Controller
 @RequestMapping("/admin")
 public class AdminController {
+
+    private static final Set<String> VALID_ORDER_STATUSES = Set.of("pending", "paid", "shipped", "completed", "cancelled");
+    private static final Set<String> VALID_USER_TYPES = Set.of("guest", "user");
 
     @Autowired
     private AdminService adminService;
@@ -210,7 +214,7 @@ public class AdminController {
         }
         
         List<OrderEntity> orders;
-        if (status != null && !status.isEmpty()) {
+        if (status != null && !status.isEmpty() && VALID_ORDER_STATUSES.contains(status)) {
             orders = orderService.getOrdersByStatus(status);
         } else {
             orders = orderService.getAllOrders();
@@ -274,7 +278,7 @@ public class AdminController {
         List<UserEntity> users = userService.getAllUsers();
         
         // 按类型过滤
-        if (type != null && !type.isEmpty()) {
+        if (type != null && !type.isEmpty() && VALID_USER_TYPES.contains(type)) {
             users = users.stream().filter(u -> type.equals(u.getUserType())).toList();
         }
         // 按关键词搜索(昵称、手机或邮箱)

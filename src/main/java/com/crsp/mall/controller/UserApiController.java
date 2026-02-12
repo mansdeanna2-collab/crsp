@@ -43,7 +43,8 @@ public class UserApiController {
     @PostMapping("/init")
     public ResponseEntity<Map<String, Object>> initUser(HttpServletRequest request, HttpServletResponse response) {
         String token = getTokenFromCookie(request);
-        UserEntity user = userService.getOrCreateUser(token);
+        String ipAddress = getClientIp(request);
+        UserEntity user = userService.getOrCreateUser(token, ipAddress);
         
         // 设置cookie
         setUserTokenCookie(response, user.getToken());
@@ -602,11 +603,32 @@ public class UserApiController {
 
     private UserEntity getOrInitUser(HttpServletRequest request, HttpServletResponse response) {
         String token = getTokenFromCookie(request);
-        UserEntity user = userService.getOrCreateUser(token);
+        String ipAddress = getClientIp(request);
+        UserEntity user = userService.getOrCreateUser(token, ipAddress);
         
         // 设置cookie
         setUserTokenCookie(response, user.getToken());
         
         return user;
+    }
+
+    /**
+     * 获取客户端真实IP地址
+     */
+    private String getClientIp(HttpServletRequest request) {
+        String ip = request.getHeader("X-Forwarded-For");
+        if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+            // X-Forwarded-For may contain multiple IPs, take the first one
+            int index = ip.indexOf(',');
+            if (index > 0) {
+                ip = ip.substring(0, index).trim();
+            }
+            return ip;
+        }
+        ip = request.getHeader("X-Real-IP");
+        if (ip != null && !ip.isEmpty() && !"unknown".equalsIgnoreCase(ip)) {
+            return ip;
+        }
+        return request.getRemoteAddr();
     }
 }

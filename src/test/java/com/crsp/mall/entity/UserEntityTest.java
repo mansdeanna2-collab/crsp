@@ -67,4 +67,13 @@ class UserEntityTest {
         user.setRemark("VIP客户");
         assertThat(user.getRemark()).isEqualTo("VIP客户");
     }
+
+    @Test
+    void registerIpFieldWorksCorrectly() {
+        UserEntity user = new UserEntity();
+        assertThat(user.getRegisterIp()).isNull();
+
+        user.setRegisterIp("192.168.1.1");
+        assertThat(user.getRegisterIp()).isEqualTo("192.168.1.1");
+    }
 }
