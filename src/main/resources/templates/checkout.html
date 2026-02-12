@@ -450,8 +450,12 @@
         function normalizeRegionData(data) {
             var municipalities = ['北京市', '天津市', '上海市', '重庆市'];
             var normalized = {};
-            Object.keys(data).forEach(function(province) {
-                var cityMap = Object.assign({}, data[province] || {});
+            var source = data || {};
+            Object.keys(source).forEach(function(province) {
+                var cityMap = {};
+                Object.keys(source[province] || {}).forEach(function(city) {
+                    cityMap[city] = source[province][city];
+                });
                 if (municipalities.indexOf(province) !== -1) {
                     var merged = [];
                     if (cityMap['市辖区']) {
@@ -488,7 +492,12 @@
             var provinceSelect = document.getElementById('province');
             var citySelect = document.getElementById('city');
             var districtSelect = document.getElementById('district');
-            provinceSelect.innerHTML = '<option value="">选择省份</option>';
+            provinceSelect.innerHTML = '<option value="">加载中...</option>';
+            citySelect.innerHTML = '<option value="">选择城市</option>';
+            districtSelect.innerHTML = '<option value="">选择区县</option>';
+            provinceSelect.disabled = true;
+            citySelect.disabled = true;
+            districtSelect.disabled = true;
             fetch('/data/regions.json')
                 .then(function(response) { return response.json(); })
                 .then(function(data) {
@@ -499,9 +508,10 @@
                         return;
                     }
                     regionData = normalized;
+                    provinceSelect.innerHTML = '<option value="">选择省份</option>';
                     provinceSelect.disabled = false;
-                    citySelect.disabled = false;
-                    districtSelect.disabled = false;
+                    citySelect.disabled = true;
+                    districtSelect.disabled = true;
                     provinces.forEach(function(province) {
                         var option = document.createElement('option');
                         option.value = province;
@@ -523,6 +533,8 @@
 
             citySelect.innerHTML = '<option value="">选择城市</option>';
             districtSelect.innerHTML = '<option value="">选择区县</option>';
+            citySelect.disabled = true;
+            districtSelect.disabled = true;
 
             if (province && regionData[province]) {
                 Object.keys(regionData[province]).forEach(function(city) {
@@ -531,6 +543,7 @@
                     option.textContent = city;
                     citySelect.appendChild(option);
                 });
+                citySelect.disabled = false;
             }
         }
 
@@ -542,6 +555,7 @@
             var city = citySelect.value;
 
             districtSelect.innerHTML = '<option value="">选择区县</option>';
+            districtSelect.disabled = true;
 
             if (province && city && regionData[province] && regionData[province][city]) {
                 regionData[province][city].forEach(function(district) {
@@ -550,6 +564,7 @@
                     option.textContent = district;
                     districtSelect.appendChild(option);
                 });
+                districtSelect.disabled = false;
             }
         }
 
