@@ -1016,7 +1016,7 @@ body {
     }
     
     .product-image {
-        height: 130px;
+        padding-bottom: 80%;
     }
     
     .product-info {
