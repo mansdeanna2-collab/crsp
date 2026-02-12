@@ -176,6 +176,10 @@
                     <i class="fas fa-box"></i>
                     <span>商品管理</span>
                 </a>
+                <a th:href="@{/admin/promotions}" class="menu-item" th:classappend="${currentPage == 'promotions'} ? ' active'">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>促销活动</span>
+                </a>
                 <a th:href="@{/admin/orders}" class="menu-item" th:classappend="${currentPage == 'orders'} ? ' active'">
                     <i class="fas fa-shopping-cart"></i>
                     <span>订单管理</span>

@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title th:text="${pageTitle} + ' - 成人玩具商城'">活动 - 成人玩具商城</title>
+    <link rel="stylesheet" th:href="@{/css/style.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .promo-header {
+            position: sticky;
+            top: 0;
+            z-index: 100;
+            padding: 12px 15px;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            color: white;
+        }
+        .promo-header.flash_sale { background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
+        .promo-header.daily_deal { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .promo-header.brand_flash { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .promo-header.new_user { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+        .promo-header .back-btn {
+            color: white;
+            text-decoration: none;
+            font-size: 18px;
+        }
+        .promo-header h1 {
+            font-size: 18px;
+            font-weight: 600;
+        }
+
+        .promo-banner {
+            padding: 20px 15px;
+            color: white;
+            text-align: center;
+        }
+        .promo-banner.flash_sale { background: linear-gradient(135deg, #ff6b6b, #ff8e53); }
+        .promo-banner.daily_deal { background: linear-gradient(135deg, #4facfe, #00f2fe); }
+        .promo-banner.brand_flash { background: linear-gradient(135deg, #43e97b, #38f9d7); }
+        .promo-banner.new_user { background: linear-gradient(135deg, #fa709a, #fee140); }
+
+        .promo-banner i { font-size: 36px; margin-bottom: 8px; }
+        .promo-banner h2 { font-size: 22px; margin-bottom: 4px; }
+        .promo-banner p { font-size: 14px; opacity: 0.9; }
+
+        .countdown-bar {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 6px;
+            margin-top: 12px;
+            font-size: 13px;
+        }
+        .countdown-num {
+            background: rgba(0,0,0,0.3);
+            padding: 3px 6px;
+            border-radius: 4px;
+            font-weight: 700;
+            min-width: 28px;
+            display: inline-block;
+        }
+
+        .promo-product {
+            display: flex;
+            background: white;
+            margin: 8px 10px;
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 1px 4px rgba(0,0,0,0.06);
+        }
+        .promo-product-image {
+            width: 120px;
+            height: 120px;
+            flex-shrink: 0;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            position: relative;
+        }
+        .promo-product-image i {
+            font-size: 40px;
+            color: white;
+            opacity: 0.8;
+        }
+        .promo-product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .promo-product-info {
+            flex: 1;
+            padding: 12px;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+        .promo-product-title {
+            font-size: 14px;
+            line-height: 1.4;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            overflow: hidden;
+        }
+        .promo-price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 8px;
+            margin-top: 6px;
+        }
+        .promo-price {
+            color: #ff5722;
+            font-size: 18px;
+            font-weight: 700;
+        }
+        .promo-original-price {
+            color: #999;
+            font-size: 12px;
+            text-decoration: line-through;
+        }
+        .promo-discount-tag {
+            background: #ff5722;
+            color: white;
+            padding: 1px 6px;
+            border-radius: 3px;
+            font-size: 11px;
+            font-weight: 600;
+        }
+        .promo-buy-btn {
+            display: inline-block;
+            background: linear-gradient(135deg, #ff6b35, #ff5722);
+            color: white;
+            padding: 6px 16px;
+            border-radius: 15px;
+            font-size: 12px;
+            text-decoration: none;
+            text-align: center;
+            align-self: flex-end;
+            margin-top: 6px;
+        }
+        .promo-sales {
+            color: #999;
+            font-size: 11px;
+            margin-top: 4px;
+        }
+        .empty-state {
+            text-align: center;
+            padding: 60px 20px;
+            color: #999;
+        }
+        .empty-state i { font-size: 48px; margin-bottom: 12px; }
+        .empty-state p { font-size: 14px; }
+    </style>
+</head>
+<body>
+    <div class="app-container">
+        <div class="page active">
+            <!-- 顶部标题栏 -->
+            <div class="promo-header" th:classappend="${pageType}">
+                <a th:href="@{/}" class="back-btn"><i class="fas fa-arrow-left"></i></a>
+                <h1 th:text="${pageTitle}">活动</h1>
+            </div>
+
+            <!-- 活动横幅 -->
+            <div class="promo-banner" th:classappend="${pageType}">
+                <i class="fas" th:classappend="${pageType == 'flash_sale'} ? ' fa-bolt' : (${pageType == 'daily_deal'} ? ' fa-percentage' : (${pageType == 'brand_flash'} ? ' fa-tags' : ' fa-gift'))"></i>
+                <h2 th:text="${pageTitle}">活动</h2>
+                <p th:if="${pageType == 'flash_sale'}">限时抢购 · 低价不等人</p>
+                <p th:if="${pageType == 'daily_deal'}">天天低价 · 超值好货</p>
+                <p th:if="${pageType == 'brand_flash'}">大牌好物 · 限时特惠</p>
+                <p th:if="${pageType == 'new_user'}">新人专属 · 惊喜好价</p>
+
+                <!-- 倒计时（仅秒杀页面显示） -->
+                <div th:if="${pageType == 'flash_sale'}" class="countdown-bar" id="countdownBar">
+                    <span>距结束</span>
+                    <span class="countdown-num" id="cdHours">00</span>:
+                    <span class="countdown-num" id="cdMinutes">00</span>:
+                    <span class="countdown-num" id="cdSeconds">00</span>
+                </div>
+            </div>
+
+            <!-- 商品列表 -->
+            <div th:if="${#lists.isEmpty(promotionItems)}" class="empty-state">
+                <i class="fas fa-box-open"></i>
+                <p>暂无活动商品，敬请期待</p>
+            </div>
+
+            <div th:each="item : ${promotionItems}" class="promo-product">
+                <a th:href="@{/product/{id}(id=${item.product.id})}" style="display: flex; text-decoration: none; color: inherit; width: 100%;">
+                    <div class="promo-product-image" th:style="${item.product.hasDisplayMedia()} ? 'background: #f5f5f5;' : 'background: linear-gradient(135deg, ' + ${item.product.bgColor != null ? item.product.bgColor : '#ffecd2, #fcb69f'} + ');'">
+                        <th:block th:if="${item.product.firstImageUrl != null}">
+                            <img th:src="${item.product.firstImageUrl}" th:alt="${item.product.title}"
+                                 onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='block';">
+                            <i class="fas" th:classappend="${item.product.icon != null ? item.product.icon : 'fa-box'}" style="display: none;"></i>
+                        </th:block>
+                        <th:block th:if="${item.product.firstImageUrl == null}">
+                            <i class="fas" th:classappend="${item.product.icon != null ? item.product.icon : 'fa-box'}"></i>
+                        </th:block>
+                    </div>
+                    <div class="promo-product-info">
+                        <div class="promo-product-title" th:text="${item.product.title}">商品名称</div>
+                        <div class="promo-price-row">
+                            <span class="promo-price" th:text="'¥' + ${item.promotion.promotionPrice}">¥0</span>
+                            <span class="promo-original-price" th:text="'¥' + ${item.product.price}">¥0</span>
+                            <span th:if="${item.promotion.discountPercent != null}" class="promo-discount-tag" th:text="${item.promotion.discountPercent} + '%OFF'">50%OFF</span>
+                        </div>
+                        <div class="promo-sales" th:text="${item.product.sales}">已售 0件</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+    </div>
+
+    <!-- 底部导航栏 -->
+    <nav class="bottom-nav">
+        <a th:href="@{/}" class="nav-item" data-page="home">
+            <i class="fas fa-home"></i>
+            <span>首页</span>
+        </a>
+        <a th:href="@{/message}" class="nav-item" data-page="message">
+            <i class="fas fa-comment-dots"></i>
+            <span>消息</span>
+        </a>
+        <a th:href="@{/cart}" class="nav-item" data-page="cart">
+            <i class="fas fa-shopping-cart"></i>
+            <span>购物车</span>
+        </a>
+        <a th:href="@{/profile}" class="nav-item" data-page="profile">
+            <i class="fas fa-user"></i>
+            <span>我的</span>
+        </a>
+    </nav>
+
+    <script th:src="@{/js/app.js}"></script>
+    <script th:if="${pageType == 'flash_sale'}">
+        // 秒杀倒计时（假设今天23:59:59结束）
+        (function() {
+            var now = new Date();
+            var end = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 23, 59, 59);
+            function update() {
+                var diff = Math.max(0, Math.floor((end - new Date()) / 1000));
+                var h = Math.floor(diff / 3600);
+                var m = Math.floor((diff % 3600) / 60);
+                var s = diff % 60;
+                var hEl = document.getElementById('cdHours');
+                var mEl = document.getElementById('cdMinutes');
+                var sEl = document.getElementById('cdSeconds');
+                if (hEl) hEl.textContent = h < 10 ? '0' + h : h;
+                if (mEl) mEl.textContent = m < 10 ? '0' + m : m;
+                if (sEl) sEl.textContent = s < 10 ? '0' + s : s;
+                if (diff > 0) setTimeout(update, 1000);
+            }
+            update();
+        })();
+    </script>
+</body>
+</html>

@@ -3,10 +3,12 @@ package com.crsp.mall.controller;
 import com.crsp.mall.entity.AdminEntity;
 import com.crsp.mall.entity.OrderEntity;
 import com.crsp.mall.entity.ProductEntity;
+import com.crsp.mall.entity.PromotionEntity;
 import com.crsp.mall.entity.UserEntity;
 import com.crsp.mall.service.AdminService;
 import com.crsp.mall.service.OrderService;
 import com.crsp.mall.service.ProductDbService;
+import com.crsp.mall.service.PromotionService;
 import com.crsp.mall.service.UserService;
 import jakarta.servlet.http.HttpSession;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -16,6 +18,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
 
 /**
@@ -36,6 +39,9 @@ public class AdminController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PromotionService promotionService;
 
     /**
      * 登录页面
@@ -105,6 +111,7 @@ public class AdminController {
         model.addAttribute("totalRevenue", totalRevenue);
         model.addAttribute("recentOrders", allOrders.stream().limit(5).toList());
         model.addAttribute("currentPage", "dashboard");
+        model.addAttribute("promotionCounts", promotionService.getPromotionCounts());
         
         return "admin/dashboard";
     }
@@ -441,5 +448,102 @@ public class AdminController {
             redirectAttributes.addFlashAttribute("error", "原密码错误");
         }
         return "redirect:/admin/password";
+    }
+
+    // ==================== 促销活动管理 ====================
+
+    /**
+     * 促销活动管理页面
+     */
+    @GetMapping("/promotions")
+    public String promotionList(@RequestParam(required = false) String type,
+                               HttpSession session, Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        List<PromotionEntity> promotions;
+        if (type != null && !type.isEmpty()) {
+            promotions = promotionService.getPromotionsByType(type);
+        } else {
+            promotions = promotionService.getAllPromotions();
+        }
+
+        model.addAttribute("promotions", promotions);
+        model.addAttribute("selectedType", type);
+        model.addAttribute("products", productDbService.getAllProducts());
+        model.addAttribute("currentPage", "promotions");
+        model.addAttribute("promotionCounts", promotionService.getPromotionCounts());
+
+        return "admin/promotions";
+    }
+
+    /**
+     * 添加促销活动页面
+     */
+    @GetMapping("/promotions/add")
+    public String addPromotionPage(HttpSession session, Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        model.addAttribute("promotion", new PromotionEntity());
+        model.addAttribute("products", productDbService.getActiveProducts());
+        model.addAttribute("currentPage", "promotions");
+
+        return "admin/promotion-form";
+    }
+
+    /**
+     * 编辑促销活动页面
+     */
+    @GetMapping("/promotions/edit/{id}")
+    public String editPromotionPage(@PathVariable Long id, HttpSession session, Model model) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        Optional<PromotionEntity> promotion = promotionService.getPromotionById(id);
+        if (promotion.isEmpty()) {
+            return "redirect:/admin/promotions";
+        }
+
+        model.addAttribute("promotion", promotion.get());
+        model.addAttribute("products", productDbService.getActiveProducts());
+        model.addAttribute("currentPage", "promotions");
+
+        return "admin/promotion-form";
+    }
+
+    /**
+     * 保存促销活动
+     */
+    @PostMapping("/promotions/save")
+    public String savePromotion(@ModelAttribute PromotionEntity promotion,
+                               HttpSession session,
+                               RedirectAttributes redirectAttributes) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        promotionService.savePromotion(promotion);
+        redirectAttributes.addFlashAttribute("success", "促销活动保存成功");
+        return "redirect:/admin/promotions";
+    }
+
+    /**
+     * 删除促销活动
+     */
+    @PostMapping("/promotions/delete/{id}")
+    public String deletePromotion(@PathVariable Long id,
+                                 HttpSession session,
+                                 RedirectAttributes redirectAttributes) {
+        if (session.getAttribute("admin") == null) {
+            return "redirect:/admin/login";
+        }
+
+        promotionService.deletePromotion(id);
+        redirectAttributes.addFlashAttribute("success", "促销活动删除成功");
+        return "redirect:/admin/promotions";
     }
 }

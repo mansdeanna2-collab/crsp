@@ -3,6 +3,7 @@ package com.crsp.mall.config;
 import com.crsp.mall.service.AdminService;
 import com.crsp.mall.service.OrderService;
 import com.crsp.mall.service.ProductDbService;
+import com.crsp.mall.service.PromotionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,6 +28,9 @@ public class DataInitializer implements CommandLineRunner {
     @Autowired
     private AdminService adminService;
 
+    @Autowired
+    private PromotionService promotionService;
+
     @Override
     public void run(String... args) {
         // 初始化默认管理员
@@ -37,6 +41,9 @@ public class DataInitializer implements CommandLineRunner {
         
         // 初始化示例订单
         orderService.initSampleOrders();
+        
+        // 初始化示例促销活动
+        promotionService.initSamplePromotions();
         
         log.info("数据初始化完成！后台管理地址: http://localhost:8080/admin");
         log.info("默认管理员账号: admin  密码: admin123");

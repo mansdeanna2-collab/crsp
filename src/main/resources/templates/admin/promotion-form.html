@@ -1,0 +1,277 @@
+<!DOCTYPE html>
+<html lang="zh-CN" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${promotion.id != null} ? '编辑促销活动' : '添加促销活动'">促销活动表单 - 成人玩具商城后台</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+            background: #f5f7fa;
+            min-height: 100vh;
+        }
+        .admin-layout { display: flex; min-height: 100vh; }
+        .sidebar {
+            width: 250px;
+            background: linear-gradient(180deg, #1a1f36 0%, #252b48 100%);
+            color: white;
+            position: fixed;
+            height: 100vh;
+            overflow-y: auto;
+        }
+        .sidebar-header {
+            padding: 20px;
+            border-bottom: 1px solid rgba(255,255,255,0.1);
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+        .sidebar-header i { font-size: 28px; color: #667eea; }
+        .sidebar-header h2 { font-size: 18px; font-weight: 600; }
+        .sidebar-header span { font-size: 12px; color: #9aa0ac; display: block; }
+        .sidebar-menu { padding: 15px 0; }
+        .menu-title {
+            padding: 10px 20px;
+            font-size: 11px;
+            color: #6c7293;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+        .menu-item {
+            display: flex;
+            align-items: center;
+            padding: 12px 20px;
+            color: #9aa0ac;
+            text-decoration: none;
+            gap: 12px;
+            transition: all 0.3s;
+            border-left: 3px solid transparent;
+        }
+        .menu-item:hover { background: rgba(102, 126, 234, 0.1); color: white; }
+        .menu-item.active { background: rgba(102, 126, 234, 0.15); color: white; border-left-color: #667eea; }
+        .menu-item i { width: 20px; font-size: 16px; }
+        .main-content { flex: 1; margin-left: 250px; }
+        .top-header {
+            background: white;
+            padding: 15px 30px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+        }
+        .page-title { font-size: 20px; font-weight: 600; color: #333; }
+        .content-area { padding: 30px; }
+        .card {
+            background: white;
+            border-radius: 12px;
+            box-shadow: 0 2px 10px rgba(0,0,0,0.05);
+            overflow: hidden;
+            max-width: 800px;
+        }
+        .card-header {
+            padding: 20px;
+            border-bottom: 1px solid #eee;
+        }
+        .card-title { font-size: 16px; font-weight: 600; color: #333; }
+        .card-body { padding: 30px; }
+        .form-group { margin-bottom: 20px; }
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 500;
+            color: #333;
+            font-size: 14px;
+        }
+        .form-group input,
+        .form-group select {
+            width: 100%;
+            padding: 10px 14px;
+            border: 2px solid #eee;
+            border-radius: 8px;
+            font-size: 14px;
+            transition: all 0.3s;
+        }
+        .form-group input:focus,
+        .form-group select:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+        .form-row {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+        .form-tip {
+            font-size: 12px;
+            color: #999;
+            margin-top: 4px;
+        }
+        .form-actions {
+            display: flex;
+            gap: 12px;
+            margin-top: 30px;
+        }
+        .btn {
+            padding: 10px 24px;
+            border-radius: 8px;
+            font-size: 14px;
+            border: none;
+            cursor: pointer;
+            text-decoration: none;
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+        }
+        .btn-primary {
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+        }
+        .btn-secondary {
+            background: #f5f5f5;
+            color: #666;
+        }
+        .btn:hover { opacity: 0.9; }
+    </style>
+</head>
+<body>
+    <div class="admin-layout">
+        <!-- 左侧边栏 -->
+        <div class="sidebar">
+            <div class="sidebar-header">
+                <i class="fas fa-store"></i>
+                <div>
+                    <h2>后台管理</h2>
+                    <span>成人玩具商城</span>
+                </div>
+            </div>
+            <div class="sidebar-menu">
+                <div class="menu-title">主菜单</div>
+                <a th:href="@{/admin}" class="menu-item">
+                    <i class="fas fa-tachometer-alt"></i>
+                    <span>仪表盘</span>
+                </a>
+                <a th:href="@{/admin/products}" class="menu-item">
+                    <i class="fas fa-box"></i>
+                    <span>商品管理</span>
+                </a>
+                <a th:href="@{/admin/promotions}" class="menu-item active">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>促销活动</span>
+                </a>
+                <a th:href="@{/admin/orders}" class="menu-item">
+                    <i class="fas fa-shopping-cart"></i>
+                    <span>订单管理</span>
+                </a>
+                <a th:href="@{/admin/users}" class="menu-item">
+                    <i class="fas fa-users"></i>
+                    <span>用户管理</span>
+                </a>
+                <div class="menu-title">系统</div>
+                <a th:href="@{/admin/password}" class="menu-item">
+                    <i class="fas fa-key"></i>
+                    <span>修改密码</span>
+                </a>
+                <a th:href="@{/}" class="menu-item" target="_blank">
+                    <i class="fas fa-external-link-alt"></i>
+                    <span>查看商城</span>
+                </a>
+                <a th:href="@{/admin/logout}" class="menu-item">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>退出登录</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- 主内容区 -->
+        <div class="main-content">
+            <div class="top-header">
+                <h1 class="page-title" th:text="${promotion.id != null} ? '编辑促销活动' : '添加促销活动'">促销活动表单</h1>
+            </div>
+
+            <div class="content-area">
+                <div class="card">
+                    <div class="card-header">
+                        <h3 class="card-title" th:text="${promotion.id != null} ? '编辑活动信息' : '填写活动信息'">活动信息</h3>
+                    </div>
+                    <div class="card-body">
+                        <form th:action="@{/admin/promotions/save}" method="post">
+                            <input type="hidden" th:name="id" th:value="${promotion.id}">
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>活动类型 *</label>
+                                    <select name="type" required>
+                                        <option value="">请选择</option>
+                                        <option value="flash_sale" th:selected="${promotion.type == 'flash_sale'}">限时秒杀</option>
+                                        <option value="daily_deal" th:selected="${promotion.type == 'daily_deal'}">天天特价</option>
+                                        <option value="brand_flash" th:selected="${promotion.type == 'brand_flash'}">品牌闪购</option>
+                                        <option value="new_user" th:selected="${promotion.type == 'new_user'}">新人专享</option>
+                                    </select>
+                                </div>
+                                <div class="form-group">
+                                    <label>关联商品 *</label>
+                                    <select name="productId" required>
+                                        <option value="">请选择商品</option>
+                                        <option th:each="p : ${products}" th:value="${p.id}" th:text="${p.title}" th:selected="${p.id == promotion.productId}">商品</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>活动价格 *</label>
+                                    <input type="number" name="promotionPrice" step="0.01" min="0" th:value="${promotion.promotionPrice}" required>
+                                </div>
+                                <div class="form-group">
+                                    <label>折扣百分比</label>
+                                    <input type="number" name="discountPercent" min="1" max="99" th:value="${promotion.discountPercent}">
+                                    <div class="form-tip">例如：50 表示 50%OFF (五折)</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>开始时间</label>
+                                    <input type="datetime-local" name="startTime" th:value="${promotion.startTime}">
+                                    <div class="form-tip">留空表示立即开始</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>结束时间</label>
+                                    <input type="datetime-local" name="endTime" th:value="${promotion.endTime}">
+                                    <div class="form-tip">留空表示永不过期</div>
+                                </div>
+                            </div>
+
+                            <div class="form-row">
+                                <div class="form-group">
+                                    <label>排序序号</label>
+                                    <input type="number" name="sortOrder" min="0" th:value="${promotion.sortOrder != null} ? ${promotion.sortOrder} : 0">
+                                    <div class="form-tip">数字越小排越前</div>
+                                </div>
+                                <div class="form-group">
+                                    <label>状态</label>
+                                    <select name="active">
+                                        <option value="true" th:selected="${promotion.active == null || promotion.active}">启用</option>
+                                        <option value="false" th:selected="${promotion.active != null && !promotion.active}">停用</option>
+                                    </select>
+                                </div>
+                            </div>
+
+                            <div class="form-actions">
+                                <button type="submit" class="btn btn-primary">
+                                    <i class="fas fa-save"></i> 保存
+                                </button>
+                                <a th:href="@{/admin/promotions}" class="btn btn-secondary">
+                                    <i class="fas fa-arrow-left"></i> 返回
+                                </a>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
