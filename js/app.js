@@ -1141,7 +1141,13 @@ function initProductDetail() {
     const addCartBtn = document.querySelector('.add-cart-btn');
     if (addCartBtn) {
         addCartBtn.addEventListener('click', function() {
-            alert('已加入购物车');
+            var priceEl = document.getElementById('detail-price');
+            var currentPrice = priceEl ? priceEl.textContent : '¥0';
+            var specInfo = '';
+            if (currentSelectedSpec >= 0 && currentProductSpecs[currentSelectedSpec]) {
+                specInfo = ' 规格：' + currentProductSpecs[currentSelectedSpec].name;
+            }
+            alert('已加入购物车 价格：' + currentPrice + specInfo);
             closeModal(document.getElementById('product-detail-modal'));
         });
     }
@@ -1150,7 +1156,13 @@ function initProductDetail() {
     const buyNowBtn = document.querySelector('.buy-now-btn');
     if (buyNowBtn) {
         buyNowBtn.addEventListener('click', function() {
-            alert('前往结算页面');
+            var priceEl = document.getElementById('detail-price');
+            var currentPrice = priceEl ? priceEl.textContent : '¥0';
+            var specInfo = '';
+            if (currentSelectedSpec >= 0 && currentProductSpecs[currentSelectedSpec]) {
+                specInfo = ' 规格：' + currentProductSpecs[currentSelectedSpec].name;
+            }
+            alert('前往结算页面 价格：' + currentPrice + specInfo);
             closeModal(document.getElementById('product-detail-modal'));
         });
     }
