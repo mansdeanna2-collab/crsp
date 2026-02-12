@@ -280,6 +280,10 @@ public class UserApiController {
         } catch (NumberFormatException e) {
             return ResponseEntity.badRequest().body(Map.of("error", "参数格式无效"));
         }
+
+        if (quantity < 1 || quantity > 999) {
+            return ResponseEntity.badRequest().body(Map.of("error", "数量必须在1-999之间"));
+        }
         
         String specName = body.get("specName") != null ? body.get("specName").toString() : "";
         
@@ -287,8 +291,15 @@ public class UserApiController {
         if (productOpt.isEmpty()) {
             return ResponseEntity.badRequest().body(Map.of("error", "商品不存在"));
         }
+        ProductEntity product = productOpt.get();
+        if (!Boolean.TRUE.equals(product.getActive())) {
+            return ResponseEntity.badRequest().body(Map.of("error", "商品已下架"));
+        }
+        if (!product.isInStock()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "商品已售罄"));
+        }
         
-        CartItemEntity item = userService.addToCart(user.getId(), productOpt.get(), specName, quantity);
+        CartItemEntity item = userService.addToCart(user.getId(), product, specName, quantity);
         long cartCount = userService.getCartItemCount(user.getId());
         return ResponseEntity.ok(Map.of("success", true, "id", item.getId(), "cartCount", cartCount));
     }
@@ -598,7 +609,12 @@ public class UserApiController {
         if (token == null || token.isEmpty()) {
             return null;
         }
-        return userService.getUserByToken(token).orElse(null);
+        UserEntity user = userService.getUserByToken(token).orElse(null);
+        // 被禁用的用户不允许操作
+        if (user != null && !Boolean.TRUE.equals(user.getActive())) {
+            return null;
+        }
+        return user;
     }
 
     private UserEntity getOrInitUser(HttpServletRequest request, HttpServletResponse response) {
