@@ -270,12 +270,13 @@ public class AdminController {
         if (type != null && !type.isEmpty()) {
             users = users.stream().filter(u -> type.equals(u.getUserType())).toList();
         }
-        // 按关键词搜索(昵称或手机)
+        // 按关键词搜索(昵称、手机或邮箱)
         if (keyword != null && !keyword.trim().isEmpty()) {
             String kw = keyword.trim().toLowerCase();
             users = users.stream().filter(u -> 
                 (u.getNickname() != null && u.getNickname().toLowerCase().contains(kw)) ||
-                (u.getPhone() != null && u.getPhone().contains(kw))
+                (u.getPhone() != null && u.getPhone().contains(kw)) ||
+                (u.getEmail() != null && u.getEmail().toLowerCase().contains(kw))
             ).toList();
         }
         

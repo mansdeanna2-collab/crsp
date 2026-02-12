@@ -214,4 +214,67 @@ class UserApiControllerTest {
                 .andExpect(status().isBadRequest())
                 .andExpect(jsonPath("$.error").value("用户未登录"));
     }
+
+    @Test
+    void upgradeGuestToRegisteredUser() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(post("/api/user/upgrade").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"nickname\":\"注册用户\",\"phone\":\"13800138000\",\"email\":\"user@example.com\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.userType").value("user"));
+    }
+
+    @Test
+    void upgradeRejectsEmptyNickname() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(post("/api/user/upgrade").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"nickname\":\"\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("请输入1-20个字符的昵称"));
+    }
+
+    @Test
+    void upgradeRejectsInvalidPhone() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(post("/api/user/upgrade").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"nickname\":\"测试用户\",\"phone\":\"12345\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("请输入正确的手机号码"));
+    }
+
+    @Test
+    void upgradeAlreadyRegisteredUserReturnsSuccess() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        user.setUserType("user");
+        userService.saveUser(user);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(post("/api/user/upgrade").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"nickname\":\"已注册\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true))
+                .andExpect(jsonPath("$.message").value("已是注册用户"));
+    }
+
+    @Test
+    void getUserInfoReturnsLastVisit() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(get("/api/user/info").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.lastVisit").exists())
+                .andExpect(jsonPath("$.createdAt").exists());
+    }
 }

@@ -79,6 +79,7 @@ public class UserApiController {
         result.put("totalSpending", totalSpending);
         result.put("level", UserEntity.calculateLevel(totalSpending));
         result.put("createdAt", user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
+        result.put("lastVisit", user.getLastVisit() != null ? user.getLastVisit().toString() : null);
         return ResponseEntity.ok(result);
     }
 
@@ -129,6 +130,44 @@ public class UserApiController {
     }
 
     // ===== 浏览历史 =====
+
+    /**
+     * 升级用户类型（游客 → 注册用户）
+     */
+    @PostMapping("/upgrade")
+    public ResponseEntity<?> upgradeUser(@RequestBody Map<String, Object> body, HttpServletRequest request) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "用户未登录"));
+        }
+        if ("user".equals(user.getUserType())) {
+            return ResponseEntity.ok(Map.of("success", true, "message", "已是注册用户"));
+        }
+
+        // Require at least a nickname to upgrade
+        String nickname = body.get("nickname") != null ? body.get("nickname").toString().trim() : "";
+        if (nickname.isEmpty() || nickname.length() > 20) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请输入1-20个字符的昵称"));
+        }
+
+        String phone = body.get("phone") != null ? body.get("phone").toString().trim() : "";
+        if (!phone.isEmpty() && !phone.matches("^1[3-9]\\d{9}$")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的手机号码"));
+        }
+
+        String email = body.get("email") != null ? body.get("email").toString().trim() : "";
+        if (!email.isEmpty() && !email.matches("^[\\w]([\\w.-]*[\\w])?@[\\w]([\\w.-]*[\\w])?\\.[a-zA-Z]{2,}$")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请输入正确的邮箱地址"));
+        }
+
+        user.setNickname(nickname);
+        if (!phone.isEmpty()) user.setPhone(phone);
+        if (!email.isEmpty()) user.setEmail(email);
+        user.setUserType("user");
+        userService.saveUser(user);
+
+        return ResponseEntity.ok(Map.of("success", true, "message", "升级成功", "userType", "user"));
+    }
 
     /**
      * 记录浏览历史

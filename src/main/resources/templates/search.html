@@ -56,6 +56,29 @@
             font-size: 14px;
             cursor: pointer;
         }
+        /* Sort/filter bar */
+        .search-filter-bar {
+            display: flex;
+            background: white;
+            padding: 10px 15px;
+            gap: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        .filter-item {
+            font-size: 13px;
+            color: #666;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            gap: 4px;
+            padding: 4px 0;
+            border-bottom: 2px solid transparent;
+        }
+        .filter-item.active {
+            color: #ff5722;
+            border-bottom-color: #ff5722;
+            font-weight: 600;
+        }
         .search-results {
             padding: 15px;
         }
@@ -111,15 +134,36 @@
             -webkit-box-orient: vertical;
             overflow: hidden;
         }
+        .result-price-row {
+            display: flex;
+            align-items: baseline;
+            gap: 6px;
+        }
         .result-price {
             color: #ff5722;
             font-weight: bold;
             font-size: 16px;
         }
+        .result-original-price {
+            color: #999;
+            font-size: 12px;
+            text-decoration: line-through;
+        }
         .result-sales {
             color: #999;
             font-size: 12px;
             margin-top: 5px;
+        }
+        .result-stock {
+            color: #999;
+            font-size: 11px;
+            margin-top: 3px;
+        }
+        .result-stock.low-stock {
+            color: #ff9800;
+        }
+        .result-stock.out-of-stock {
+            color: #f44336;
         }
         .no-results {
             text-align: center;
@@ -130,6 +174,50 @@
             font-size: 60px;
             margin-bottom: 15px;
             color: #ddd;
+        }
+        .no-results p {
+            margin-bottom: 5px;
+        }
+        /* Search suggestions when no keyword */
+        .search-suggestions {
+            padding: 15px;
+        }
+        .suggestion-section {
+            background: white;
+            border-radius: 10px;
+            padding: 15px;
+            margin-bottom: 10px;
+        }
+        .suggestion-title {
+            font-size: 15px;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 12px;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+        .suggestion-title i {
+            color: #ff5722;
+        }
+        .hot-tags {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        .hot-tag {
+            display: inline-block;
+            padding: 6px 14px;
+            background: #f5f5f5;
+            border-radius: 15px;
+            font-size: 13px;
+            color: #666;
+            text-decoration: none;
+            transition: all 0.2s;
+        }
+        .hot-tag:hover, .hot-tag:active {
+            background: #ffeee6;
+            color: #ff5722;
         }
     </style>
 </head>
@@ -147,6 +235,34 @@
                         <input type="text" name="keyword" th:value="${keyword}" placeholder="搜索成人玩具商品">
                         <button type="submit">搜索</button>
                     </form>
+                </div>
+            </div>
+
+            <!-- 排序筛选栏 (仅在有搜索关键词或有结果时显示) -->
+            <div th:if="${keyword != null and keyword != ''}" class="search-filter-bar">
+                <a th:href="@{/search(keyword=${keyword},sort='default')}" class="filter-item" th:classappend="${sort == null or sort == 'default'} ? ' active'">
+                    <span>综合</span>
+                </a>
+                <a th:href="@{/search(keyword=${keyword},sort='sales')}" class="filter-item" th:classappend="${sort == 'sales'} ? ' active'">
+                    <span>销量</span> <i class="fas fa-arrow-down"></i>
+                </a>
+                <a th:href="@{/search(keyword=${keyword},sort=${sort == 'price_asc' ? 'price_desc' : 'price_asc'})}" class="filter-item" th:classappend="${sort == 'price_asc' or sort == 'price_desc'} ? ' active'">
+                    <span>价格</span>
+                    <i th:if="${sort == 'price_asc'}" class="fas fa-arrow-up"></i>
+                    <i th:if="${sort == 'price_desc'}" class="fas fa-arrow-down"></i>
+                    <i th:if="${sort != 'price_asc' and sort != 'price_desc'}" class="fas fa-sort"></i>
+                </a>
+            </div>
+
+            <!-- 搜索建议（无关键词时显示） -->
+            <div th:if="${keyword == null or keyword == ''}" class="search-suggestions">
+                <div class="suggestion-section">
+                    <div class="suggestion-title">
+                        <i class="fas fa-fire"></i> 热门搜索
+                    </div>
+                    <div class="hot-tags">
+                        <a th:each="tag : ${hotTags}" th:href="@{/search(keyword=${tag})}" class="hot-tag" th:text="${tag}">标签</a>
+                    </div>
                 </div>
             </div>
 
@@ -195,8 +311,13 @@
                         </div>
                         <div class="result-info">
                             <h3 class="result-title" th:text="${product.title}">商品名称</h3>
-                            <div class="result-price" th:text="'¥' + ${product.price}">¥0</div>
+                            <div class="result-price-row">
+                                <span class="result-price" th:text="'¥' + ${product.price}">¥0</span>
+                                <span class="result-original-price" th:if="${product.originalPrice != null and product.originalPrice > product.price}" th:text="'¥' + ${product.originalPrice}">¥0</span>
+                            </div>
                             <div class="result-sales" th:text="${product.sales}">已售 0件</div>
+                            <div th:if="${product.stock != null and product.stock <= 0}" class="result-stock out-of-stock">已售罄</div>
+                            <div th:if="${product.stock != null and product.stock > 0 and product.stock <= 10}" class="result-stock low-stock" th:text="'仅剩' + ${product.stock} + '件'">仅剩几件</div>
                         </div>
                     </a>
                 </div>

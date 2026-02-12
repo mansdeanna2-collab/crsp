@@ -49,11 +49,52 @@ public class PageController {
      * 搜索页面（独立页面）
      */
     @GetMapping("/search")
-    public String search(@RequestParam(required = false) String keyword, Model model) {
+    public String search(@RequestParam(required = false) String keyword,
+                         @RequestParam(required = false) String sort,
+                         Model model) {
         List<ProductEntity> results = productDbService.searchProducts(keyword);
+        
+        // 排序处理
+        if ("sales".equals(sort)) {
+            results = new ArrayList<>(results);
+            results.sort((a, b) -> compareSales(b.getSales(), a.getSales()));
+        } else if ("price_asc".equals(sort)) {
+            results = new ArrayList<>(results);
+            results.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
+        } else if ("price_desc".equals(sort)) {
+            results = new ArrayList<>(results);
+            results.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+        }
+        
         model.addAttribute("keyword", keyword);
+        model.addAttribute("sort", sort);
         model.addAttribute("products", results);
+        
+        // 热门搜索标签
+        model.addAttribute("hotTags", List.of("按摩棒", "情趣内衣", "安全套", "延时", "飞机杯", "情趣套装"));
+        
         return "search";
+    }
+    
+    /**
+     * 比较销量字符串（如"已售 2.3万件"）
+     */
+    private int compareSales(String a, String b) {
+        return Double.compare(parseSalesNumber(a), parseSalesNumber(b));
+    }
+    
+    private double parseSalesNumber(String sales) {
+        if (sales == null) return 0;
+        try {
+            String num = sales.replaceAll("[^0-9.万]", "");
+            if (num.contains("万")) {
+                num = num.replace("万", "");
+                return Double.parseDouble(num) * 10000;
+            }
+            return Double.parseDouble(num);
+        } catch (NumberFormatException e) {
+            return 0;
+        }
     }
 
     /**
