@@ -1167,9 +1167,9 @@
         let currentSlide = 0;
         const sliderContainer = document.getElementById('sliderContainer');
         const mediaSlider = document.getElementById('mediaSlider');
-        const isSliderReady = sliderContainer && mediaSlider;
+        const hasRequiredSliderElements = sliderContainer && mediaSlider;
         const indicators = document.querySelectorAll('.media-indicator');
-        const slides = isSliderReady ? sliderContainer.querySelectorAll('.media-slide') : [];
+        const slides = hasRequiredSliderElements ? mediaSlider.querySelectorAll('.media-slide') : [];
         const totalSlides = slides.length;
 
         function updateSlider() {
@@ -1404,7 +1404,7 @@
             isVerticalScroll = false;
         }
 
-        if (isSliderReady) {
+        if (hasRequiredSliderElements) {
             mediaSlider.addEventListener('touchstart', function(e) {
                 // 完全重置状态，确保每次触摸都从干净状态开始
                 resetTouchState();
