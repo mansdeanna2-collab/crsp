@@ -316,11 +316,15 @@
             // 自动回复（随机延迟1~2.5秒模拟真实对话）
             var replies = autoReplies[currentChat];
             if (replies) {
+                var chatId = currentChat;
                 setTimeout(function() {
+                    if (currentChat !== chatId) return;
                     var replyText = replies[Math.floor(Math.random() * replies.length)];
                     var replyTimeStr = formatTime(new Date());
                     appendBubble('received', replyText, replyTimeStr);
-                    chatData[currentChat].messages.push({ type: 'received', text: replyText, time: replyTimeStr });
+                    if (chatData[chatId]) {
+                        chatData[chatId].messages.push({ type: 'received', text: replyText, time: replyTimeStr });
+                    }
                     // 更新列表预览
                     if (listItem) {
                         var p = listItem.querySelector('.message-text');

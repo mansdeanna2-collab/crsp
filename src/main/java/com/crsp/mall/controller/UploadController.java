@@ -53,6 +53,11 @@ public class UploadController {
             return ResponseEntity.badRequest().body(Map.of("error", "请选择文件"));
         }
 
+        // 检查文件大小（最大50MB）
+        if (file.getSize() > MAX_DOWNLOAD_SIZE) {
+            return ResponseEntity.badRequest().body(Map.of("error", "文件过大，最大支持50MB"));
+        }
+
         String contentType = file.getContentType();
         if (contentType == null) {
             return ResponseEntity.badRequest().body(Map.of("error", "无法识别文件类型"));
@@ -337,15 +342,21 @@ public class UploadController {
         // 172.16.0.0 - 172.31.255.255
         if (h.startsWith("172.")) {
             try {
-                int second = Integer.parseInt(h.split("\\.")[1]);
-                if (second >= 16 && second <= 31) return true;
+                String[] parts = h.split("\\.");
+                if (parts.length >= 2) {
+                    int second = Integer.parseInt(parts[1]);
+                    if (second >= 16 && second <= 31) return true;
+                }
             } catch (NumberFormatException ignored) {}
         }
         // 100.64.0.0 - 100.127.255.255 (CGNAT / Shared Address Space RFC 6598)
         if (h.startsWith("100.")) {
             try {
-                int second = Integer.parseInt(h.split("\\.")[1]);
-                if (second >= 64 && second <= 127) return true;
+                String[] parts = h.split("\\.");
+                if (parts.length >= 2) {
+                    int second = Integer.parseInt(parts[1]);
+                    if (second >= 64 && second <= 127) return true;
+                }
             } catch (NumberFormatException ignored) {}
         }
         // IPv6 私有地址

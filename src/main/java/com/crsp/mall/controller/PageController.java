@@ -4,6 +4,8 @@ import com.crsp.mall.entity.ProductEntity;
 import com.crsp.mall.service.ProductDbService;
 import com.crsp.mall.service.PromotionService;
 import com.crsp.mall.service.UserService;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.ui.Model;
@@ -24,6 +26,7 @@ import java.util.Optional;
 @Controller
 public class PageController {
 
+    private static final Logger log = LoggerFactory.getLogger(PageController.class);
     private static final int MAX_RECOMMENDATIONS = 6;
     private static final int MAX_CART_RECOMMENDATIONS = 4;
     private static final int MAX_RELATED_PRODUCTS = 4;
@@ -140,7 +143,7 @@ public class PageController {
         try {
             return objectMapper.readValue(json, new TypeReference<List<Map<String, String>>>() {});
         } catch (Exception e) {
-            // JSON解析失败，返回空列表
+            log.warn("媒体JSON解析失败: {}", e.getMessage());
             return new ArrayList<>();
         }
     }

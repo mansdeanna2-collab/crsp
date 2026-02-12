@@ -288,9 +288,13 @@ function initLocation() {
     });
 
     // 从本地存储恢复位置
-    const savedLocation = localStorage.getItem('userLocation');
-    if (savedLocation) {
-        updateLocation(savedLocation);
+    try {
+        const savedLocation = localStorage.getItem('userLocation');
+        if (savedLocation) {
+            updateLocation(savedLocation);
+        }
+    } catch (e) {
+        // localStorage not available (private browsing mode)
     }
 }
 
@@ -387,8 +391,12 @@ function reverseGeocode(lat, lng) {
         updateLocation(city);
         
         // 保存到本地存储
-        localStorage.setItem('userLocation', city);
-        localStorage.setItem('userCoords', JSON.stringify({lat, lng}));
+        try {
+            localStorage.setItem('userLocation', city);
+            localStorage.setItem('userCoords', JSON.stringify({lat, lng}));
+        } catch (e) {
+            // localStorage not available
+        }
     })
     .catch(error => {
         console.error('逆地理编码失败:', error);
@@ -443,7 +451,11 @@ function updateLocation(city) {
         locationText.textContent = city;
     }
     // 保存到本地存储
-    localStorage.setItem('userLocation', city);
+    try {
+        localStorage.setItem('userLocation', city);
+    } catch (e) {
+        // localStorage not available
+    }
 }
 
 /**

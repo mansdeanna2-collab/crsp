@@ -15,6 +15,7 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -113,5 +114,34 @@ class AdminControllerTest {
                 .andExpect(status().is3xxRedirection())
                 .andExpect(redirectedUrl("/admin/users/" + user.getId()))
                 .andExpect(flash().attribute("success", "用户信息更新成功"));
+    }
+
+    @Test
+    void orderListIgnoresInvalidStatusFilter() throws Exception {
+        // Invalid status parameter should be ignored and return all orders
+        mockMvc.perform(get("/admin/orders")
+                .session(adminSession)
+                .param("status", "hacked_status"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/orders"));
+    }
+
+    @Test
+    void orderListAcceptsValidStatusFilter() throws Exception {
+        mockMvc.perform(get("/admin/orders")
+                .session(adminSession)
+                .param("status", "pending"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/orders"));
+    }
+
+    @Test
+    void userListIgnoresInvalidTypeFilter() throws Exception {
+        // Invalid type parameter should be ignored
+        mockMvc.perform(get("/admin/users")
+                .session(adminSession)
+                .param("type", "admin"))
+                .andExpect(status().isOk())
+                .andExpect(view().name("admin/users"));
     }
 }

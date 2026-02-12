@@ -46,6 +46,5 @@ public class DataInitializer implements CommandLineRunner {
         promotionService.initSamplePromotions();
         
         log.info("数据初始化完成！后台管理地址: http://localhost:8080/admin");
-        log.info("默认管理员账号: admin  密码: admin123");
     }
 }
