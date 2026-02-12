@@ -8,6 +8,7 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         :root {
+            /* Keep header height in a single variable for easy tuning */
             --detail-header-height: 64px;
         }
         .detail-page {
@@ -1407,7 +1408,7 @@
             isVerticalScroll = false;
         }
 
-        if (sliderContainer) {
+        if (sliderContainer && totalSlides > 0) {
             sliderContainer.addEventListener('touchstart', function(e) {
                 // 完全重置状态，确保每次触摸都从干净状态开始
                 resetTouchState();
@@ -1523,7 +1524,6 @@
         }
 
         function handleSwipe(startX, endX) {
-            if (totalSlides === 0) return;
             const swipeThreshold = 40;
             const diff = startX - endX;
             if (Math.abs(diff) > swipeThreshold) {
