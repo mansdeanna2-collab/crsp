@@ -449,6 +449,7 @@
         var REGION_DATA_URL = '/data/regions.json';
         var REGION_LOADING_MESSAGE = '加载中...';
         var REGION_LOAD_ERROR_MESSAGE = '地区数据加载失败';
+        var MUNICIPALITIES = ['北京市', '天津市', '上海市', '重庆市'];
         var MUNICIPAL_DISTRICT_KEY = '市辖区';
         var MUNICIPAL_COUNTY_KEY = '县';
 
@@ -460,7 +461,7 @@
                 Object.keys(source[province] || {}).forEach(function(city) {
                     cityMap[city] = source[province][city];
                 });
-                if (province.slice(-1) === '市' && (cityMap[MUNICIPAL_DISTRICT_KEY] || cityMap[MUNICIPAL_COUNTY_KEY])) {
+                if (MUNICIPALITIES.indexOf(province) !== -1 && (cityMap[MUNICIPAL_DISTRICT_KEY] || cityMap[MUNICIPAL_COUNTY_KEY])) {
                     var merged = [];
                     if (cityMap[MUNICIPAL_DISTRICT_KEY]) {
                         merged = merged.concat(cityMap[MUNICIPAL_DISTRICT_KEY]);
@@ -505,7 +506,7 @@
             fetch(REGION_DATA_URL)
                 .then(function(response) { return response.json(); })
                 .then(function(data) {
-                    var normalized = normalizeRegionData(data || {});
+                    var normalized = normalizeRegionData(data);
                     var provinces = Object.keys(normalized);
                     if (!provinces.length) {
                         setRegionLoadError(REGION_LOAD_ERROR_MESSAGE);
