@@ -1169,7 +1169,7 @@
         let currentSlide = 0;
         const sliderContainer = document.getElementById('sliderContainer');
         const indicators = document.querySelectorAll('.media-indicator');
-        const slides = sliderContainer ? Array.from(sliderContainer.querySelectorAll('.media-slide')) : [];
+        const slides = sliderContainer ? sliderContainer.querySelectorAll('.media-slide') : [];
         const totalSlides = slides.length;
 
         function updateSlider() {
@@ -1530,9 +1530,14 @@
                     prevSlide();
                 }
             } else {
-                // Ensure index stays within valid range to avoid rare out-of-bounds lockups
-                if (currentSlide < 0) currentSlide = 0;
-                if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
+                updateSlider();
+            }
+            // Ensure index stays within valid range to avoid rare out-of-bounds lockups
+            if (currentSlide < 0) {
+                currentSlide = 0;
+                updateSlider();
+            } else if (currentSlide >= totalSlides) {
+                currentSlide = totalSlides - 1;
                 updateSlider();
             }
         }
