@@ -103,11 +103,15 @@ public class PromotionService {
      */
     public Map<String, Long> getPromotionCounts() {
         List<PromotionEntity> all = promotionRepository.findAll();
-        Map<String, Long> counts = new HashMap<>();
-        counts.put("flash_sale", all.stream().filter(p -> "flash_sale".equals(p.getType())).count());
-        counts.put("daily_deal", all.stream().filter(p -> "daily_deal".equals(p.getType())).count());
-        counts.put("brand_flash", all.stream().filter(p -> "brand_flash".equals(p.getType())).count());
-        counts.put("new_user", all.stream().filter(p -> "new_user".equals(p.getType())).count());
+        Map<String, Long> counts = all.stream()
+                .collect(java.util.stream.Collectors.groupingBy(
+                        PromotionEntity::getType,
+                        java.util.stream.Collectors.counting()));
+        // 确保所有类型都有计数值
+        counts.putIfAbsent("flash_sale", 0L);
+        counts.putIfAbsent("daily_deal", 0L);
+        counts.putIfAbsent("brand_flash", 0L);
+        counts.putIfAbsent("new_user", 0L);
         return counts;
     }
 

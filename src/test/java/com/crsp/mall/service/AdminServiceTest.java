@@ -96,4 +96,22 @@ class AdminServiceTest {
         boolean result = adminService.changePassword(99999L, "anything", "newpass456");
         assertFalse(result);
     }
+
+    @Test
+    void changePasswordRejectsTooShortPassword() {
+        adminService.initDefaultAdmin();
+        AdminEntity admin = adminService.login("admin", "admin123");
+        assertNotNull(admin);
+
+        // Password too short (less than 6 chars)
+        boolean result = adminService.changePassword(admin.getId(), "admin123", "ab");
+        assertFalse(result);
+
+        // Null password
+        result = adminService.changePassword(admin.getId(), "admin123", null);
+        assertFalse(result);
+
+        // Original password should still work
+        assertNotNull(adminService.login("admin", "admin123"));
+    }
 }
