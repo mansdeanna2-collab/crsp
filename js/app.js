@@ -196,11 +196,11 @@ function initMessageTabs() {
             this.classList.add('active');
 
             const category = this.getAttribute('data-category');
-            let visibleCount = 0;
+            let visibleMessageCount = 0;
             messageItems.forEach(function(item) {
                 if (category === 'all' || item.getAttribute('data-category') === category) {
                     item.classList.remove('hidden');
-                    visibleCount++;
+                    visibleMessageCount++;
                 } else {
                     item.classList.add('hidden');
                 }
@@ -208,11 +208,16 @@ function initMessageTabs() {
 
             // 显示/隐藏空状态提示
             let emptyTip = messageList.querySelector('.message-empty');
-            if (visibleCount === 0) {
+            if (visibleMessageCount === 0) {
                 if (!emptyTip) {
                     emptyTip = document.createElement('div');
                     emptyTip.className = 'message-empty';
-                    emptyTip.innerHTML = '<i class="fas fa-inbox"></i><p>暂无消息</p>';
+                    const icon = document.createElement('i');
+                    icon.className = 'fas fa-inbox';
+                    const text = document.createElement('p');
+                    text.textContent = '暂无消息';
+                    emptyTip.appendChild(icon);
+                    emptyTip.appendChild(text);
                     messageList.appendChild(emptyTip);
                 }
                 emptyTip.style.display = '';
@@ -288,12 +293,16 @@ function showChatDetail(title, msgType, avatarStyle, avatarIcon) {
 }
 
 /**
- * 清理样式属性值，防止注入
+ * 清理样式属性值，仅允许安全的CSS渐变背景
  */
 function sanitizeStyleAttr(style) {
     if (!style) return '';
-    // 仅允许背景渐变相关的安全CSS属性
-    return style.replace(/[<>"'`;]/g, '');
+    // 仅允许 background 属性中使用 linear-gradient 和安全的颜色值
+    const match = style.match(/background:\s*(linear-gradient\(\s*\d+deg,\s*#[0-9a-fA-F]{3,8}(?:,\s*#[0-9a-fA-F]{3,8})*\s*\))/);
+    if (match) {
+        return 'background: ' + match[1];
+    }
+    return '';
 }
 
 /**
