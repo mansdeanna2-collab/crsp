@@ -148,6 +148,19 @@ class UserServiceTest {
         assertFalse(userRepository.findById(userId).isPresent());
     }
 
+    @Test
+    void addToCartUsesSpecPriceWhenProvided() {
+        UserEntity user = userService.getOrCreateUser(null);
+        ProductEntity product = createProduct();
+        product.setSpecifications("[{\"name\":\"默认规格\",\"price\":88},{\"name\":\"豪华版\",\"price\":\"¥188\"}]");
+
+        CartItemEntity defaultItem = userService.addToCart(user.getId(), product, "默认规格", 1);
+        assertEquals(88.0, defaultItem.getProductPrice());
+
+        CartItemEntity deluxeItem = userService.addToCart(user.getId(), product, "豪华版", 1);
+        assertEquals(188.0, deluxeItem.getProductPrice());
+    }
+
     private ProductEntity createProduct() {
         ProductEntity product = new ProductEntity();
         product.setId(999L);
