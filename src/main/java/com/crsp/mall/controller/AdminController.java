@@ -37,7 +37,6 @@ public class AdminController {
 
     private static final Set<String> VALID_ORDER_STATUSES = Set.of("pending", "paid", "shipped", "completed", "cancelled");
     private static final Set<String> VALID_USER_TYPES = Set.of("guest", "user");
-    private static final Set<String> REVENUE_STATUSES = Set.of("paid", "shipped", "completed");
 
     @Autowired
     private AdminService adminService;
@@ -112,7 +111,7 @@ public class AdminController {
         long registeredCount = userService.getRegisteredCount();
         long activeUserCount = userService.getActiveCount();
         double totalRevenue = allOrders.stream()
-                .filter(o -> REVENUE_STATUSES.contains(o.getStatus()))
+                .filter(o -> !"cancelled".equals(o.getStatus()))
                 .mapToDouble(OrderEntity::getTotalAmount)
                 .sum();
         

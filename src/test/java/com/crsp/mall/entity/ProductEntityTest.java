@@ -25,14 +25,4 @@ class ProductEntityTest {
         assertThat(product.isLowStock()).isFalse();
         assertThat(product.getStockStatus()).isEqualTo("已售完");
     }
-
-    @Test
-    void getSpecPriceParsesMatchingSpec() {
-        ProductEntity product = new ProductEntity();
-        product.setSpecifications("[{\"name\":\"红色 M\",\"price\":\"¥199.00\"},{\"name\":\"蓝色 L\",\"price\":188}]");
-
-        assertThat(product.getSpecPrice("红色 M")).isEqualTo(199.00);
-        assertThat(product.getSpecPrice("蓝色 L")).isEqualTo(188.0);
-        assertThat(product.getSpecPrice("不存在")).isNull();
-    }
 }

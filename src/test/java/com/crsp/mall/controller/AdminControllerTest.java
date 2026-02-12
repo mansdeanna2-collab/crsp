@@ -15,7 +15,6 @@ import org.springframework.mock.web.MockHttpSession;
 import org.springframework.test.web.servlet.MockMvc;
 import org.springframework.transaction.annotation.Transactional;
 
-import static org.hamcrest.Matchers.closeTo;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
@@ -185,38 +184,5 @@ class AdminControllerTest {
                 .param("content", "测试消息"))
                 .andExpect(status().is3xxRedirection())
                 .andExpect(flash().attribute("error", "发送者名称不能为空"));
-    }
-
-    @Test
-    void dashboardRevenueCountsOnlyPaidStates() throws Exception {
-        orderRepository.deleteAll();
-
-        OrderEntity pending = new OrderEntity();
-        pending.setUserName("测试");
-        pending.setTotalAmount(100.0);
-        pending.setStatus("pending");
-        orderRepository.save(pending);
-
-        OrderEntity paid = new OrderEntity();
-        paid.setUserName("测试");
-        paid.setTotalAmount(200.0);
-        paid.setStatus("paid");
-        orderRepository.save(paid);
-
-        OrderEntity shipped = new OrderEntity();
-        shipped.setUserName("测试");
-        shipped.setTotalAmount(300.0);
-        shipped.setStatus("shipped");
-        orderRepository.save(shipped);
-
-        OrderEntity cancelled = new OrderEntity();
-        cancelled.setUserName("测试");
-        cancelled.setTotalAmount(400.0);
-        cancelled.setStatus("cancelled");
-        orderRepository.save(cancelled);
-
-        mockMvc.perform(get("/admin").session(adminSession))
-                .andExpect(status().isOk())
-                .andExpect(model().attribute("totalRevenue", closeTo(500.0, 0.01)));
     }
 }

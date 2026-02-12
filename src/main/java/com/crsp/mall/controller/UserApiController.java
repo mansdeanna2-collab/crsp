@@ -462,17 +462,15 @@ public class UserApiController {
             if (product.getStock() != null && product.getStock() < item.getQuantity()) {
                 return ResponseEntity.badRequest().body(Map.of("error", "商品 \"" + item.getProductTitle() + "\" 库存不足，当前库存: " + product.getStock()));
             }
-            Double specPrice = product.getSpecPrice(item.getSpecName());
-            double currentPrice = specPrice != null ? specPrice : product.getPrice();
             // 检测价格变化，若价格已变需要用户重新确认
-            if (item.getProductPrice() != null && Math.abs(currentPrice - item.getProductPrice()) > 0.01) {
+            if (item.getProductPrice() != null && Math.abs(product.getPrice() - item.getProductPrice()) > 0.01) {
                 priceChanges.append(String.format("「%s」 ¥%.2f → ¥%.2f；", 
-                    item.getProductTitle(), item.getProductPrice(), currentPrice));
+                    item.getProductTitle(), item.getProductPrice(), product.getPrice()));
                 // 同步更新购物车中的价格快照
-                item.setProductPrice(currentPrice);
+                item.setProductPrice(product.getPrice());
                 userService.saveCartItem(item);
             }
-            totalAmount += currentPrice * item.getQuantity();
+            totalAmount += product.getPrice() * item.getQuantity();
             totalCount += item.getQuantity();
         }
 
