@@ -203,7 +203,9 @@ class UserApiControllerTest {
                 .andExpect(jsonPath("$.nickname").exists())
                 .andExpect(jsonPath("$.orderCount").value(0))
                 .andExpect(jsonPath("$.totalSpending").value(0.0))
-                .andExpect(jsonPath("$.level").value("新用户"));
+                .andExpect(jsonPath("$.level").value("新用户"))
+                .andExpect(jsonPath("$.upgradeAvailable").value(true))
+                .andExpect(jsonPath("$.userTypeText").value("游客"));
     }
 
     @Test
@@ -276,6 +278,20 @@ class UserApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.lastVisit").exists())
                 .andExpect(jsonPath("$.createdAt").exists());
+    }
+
+    @Test
+    void getUserInfoReturnsStatusAndIp() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        user.setRegisterIp("192.168.0.1");
+        userService.saveUser(user);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(get("/api/user/info").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.active").value(true))
+                .andExpect(jsonPath("$.registerIp").value("192.168.0.1"))
+                .andExpect(jsonPath("$.upgradeAvailable").value(true));
     }
 
     @Test

@@ -141,15 +141,90 @@
             font-size: 12px;
             cursor: pointer;
             margin-top: 6px;
+         }
+         .upgrade-btn:hover {
+             opacity: 0.9;
+         }
+        .profile-info-section {
+            background: white;
+            margin: 10px 0;
+            padding: 15px;
+            border-radius: 12px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.04);
         }
-        .upgrade-btn:hover {
-            opacity: 0.9;
+        .profile-info-title {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 12px;
+            font-weight: bold;
+            color: #333;
         }
-    </style>
-</head>
-<body>
-    <div class="app-container">
-        <div id="page-profile" class="page active">
+        .profile-status-badge {
+            font-size: 12px;
+            padding: 4px 10px;
+            border-radius: 12px;
+            background: #e8f5e9;
+            color: #2e7d32;
+        }
+        .profile-status-badge.inactive {
+            background: #fdecea;
+            color: #c62828;
+        }
+        .profile-info-grid {
+            display: grid;
+            grid-template-columns: repeat(2, minmax(0, 1fr));
+            gap: 10px;
+        }
+        .profile-info-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 10px 0;
+            border-bottom: 1px solid #f2f2f2;
+        }
+        .profile-info-item:last-child {
+            border-bottom: none;
+        }
+        .profile-info-label {
+            color: #888;
+            font-size: 13px;
+        }
+        .profile-info-value {
+            color: #333;
+            font-weight: 600;
+            font-size: 14px;
+            text-align: right;
+            margin-left: 12px;
+        }
+        @media (max-width: 420px) {
+            .profile-info-grid {
+                grid-template-columns: repeat(1, minmax(0, 1fr));
+            }
+        }
+        .profile-upgrade-hint {
+            margin-top: 10px;
+            padding: 10px;
+            background: #fff7ed;
+            color: #d35400;
+            border-radius: 10px;
+            font-size: 13px;
+            display: none;
+        }
+        .profile-upgrade-hint button {
+            margin-top: 8px;
+            border: none;
+            background: linear-gradient(135deg, #ff9800, #ff5722);
+            color: white;
+            padding: 8px 14px;
+            border-radius: 20px;
+            cursor: pointer;
+        }
+     </style>
+ </head>
+ <body>
+     <div class="app-container">
+         <div id="page-profile" class="page active">
             <!-- 用户信息头部 -->
             <div class="profile-header">
                 <div class="profile-bg"></div>
@@ -168,14 +243,62 @@
                     <div class="profile-actions">
                         <a href="/settings" style="color:inherit;text-decoration:none;"><i class="fas fa-cog" style="cursor:pointer;" title="个人设置"></i></a>
                     </div>
+                 </div>
+             </div>
+ 
+            <!-- 用户档案 -->
+            <div class="profile-info-section">
+                <div class="profile-info-title">
+                    <span>账户档案</span>
+                    <span class="profile-status-badge" id="profile-status-badge">正常</span>
+                </div>
+                <div class="profile-info-grid">
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">账户类型</span>
+                        <span class="profile-info-value" id="profile-user-type">-</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">会员等级</span>
+                        <span class="profile-info-value" id="profile-level">新用户</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">注册时间</span>
+                        <span class="profile-info-value" id="profile-created-at">-</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">最后访问</span>
+                        <span class="profile-info-value" id="profile-last-visit">-</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">手机号</span>
+                        <span class="profile-info-value" id="profile-phone">未设置</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">邮箱</span>
+                        <span class="profile-info-value" id="profile-email">未设置</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">收货地址</span>
+                        <span class="profile-info-value" id="profile-address">未设置</span>
+                    </div>
+                    <div class="profile-info-item">
+                        <span class="profile-info-label">注册IP</span>
+                        <span class="profile-info-value" id="profile-register-ip">-</span>
+                    </div>
+                </div>
+                <div class="profile-upgrade-hint" id="profile-upgrade-hint">
+                    当前为游客身份，完善资料可升级为注册用户，享受订单追踪与优惠信息同步。
+                    <div>
+                        <button type="button" onclick="openUpgradeModal()">立即升级</button>
+                    </div>
                 </div>
             </div>
 
-            <!-- 订单入口 -->
-            <div class="order-section">
-                <div class="section-header">
-                    <span>我的订单</span>
-                    <a href="/orders" class="view-all" style="text-decoration:none;">查看全部 <i class="fas fa-chevron-right"></i></a>
+             <!-- 订单入口 -->
+             <div class="order-section">
+                 <div class="section-header">
+                     <span>我的订单</span>
+                     <a href="/orders" class="view-all" style="text-decoration:none;">查看全部 <i class="fas fa-chevron-right"></i></a>
                 </div>
                 <div class="order-tabs">
                     <a href="/orders?status=pending" class="order-tab" style="text-decoration:none;color:inherit;">
@@ -424,11 +547,11 @@
             .then(function(r) { return r.json(); })
             .then(function(info) {
                 if (info && !info.error) {
-                    // 更新收藏数和购物车数
-                    var favCountEl = document.getElementById('profile-fav-count');
-                    if (favCountEl && info.favoriteCount !== undefined) {
-                        favCountEl.textContent = info.favoriteCount;
-                    }
+                     // 更新收藏数和购物车数
+                     var favCountEl = document.getElementById('profile-fav-count');
+                     if (favCountEl && info.favoriteCount !== undefined) {
+                         favCountEl.textContent = info.favoriteCount;
+                     }
                     var cartCountEl = document.getElementById('profile-cart-count');
                     if (cartCountEl && info.cartCount !== undefined) {
                         cartCountEl.textContent = info.cartCount;
@@ -444,14 +567,55 @@
                     }
                     // 更新会员等级
                     var levelEl = document.querySelector('.member-tag span');
-                    if (levelEl && info.level) {
-                        levelEl.textContent = info.level;
+                     if (levelEl && info.level) {
+                         levelEl.textContent = info.level;
+                     }
+                    var levelValue = document.getElementById('profile-level');
+                    if (levelValue && info.level) {
+                        levelValue.textContent = info.level;
                     }
-                    // 更新导航购物车角标
-                    var cartBadge = document.getElementById('nav-cart-badge');
-                    if (cartBadge && info.cartCount > 0) {
-                        cartBadge.textContent = info.cartCount;
-                        cartBadge.style.display = '';
+                    var typeValue = document.getElementById('profile-user-type');
+                    if (typeValue && info.userTypeText) {
+                        typeValue.textContent = info.userTypeText;
+                    }
+                    var statusBadge = document.getElementById('profile-status-badge');
+                    if (statusBadge && info.active !== undefined) {
+                        statusBadge.textContent = info.active ? '正常' : '已禁用';
+                        statusBadge.classList.toggle('inactive', !info.active);
+                    }
+                    var phoneEl = document.getElementById('profile-phone');
+                    if (phoneEl) {
+                        phoneEl.textContent = info.phone ? info.phone : '未设置';
+                    }
+                    var emailEl = document.getElementById('profile-email');
+                    if (emailEl) {
+                        emailEl.textContent = info.email ? info.email : '未设置';
+                    }
+                    var addressEl = document.getElementById('profile-address');
+                    if (addressEl) {
+                        addressEl.textContent = info.address ? info.address : '未设置';
+                    }
+                    var createdEl = document.getElementById('profile-created-at');
+                    if (createdEl && info.createdAt) {
+                        createdEl.textContent = info.createdAt.replace('T', ' ').substring(0, 16);
+                    }
+                    var lastVisitEl = document.getElementById('profile-last-visit');
+                    if (lastVisitEl && info.lastVisit) {
+                        lastVisitEl.textContent = info.lastVisit.replace('T', ' ').substring(0, 16);
+                    }
+                    var registerIpEl = document.getElementById('profile-register-ip');
+                    if (registerIpEl) {
+                        registerIpEl.textContent = info.registerIp ? info.registerIp : '-';
+                    }
+                    var upgradeHint = document.getElementById('profile-upgrade-hint');
+                    if (upgradeHint) {
+                        upgradeHint.style.display = info.upgradeAvailable ? 'block' : 'none';
+                    }
+                     // 更新导航购物车角标
+                     var cartBadge = document.getElementById('nav-cart-badge');
+                     if (cartBadge && info.cartCount > 0) {
+                         cartBadge.textContent = info.cartCount;
+                         cartBadge.style.display = '';
                     } else if (cartBadge) {
                         cartBadge.style.display = 'none';
                     }

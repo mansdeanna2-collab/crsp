@@ -71,6 +71,10 @@ public class UserApiController {
         result.put("id", user.getId());
         result.put("nickname", user.getNickname());
         result.put("userType", user.getUserType());
+        result.put("userTypeText", user.getUserTypeText());
+        result.put("active", user.getActive());
+        result.put("registerIp", user.getRegisterIp());
+        result.put("remark", user.getRemark());
         result.put("phone", user.getPhone());
         result.put("email", user.getEmail());
         result.put("address", user.getAddress());
@@ -80,6 +84,7 @@ public class UserApiController {
         result.put("orderCount", orderCount);
         result.put("totalSpending", totalSpending);
         result.put("level", UserEntity.calculateLevel(totalSpending));
+        result.put("upgradeAvailable", !"user".equals(user.getUserType()));
         result.put("createdAt", user.getCreatedAt() != null ? user.getCreatedAt().toString() : null);
         result.put("lastVisit", user.getLastVisit() != null ? user.getLastVisit().toString() : null);
         return ResponseEntity.ok(result);
