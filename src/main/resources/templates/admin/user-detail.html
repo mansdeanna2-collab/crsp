@@ -211,6 +211,10 @@
                         <div class="info-value" style="color: #ff5722;" th:text="'¥' + ${#numbers.formatDecimal(totalSpending, 1, 2)}">¥0.00</div>
                     </div>
                     <div class="info-card">
+                        <div class="info-label">注册IP</div>
+                        <div class="info-value" th:text="${user.registerIp != null ? user.registerIp : '未记录'}">-</div>
+                    </div>
+                    <div class="info-card">
                         <div class="info-label">注册时间</div>
                         <div class="info-value" th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}">-</div>
                     </div>

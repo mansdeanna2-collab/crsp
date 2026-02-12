@@ -190,73 +190,17 @@ function initMessageTabs() {
 
 
 /**
- * 消息项点击
- */
-document.querySelectorAll('.message-item').forEach(item => {
-    item.addEventListener('click', function() {
-        const title = this.querySelector('.message-title').textContent;
-        // 实际项目中这里会跳转到消息详情页
-        alert(`打开消息: ${title}`);
-    });
-});
-
-/**
- * 菜单项点击
- */
-document.querySelectorAll('.menu-item').forEach(item => {
-    item.addEventListener('click', function() {
-        const title = this.querySelector('span').textContent;
-        // 实际项目中这里会跳转到对应功能页面
-        alert(`打开: ${title}`);
-    });
-});
-
-/**
- * 订单Tab点击
- */
-document.querySelectorAll('.order-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        const title = this.querySelector('span').textContent;
-        // 实际项目中这里会跳转到对应订单列表
-        alert(`查看: ${title}`);
-    });
-});
-
-/**
  * 结算按钮点击
  */
 document.querySelector('.checkout-btn')?.addEventListener('click', function() {
     const checkedCount = document.querySelectorAll('.item-checkbox:checked').length;
     
     if (checkedCount === 0) {
-        alert('请选择要结算的商品');
+        showToast('请选择要结算的商品');
         return;
     }
     
-    // 实际项目中这里会跳转到结算页面
-    alert('前往结算页面');
-});
-
-/**
- * 分类导航点击
- */
-document.querySelectorAll('.category-item').forEach(item => {
-    item.addEventListener('click', function() {
-        const category = this.querySelector('span').textContent;
-        // 实际项目中这里会跳转到对应分类页面
-        alert(`查看分类: ${category}`);
-    });
-});
-
-/**
- * 活动入口点击
- */
-document.querySelectorAll('.activity-item').forEach(item => {
-    item.addEventListener('click', function() {
-        const activity = this.querySelector('span').textContent;
-        // 实际项目中这里会跳转到对应活动页面
-        alert(`进入活动: ${activity}`);
-    });
+    window.location.href = '/checkout';
 });
 
 /**
@@ -585,10 +529,10 @@ function startCamera() {
         })
         .catch(function(err) {
             console.error('相机访问失败:', err);
-            alert('无法访问相机，请确保已授权相机权限');
+            showToast('无法访问相机，请确保已授权相机权限');
         });
     } else {
-        alert('您的浏览器不支持相机功能');
+        showToast('您的浏览器不支持相机功能');
     }
 }
 
@@ -685,7 +629,7 @@ function initSearch() {
             if (keyword) {
                 showSearchResults(keyword);
             } else {
-                alert('请输入搜索关键词');
+                showToast('请输入搜索关键词');
             }
         });
     }
@@ -776,7 +720,7 @@ function initProductDetail() {
     const addCartBtn = document.querySelector('.add-cart-btn');
     if (addCartBtn) {
         addCartBtn.addEventListener('click', function() {
-            alert('已加入购物车');
+            showToast('已加入购物车');
             closeModal(document.getElementById('product-detail-modal'));
         });
     }
@@ -785,7 +729,7 @@ function initProductDetail() {
     const buyNowBtn = document.querySelector('.buy-now-btn');
     if (buyNowBtn) {
         buyNowBtn.addEventListener('click', function() {
-            alert('前往结算页面');
+            window.location.href = '/checkout';
             closeModal(document.getElementById('product-detail-modal'));
         });
     }
@@ -894,4 +838,22 @@ function initBannerSlider() {
     }, { passive: true });
 
     startAutoPlay();
+}
+
+/**
+ * 轻量级Toast提示（替代alert弹窗）
+ */
+function showToast(message, duration) {
+    duration = duration || 2000;
+    var existing = document.querySelector('.app-toast');
+    if (existing) existing.remove();
+    var toast = document.createElement('div');
+    toast.className = 'app-toast';
+    toast.textContent = message;
+    toast.style.cssText = 'position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:rgba(0,0,0,0.75);color:#fff;padding:10px 24px;border-radius:8px;font-size:14px;z-index:9999;pointer-events:none;transition:opacity 0.3s;';
+    document.body.appendChild(toast);
+    setTimeout(function() {
+        toast.style.opacity = '0';
+        setTimeout(function() { toast.remove(); }, 300);
+    }, duration);
 }

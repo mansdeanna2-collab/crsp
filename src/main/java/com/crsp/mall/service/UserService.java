@@ -37,6 +37,13 @@ public class UserService {
      * 根据token获取或创建游客用户
      */
     public UserEntity getOrCreateUser(String token) {
+        return getOrCreateUser(token, null);
+    }
+
+    /**
+     * 根据token获取或创建游客用户，记录注册IP
+     */
+    public UserEntity getOrCreateUser(String token, String ipAddress) {
         if (token != null && !token.isEmpty()) {
             Optional<UserEntity> existing = userRepository.findByToken(token);
             if (existing.isPresent()) {
@@ -49,6 +56,9 @@ public class UserService {
         UserEntity user = new UserEntity();
         if (token != null && !token.isEmpty()) {
             user.setToken(token);
+        }
+        if (ipAddress != null && !ipAddress.isEmpty()) {
+            user.setRegisterIp(ipAddress);
         }
         return userRepository.save(user);
     }

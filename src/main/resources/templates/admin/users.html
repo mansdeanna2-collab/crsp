@@ -310,6 +310,7 @@
                                 <th>状态</th>
                                 <th>手机</th>
                                 <th>邮箱</th>
+                                <th>注册IP</th>
                                 <th>最后访问</th>
                                 <th>注册时间</th>
                                 <th>操作</th>
@@ -334,6 +335,7 @@
                                 </td>
                                 <td th:text="${user.phone != null ? user.phone : '-'}">-</td>
                                 <td th:text="${user.email != null ? user.email : '-'}">-</td>
+                                <td th:text="${user.registerIp != null ? user.registerIp : '-'}">-</td>
                                 <td th:text="${user.lastVisit != null ? #temporals.format(user.lastVisit, 'yyyy-MM-dd HH:mm') : '-'}">-</td>
                                 <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd HH:mm')}">2024-01-01</td>
                                 <td style="white-space:nowrap;">
@@ -353,7 +355,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(users)}">
-                                <td colspan="10" style="text-align: center; color: #999;">暂无用户数据</td>
+                                <td colspan="11" style="text-align: center; color: #999;">暂无用户数据</td>
                             </tr>
                         </tbody>
                     </table>

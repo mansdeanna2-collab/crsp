@@ -3,6 +3,7 @@ package com.crsp.mall.entity;
 import jakarta.persistence.*;
 import java.time.LocalDateTime;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /**
  * 用户实体类 - 支持游客自动注册和普通用户
@@ -51,6 +52,9 @@ public class UserEntity {
     @Column(name = "last_visit")
     private LocalDateTime lastVisit;
     
+    @Column(name = "register_ip")
+    private String registerIp;
+
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -66,7 +70,7 @@ public class UserEntity {
             token = UUID.randomUUID().toString();
         }
         if (nickname == null) {
-            nickname = "游客" + token.substring(0, 8);
+            nickname = "游客" + String.format("%05d", ThreadLocalRandom.current().nextInt(100000));
         }
     }
     
@@ -114,6 +118,9 @@ public class UserEntity {
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+
+    public String getRegisterIp() { return registerIp; }
+    public void setRegisterIp(String registerIp) { this.registerIp = registerIp; }
     
     public LocalDateTime getUpdatedAt() { return updatedAt; }
     public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
