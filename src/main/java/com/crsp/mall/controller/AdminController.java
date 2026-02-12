@@ -19,6 +19,8 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.net.URLEncoder;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
@@ -679,7 +681,7 @@ public class AdminController {
 
         if (senderName == null || senderName.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "发送者名称不能为空");
-            return "redirect:/admin/messages/chat/" + userId + "?chatType=" + chatType;
+            return "redirect:/admin/messages/chat/" + userId + "?chatType=" + URLEncoder.encode(chatType, StandardCharsets.UTF_8);
         }
         String trimmedSenderName = senderName.trim();
         if (trimmedSenderName.length() > 50) {
@@ -688,11 +690,11 @@ public class AdminController {
 
         if (content == null || content.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "消息内容不能为空");
-            return "redirect:/admin/messages/chat/" + userId + "?chatType=" + chatType;
+            return "redirect:/admin/messages/chat/" + userId + "?chatType=" + URLEncoder.encode(chatType, StandardCharsets.UTF_8);
         }
 
         messageService.sendAdminMessage(userId, chatType, trimmedSenderName, content.trim());
         redirectAttributes.addFlashAttribute("success", "消息发送成功");
-        return "redirect:/admin/messages/chat/" + userId + "?chatType=" + chatType;
+        return "redirect:/admin/messages/chat/" + userId + "?chatType=" + URLEncoder.encode(chatType, StandardCharsets.UTF_8);
     }
 }
