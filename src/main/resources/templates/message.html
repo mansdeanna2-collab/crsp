@@ -291,12 +291,15 @@
             body.scrollTop = body.scrollHeight;
         }
 
+        function formatTime(date) {
+            return date.getHours().toString().padStart(2, '0') + ':' + date.getMinutes().toString().padStart(2, '0');
+        }
+
         function sendMessage() {
             var input = document.getElementById('chatInput');
             var text = input.value.trim();
             if (!text || !currentChat) return;
-            var now = new Date();
-            var timeStr = now.getHours().toString().padStart(2, '0') + ':' + now.getMinutes().toString().padStart(2, '0');
+            var timeStr = formatTime(new Date());
             appendBubble('sent', text, timeStr);
             chatData[currentChat].messages.push({ type: 'sent', text: text, time: timeStr });
             input.value = '';
@@ -310,13 +313,12 @@
                 if (timeEl) timeEl.textContent = timeStr;
             }
 
-            // 自动回复
+            // 自动回复（随机延迟1~2.5秒模拟真实对话）
             var replies = autoReplies[currentChat];
             if (replies) {
                 setTimeout(function() {
                     var replyText = replies[Math.floor(Math.random() * replies.length)];
-                    var replyTime = new Date();
-                    var replyTimeStr = replyTime.getHours().toString().padStart(2, '0') + ':' + replyTime.getMinutes().toString().padStart(2, '0');
+                    var replyTimeStr = formatTime(new Date());
                     appendBubble('received', replyText, replyTimeStr);
                     chatData[currentChat].messages.push({ type: 'received', text: replyText, time: replyTimeStr });
                     // 更新列表预览
