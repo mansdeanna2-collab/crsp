@@ -2,6 +2,7 @@ package com.crsp.mall.controller;
 
 import com.crsp.mall.entity.ProductEntity;
 import com.crsp.mall.service.ProductDbService;
+import com.crsp.mall.service.PromotionService;
 import com.crsp.mall.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
@@ -32,6 +33,9 @@ public class PageController {
 
     @Autowired
     private UserService userService;
+
+    @Autowired
+    private PromotionService promotionService;
     
     private final ObjectMapper objectMapper = new ObjectMapper();
 
@@ -205,5 +209,67 @@ public class PageController {
     @GetMapping("/orders")
     public String orders(Model model) {
         return "orders";
+    }
+
+    /**
+     * 用户设置页面
+     */
+    @GetMapping("/settings")
+    public String settings(Model model) {
+        return "settings";
+    }
+
+    /**
+     * 收货地址管理页面
+     */
+    @GetMapping("/addresses")
+    public String addresses(Model model) {
+        return "addresses";
+    }
+
+    /**
+     * 限时秒杀页面
+     */
+    @GetMapping("/flash-sale")
+    public String flashSale(Model model) {
+        model.addAttribute("promotionItems", promotionService.getPromotionsWithProducts("flash_sale"));
+        model.addAttribute("pageTitle", "限时秒杀");
+        model.addAttribute("pageType", "flash_sale");
+        java.time.LocalDateTime endTime = promotionService.getEarliestEndTime("flash_sale");
+        model.addAttribute("countdownEndTime", endTime);
+        return "promotion";
+    }
+
+    /**
+     * 天天特价页面
+     */
+    @GetMapping("/daily-deal")
+    public String dailyDeal(Model model) {
+        model.addAttribute("promotionItems", promotionService.getPromotionsWithProducts("daily_deal"));
+        model.addAttribute("pageTitle", "天天特价");
+        model.addAttribute("pageType", "daily_deal");
+        return "promotion";
+    }
+
+    /**
+     * 品牌闪购页面
+     */
+    @GetMapping("/brand-flash")
+    public String brandFlash(Model model) {
+        model.addAttribute("promotionItems", promotionService.getPromotionsWithProducts("brand_flash"));
+        model.addAttribute("pageTitle", "品牌闪购");
+        model.addAttribute("pageType", "brand_flash");
+        return "promotion";
+    }
+
+    /**
+     * 新人专享页面
+     */
+    @GetMapping("/new-user")
+    public String newUser(Model model) {
+        model.addAttribute("promotionItems", promotionService.getPromotionsWithProducts("new_user"));
+        model.addAttribute("pageTitle", "新人专享");
+        model.addAttribute("pageType", "new_user");
+        return "promotion";
     }
 }

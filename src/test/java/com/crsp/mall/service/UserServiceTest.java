@@ -224,4 +224,23 @@ class UserServiceTest {
 
         assertEquals(1, userService.getUserOrderCount(user.getId()));
     }
+
+    @Test
+    void getNewUserCountReturnsCorrectCount() {
+        long initialCount = userService.getNewUserCount(1);
+        userService.getOrCreateUser(null);
+        assertEquals(initialCount + 1, userService.getNewUserCount(1));
+    }
+
+    @Test
+    void getUserStatisticsReturnsAllKeys() {
+        java.util.Map<String, Object> stats = userService.getUserStatistics();
+        assertNotNull(stats.get("totalCount"));
+        assertNotNull(stats.get("registeredCount"));
+        assertNotNull(stats.get("guestCount"));
+        assertNotNull(stats.get("activeCount"));
+        assertNotNull(stats.get("newToday"));
+        assertNotNull(stats.get("newThisWeek"));
+        assertNotNull(stats.get("newThisMonth"));
+    }
 }

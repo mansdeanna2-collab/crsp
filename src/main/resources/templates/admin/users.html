@@ -176,6 +176,10 @@
                     <i class="fas fa-box"></i>
                     <span>商品管理</span>
                 </a>
+                <a th:href="@{/admin/promotions}" class="menu-item" th:classappend="${currentPage == 'promotions'} ? ' active'">
+                    <i class="fas fa-bullhorn"></i>
+                    <span>促销活动</span>
+                </a>
                 <a th:href="@{/admin/orders}" class="menu-item" th:classappend="${currentPage == 'orders'} ? ' active'">
                     <i class="fas fa-shopping-cart"></i>
                     <span>订单管理</span>
@@ -251,6 +255,33 @@
                         </div>
                         <div class="stat-card-value" th:text="${activeCount}">0</div>
                     </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">今日新增</span>
+                            <div class="stat-card-icon" style="background: linear-gradient(135deg, #ff9a9e, #fad0c4);">
+                                <i class="fas fa-user-plus"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" th:text="${newToday}">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">本周新增</span>
+                            <div class="stat-card-icon" style="background: linear-gradient(135deg, #a18cd1, #fbc2eb);">
+                                <i class="fas fa-calendar-week"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" th:text="${newThisWeek}">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-card-header">
+                            <span class="stat-card-title">本月新增</span>
+                            <div class="stat-card-icon" style="background: linear-gradient(135deg, #ffecd2, #fcb69f);">
+                                <i class="fas fa-calendar-alt"></i>
+                            </div>
+                        </div>
+                        <div class="stat-card-value" th:text="${newThisMonth}">0</div>
+                    </div>
                 </div>
 
                 <div class="card">
@@ -275,6 +306,7 @@
                                 <th>ID</th>
                                 <th>昵称</th>
                                 <th>类型</th>
+                                <th>性别</th>
                                 <th>状态</th>
                                 <th>手机</th>
                                 <th>邮箱</th>
@@ -294,6 +326,7 @@
                                           th:classappend="'type-' + ${user.userType}"
                                           th:text="${user.userTypeText}">类型</span>
                                 </td>
+                                <td th:text="${user.genderText}">未知</td>
                                 <td>
                                     <span class="type-badge"
                                           th:classappend="${user.active} ? 'type-user' : 'type-guest'"
@@ -307,6 +340,10 @@
                                     <a th:href="@{/admin/users/{id}(id=${user.id})}" style="color:#667eea;text-decoration:none;margin-right:10px;font-size:12px;">
                                         <i class="fas fa-eye"></i> 详情
                                     </a>
+                                    <form th:action="@{/admin/users/toggle-status/{id}(id=${user.id})}" method="post" style="display:inline;margin-right:10px;">
+                                        <button type="submit" th:style="${user.active} ? 'background:#ffc107;color:#333;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;' : 'background:#28a745;color:white;border:none;padding:5px 12px;border-radius:4px;cursor:pointer;font-size:12px;'"
+                                                th:text="${user.active} ? '禁用' : '启用'">禁用</button>
+                                    </form>
                                     <form th:action="@{/admin/users/delete/{id}(id=${user.id})}" method="post" style="display:inline;"
                                           onsubmit="return confirm('确定要删除此用户吗？删除后该用户的订单、收藏、购物车数据将一并删除。');">
                                         <button type="submit" class="btn-delete">
@@ -316,7 +353,7 @@
                                 </td>
                             </tr>
                             <tr th:if="${#lists.isEmpty(users)}">
-                                <td colspan="9" style="text-align: center; color: #999;">暂无用户数据</td>
+                                <td colspan="10" style="text-align: center; color: #999;">暂无用户数据</td>
                             </tr>
                         </tbody>
                     </table>

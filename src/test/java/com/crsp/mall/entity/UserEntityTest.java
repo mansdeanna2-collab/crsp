@@ -37,4 +37,34 @@ class UserEntityTest {
         user.setAddress("北京市朝阳区测试路1号");
         assertThat(user.getAddress()).isEqualTo("北京市朝阳区测试路1号");
     }
+
+    @Test
+    void genderTextReturnsCorrectText() {
+        UserEntity user = new UserEntity();
+        assertThat(user.getGenderText()).isEqualTo("未知");
+
+        user.setGender("male");
+        assertThat(user.getGenderText()).isEqualTo("男");
+
+        user.setGender("female");
+        assertThat(user.getGenderText()).isEqualTo("女");
+
+        user.setGender("unknown");
+        assertThat(user.getGenderText()).isEqualTo("未知");
+    }
+
+    @Test
+    void genderDefaultsToUnknown() {
+        UserEntity user = new UserEntity();
+        assertThat(user.getGender()).isEqualTo("unknown");
+    }
+
+    @Test
+    void remarkFieldWorksCorrectly() {
+        UserEntity user = new UserEntity();
+        assertThat(user.getRemark()).isNull();
+
+        user.setRemark("VIP客户");
+        assertThat(user.getRemark()).isEqualTo("VIP客户");
+    }
 }

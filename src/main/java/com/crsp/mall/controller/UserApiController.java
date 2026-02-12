@@ -73,6 +73,7 @@ public class UserApiController {
         result.put("phone", user.getPhone());
         result.put("email", user.getEmail());
         result.put("address", user.getAddress());
+        result.put("gender", user.getGender());
         result.put("favoriteCount", userService.getFavoriteCount(user.getId()));
         result.put("cartCount", userService.getCartItemCount(user.getId()));
         result.put("orderCount", orderCount);
@@ -123,6 +124,14 @@ public class UserApiController {
                 return ResponseEntity.badRequest().body(Map.of("error", "收货地址不能超过500个字符"));
             }
             user.setAddress(address.isEmpty() ? null : address);
+        }
+
+        if (body.containsKey("gender")) {
+            String gender = body.get("gender") != null ? body.get("gender").toString().trim() : "unknown";
+            if (!"male".equals(gender) && !"female".equals(gender) && !"unknown".equals(gender)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "性别值无效"));
+            }
+            user.setGender(gender);
         }
 
         userService.saveUser(user);

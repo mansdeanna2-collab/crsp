@@ -277,4 +277,40 @@ class UserApiControllerTest {
                 .andExpect(jsonPath("$.lastVisit").exists())
                 .andExpect(jsonPath("$.createdAt").exists());
     }
+
+    @Test
+    void updateProfileSavesGender() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(put("/api/user/info").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"gender\":\"male\"}"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.success").value(true));
+    }
+
+    @Test
+    void updateProfileRejectsInvalidGender() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(put("/api/user/info").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"gender\":\"invalid\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("性别值无效"));
+    }
+
+    @Test
+    void getUserInfoReturnsGender() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        user.setGender("female");
+        userService.saveUser(user);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(get("/api/user/info").cookie(cookie))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.gender").value("female"));
+    }
 }
