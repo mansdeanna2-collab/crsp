@@ -7,9 +7,12 @@
     <link rel="stylesheet" th:href="@{/css/style.css}">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
+        :root {
+            --detail-header-height: 64px;
+        }
         .detail-page {
             padding-bottom: 70px;
-            padding-top: 64px;
+            padding-top: var(--detail-header-height);
             min-height: 100vh;
             background: #f5f5f5;
             overflow-x: hidden;
