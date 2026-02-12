@@ -496,12 +496,12 @@
                     // 更新注册时间
                     var createdAtEl = document.getElementById('profile-created-at');
                     if (createdAtEl && info.createdAt) {
-                        createdAtEl.textContent = info.createdAt.substring(0, 10);
+                        createdAtEl.textContent = info.createdAt.length >= 10 ? info.createdAt.substring(0, 10) : info.createdAt;
                     }
                     // 更新最近访问
                     var lastVisitEl = document.getElementById('profile-last-visit');
                     if (lastVisitEl && info.lastVisit) {
-                        lastVisitEl.textContent = info.lastVisit.substring(0, 10);
+                        lastVisitEl.textContent = info.lastVisit.length >= 10 ? info.lastVisit.substring(0, 10) : info.lastVisit;
                     }
                     // 更新账号类型
                     var userTypeEl = document.getElementById('profile-user-type');
@@ -648,8 +648,6 @@
                 btn.textContent = '确认升级';
             });
         }
-
-        // Show upgrade menu item for guest users (handled in init chain above)
     </script>
 </body>
 </html>

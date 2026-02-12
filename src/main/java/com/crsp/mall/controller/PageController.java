@@ -55,15 +55,15 @@ public class PageController {
         List<ProductEntity> results = productDbService.searchProducts(keyword);
         
         // 排序处理
-        if ("sales".equals(sort)) {
+        if (sort != null && !"default".equals(sort)) {
             results = new ArrayList<>(results);
-            results.sort((a, b) -> compareSales(b.getSales(), a.getSales()));
-        } else if ("price_asc".equals(sort)) {
-            results = new ArrayList<>(results);
-            results.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
-        } else if ("price_desc".equals(sort)) {
-            results = new ArrayList<>(results);
-            results.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+            if ("sales".equals(sort)) {
+                results.sort((a, b) -> compareSales(b.getSales(), a.getSales()));
+            } else if ("price_asc".equals(sort)) {
+                results.sort((a, b) -> Double.compare(a.getPrice(), b.getPrice()));
+            } else if ("price_desc".equals(sort)) {
+                results.sort((a, b) -> Double.compare(b.getPrice(), a.getPrice()));
+            }
         }
         
         model.addAttribute("keyword", keyword);
