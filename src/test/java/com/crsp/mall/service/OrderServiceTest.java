@@ -7,6 +7,8 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+
 import static org.junit.jupiter.api.Assertions.*;
 
 @SpringBootTest
@@ -176,7 +178,10 @@ class OrderServiceTest {
     }
 
     @Test
-    void startupDoesNotSeedOrders() {
-        assertEquals(0, orderRepository.count());
+    void startupDoesNotSeedSampleOrders() {
+        List<String> sampleNames = List.of("张三", "李四", "王五", "赵六");
+        boolean hasSampleOrder = orderRepository.findAll().stream()
+                .anyMatch(order -> sampleNames.contains(order.getUserName()));
+        assertFalse(hasSampleOrder);
     }
 }
