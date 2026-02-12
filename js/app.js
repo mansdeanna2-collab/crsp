@@ -813,18 +813,42 @@ function reverseGeocode(lat, lng) {
  * 根据坐标估算城市（备用方案）
  */
 function estimateCityFromCoords(lat, lng) {
-    // 主要城市坐标范围
+    // 主要省市坐标范围
     const cities = [
         { name: '北京', lat: 39.9042, lng: 116.4074, range: 1 },
+        { name: '天津', lat: 39.3434, lng: 117.3616, range: 1 },
         { name: '上海', lat: 31.2304, lng: 121.4737, range: 1 },
-        { name: '广州', lat: 23.1291, lng: 113.2644, range: 0.8 },
-        { name: '深圳', lat: 22.5431, lng: 114.0579, range: 0.5 },
-        { name: '杭州', lat: 30.2741, lng: 120.1551, range: 0.8 },
-        { name: '成都', lat: 30.5728, lng: 104.0668, range: 0.8 },
-        { name: '南京', lat: 32.0603, lng: 118.7969, range: 0.8 },
-        { name: '武汉', lat: 30.5928, lng: 114.3055, range: 0.8 },
-        { name: '西安', lat: 34.3416, lng: 108.9398, range: 0.8 },
-        { name: '重庆', lat: 29.4316, lng: 106.9123, range: 1 }
+        { name: '重庆', lat: 29.4316, lng: 106.9123, range: 1 },
+        { name: '河北', lat: 38.0428, lng: 114.5149, range: 0.8 },
+        { name: '山西', lat: 37.8706, lng: 112.5489, range: 0.8 },
+        { name: '辽宁', lat: 41.8057, lng: 123.4315, range: 0.8 },
+        { name: '吉林', lat: 43.8171, lng: 125.3235, range: 0.8 },
+        { name: '黑龙江', lat: 45.8038, lng: 126.5349, range: 0.8 },
+        { name: '江苏', lat: 32.0603, lng: 118.7969, range: 0.8 },
+        { name: '浙江', lat: 30.2741, lng: 120.1551, range: 0.8 },
+        { name: '安徽', lat: 31.8206, lng: 117.2272, range: 0.8 },
+        { name: '福建', lat: 26.0745, lng: 119.2965, range: 0.8 },
+        { name: '江西', lat: 28.6820, lng: 115.8579, range: 0.8 },
+        { name: '山东', lat: 36.6512, lng: 117.1201, range: 0.8 },
+        { name: '河南', lat: 34.7466, lng: 113.6254, range: 0.8 },
+        { name: '湖北', lat: 30.5928, lng: 114.3055, range: 0.8 },
+        { name: '湖南', lat: 28.2278, lng: 112.9389, range: 0.8 },
+        { name: '广东', lat: 23.1291, lng: 113.2644, range: 0.8 },
+        { name: '海南', lat: 20.0442, lng: 110.1983, range: 0.8 },
+        { name: '四川', lat: 30.5728, lng: 104.0668, range: 0.8 },
+        { name: '贵州', lat: 26.6470, lng: 106.6302, range: 0.8 },
+        { name: '云南', lat: 25.0389, lng: 102.7183, range: 0.8 },
+        { name: '陕西', lat: 34.3416, lng: 108.9398, range: 0.8 },
+        { name: '甘肃', lat: 36.0611, lng: 103.8343, range: 0.8 },
+        { name: '青海', lat: 36.6171, lng: 101.7782, range: 0.8 },
+        { name: '台湾', lat: 25.0330, lng: 121.5654, range: 0.8 },
+        { name: '内蒙古', lat: 40.8426, lng: 111.7492, range: 0.8 },
+        { name: '广西', lat: 22.8170, lng: 108.3669, range: 0.8 },
+        { name: '西藏', lat: 29.6525, lng: 91.1721, range: 0.8 },
+        { name: '宁夏', lat: 38.4872, lng: 106.2309, range: 0.8 },
+        { name: '新疆', lat: 43.8256, lng: 87.6168, range: 0.8 },
+        { name: '香港', lat: 22.3193, lng: 114.1694, range: 0.8 },
+        { name: '澳门', lat: 22.1987, lng: 113.5439, range: 0.8 }
     ];
     
     let nearestCity = '当前位置';
