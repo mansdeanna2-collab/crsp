@@ -43,6 +43,9 @@ public class OrderEntity {
     @Column(length = 500)
     private String remark;
     
+    @Column(name = "payment_method", length = 20)
+    private String paymentMethod;
+    
     @Column(name = "created_at")
     private LocalDateTime createdAt;
     
@@ -106,6 +109,9 @@ public class OrderEntity {
     
     public String getRemark() { return remark; }
     public void setRemark(String remark) { this.remark = remark; }
+    
+    public String getPaymentMethod() { return paymentMethod; }
+    public void setPaymentMethod(String paymentMethod) { this.paymentMethod = paymentMethod; }
     
     public LocalDateTime getCreatedAt() { return createdAt; }
     public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }

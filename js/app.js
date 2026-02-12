@@ -1104,6 +1104,16 @@ function showSearchResults(keyword) {
  * 初始化商品详情功能
  */
 function initProductDetail() {
+    // 定义每个商品的规格数据（含价格）
+    var productSpecsData = [
+        [ {name: '粉色 S', price: '¥118'}, {name: '粉色 M', price: '¥128'}, {name: '黑色 M', price: '¥138'} ],
+        [ {name: '64GB', price: '¥2699'}, {name: '128GB', price: '¥2999'}, {name: '256GB', price: '¥3299'} ],
+        [ {name: '基础套装', price: '¥89'}, {name: '豪华套装', price: '¥139'} ],
+        [ {name: '白色', price: '¥199'}, {name: '黑色', price: '¥199'}, {name: '蓝色', price: '¥219'} ],
+        [ {name: '白色 40', price: '¥158'}, {name: '白色 42', price: '¥168'}, {name: '黑色 42', price: '¥178'} ],
+        [ {name: '标准版', price: '¥299'}, {name: '高配版', price: '¥399'} ]
+    ];
+
     document.querySelectorAll('.product-card').forEach((card, index) => {
         card.addEventListener('click', function() {
             const titleEl = this.querySelector('.product-title');
@@ -1119,7 +1129,8 @@ function initProductDetail() {
                 originalPrice: originalPriceEl ? originalPriceEl.textContent : '¥0',
                 sales: salesEl ? salesEl.textContent : '已售 0件',
                 icon: iconEl ? iconEl.className.replace('fas ', '') : 'fa-shopping-bag',
-                bg: imageEl ? imageEl.style.background : 'linear-gradient(135deg, #ffecd2, #fcb69f)'
+                bg: imageEl ? imageEl.style.background : 'linear-gradient(135deg, #ffecd2, #fcb69f)',
+                specs: productSpecsData[index] || [{name: '默认规格'}]
             };
 
             showProductDetail(productData);
@@ -1144,6 +1155,12 @@ function initProductDetail() {
         });
     }
 }
+
+/**
+ * 当前选中的规格索引
+ */
+var currentSelectedSpec = -1;
+var currentProductSpecs = [];
 
 /**
  * 显示商品详情
@@ -1181,6 +1198,37 @@ function showProductDetail(productData) {
     if (detailPrice) detailPrice.textContent = productData.price;
     if (detailOriginalPrice) detailOriginalPrice.textContent = productData.originalPrice;
     if (detailSales) detailSales.textContent = productData.sales;
+
+    // 渲染规格选项
+    currentSelectedSpec = -1;
+    currentProductSpecs = productData.specs || [{name: '默认规格'}];
+    var specContainer = document.getElementById('detail-spec-options');
+    if (specContainer) {
+        specContainer.innerHTML = '';
+        currentProductSpecs.forEach(function(spec, idx) {
+            var tag = document.createElement('span');
+            tag.className = 'spec-tag';
+            tag.textContent = spec.name + (spec.price ? ' ' + spec.price : '');
+            tag.style.cursor = 'pointer';
+            tag.addEventListener('click', function() {
+                currentSelectedSpec = idx;
+                // 更新选中样式
+                specContainer.querySelectorAll('.spec-tag').forEach(function(t) {
+                    t.style.background = '#f5f5f5';
+                    t.style.color = '#666';
+                    t.style.border = 'none';
+                });
+                tag.style.background = '#fff5f2';
+                tag.style.color = '#ff5722';
+                tag.style.border = '1px solid #ff5722';
+                // 更新价格显示
+                if (spec.price && detailPrice) {
+                    detailPrice.textContent = spec.price;
+                }
+            });
+            specContainer.appendChild(tag);
+        });
+    }
 
     // 重置图片滑块位置
     if (detailTrack) {

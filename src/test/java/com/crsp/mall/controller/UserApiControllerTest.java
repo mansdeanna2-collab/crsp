@@ -313,4 +313,16 @@ class UserApiControllerTest {
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("$.gender").value("female"));
     }
+
+    @Test
+    void checkoutRejectsInvalidPaymentMethod() throws Exception {
+        UserEntity user = userService.getOrCreateUser(null);
+        Cookie cookie = new Cookie("user_token", user.getToken());
+
+        mockMvc.perform(post("/api/user/checkout").cookie(cookie)
+                .contentType("application/json")
+                .content("{\"userName\":\"测试\",\"userPhone\":\"13800138000\",\"shippingAddress\":\"北京市朝阳区\",\"paymentMethod\":\"invalid\"}"))
+                .andExpect(status().isBadRequest())
+                .andExpect(jsonPath("$.error").value("请选择有效的支付方式"));
+    }
 }

@@ -148,4 +148,30 @@ class OrderServiceTest {
         assertEquals(1, user1Orders.size());
         assertEquals("用户1", user1Orders.get(0).getUserName());
     }
+
+    @Test
+    void orderEntityPersistsPaymentMethod() {
+        OrderEntity order = new OrderEntity();
+        order.setUserName("测试");
+        order.setTotalAmount(100.0);
+        order.setStatus("pending");
+        order.setPaymentMethod("wechat");
+        order = orderRepository.save(order);
+
+        OrderEntity found = orderRepository.findById(order.getId()).orElse(null);
+        assertNotNull(found);
+        assertEquals("wechat", found.getPaymentMethod());
+
+        // Test alipay
+        OrderEntity order2 = new OrderEntity();
+        order2.setUserName("测试2");
+        order2.setTotalAmount(200.0);
+        order2.setStatus("pending");
+        order2.setPaymentMethod("alipay");
+        order2 = orderRepository.save(order2);
+
+        OrderEntity found2 = orderRepository.findById(order2.getId()).orElse(null);
+        assertNotNull(found2);
+        assertEquals("alipay", found2.getPaymentMethod());
+    }
 }

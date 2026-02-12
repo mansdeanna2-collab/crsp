@@ -987,7 +987,7 @@
             <!-- 商品信息 -->
             <div class="product-detail-info">
                 <div class="price-section">
-                    <span class="current-price"><small>¥</small><span th:text="${product.price}">0</span></span>
+                    <span class="current-price"><small>¥</small><span id="mainProductPrice" th:text="${product.price}">0</span></span>
                     <th:block th:if="${product.tag == '限时秒杀' or product.tag == '天天特价'}">
                         <span class="original-price-detail" th:if="${product.originalPrice > 0}" th:text="'¥' + ${product.originalPrice}">¥0</span>
                         <span class="discount-tag" th:if="${product.originalPrice > 0}" 
@@ -1587,10 +1587,13 @@
             }
             // 更新价格
             var priceEl = document.getElementById('specModalPrice');
-            if (priceEl && spec.price) {
-                priceEl.textContent = spec.price;
-            } else if (priceEl) {
-                priceEl.textContent = basePrice;
+            var mainPriceEl = document.getElementById('mainProductPrice');
+            if (spec.price) {
+                if (priceEl) priceEl.textContent = spec.price;
+                if (mainPriceEl) mainPriceEl.textContent = spec.price;
+            } else {
+                if (priceEl) priceEl.textContent = basePrice;
+                if (mainPriceEl) mainPriceEl.textContent = basePrice;
             }
             // 更新规格弹窗头部图片
             var modalImageEl = document.getElementById('specModalImage');
