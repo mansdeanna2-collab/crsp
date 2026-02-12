@@ -449,32 +449,60 @@
 
         function normalizeRegionData(data) {
             var municipalities = ['北京市', '天津市', '上海市', '重庆市'];
-            municipalities.forEach(function(province) {
-                if (!data[province]) return;
-                var merged = [];
-                if (data[province]['市辖区']) {
-                    merged = merged.concat(data[province]['市辖区']);
-                    delete data[province]['市辖区'];
+            var normalized = {};
+            Object.keys(data).forEach(function(province) {
+                var cityMap = Object.assign({}, data[province] || {});
+                if (municipalities.indexOf(province) !== -1) {
+                    var merged = [];
+                    if (cityMap['市辖区']) {
+                        merged = merged.concat(cityMap['市辖区']);
+                        delete cityMap['市辖区'];
+                    }
+                    if (cityMap['县']) {
+                        merged = merged.concat(cityMap['县']);
+                        delete cityMap['县'];
+                    }
+                    if (merged.length) {
+                        cityMap[province] = merged;
+                    }
                 }
-                if (data[province]['县']) {
-                    merged = merged.concat(data[province]['县']);
-                    delete data[province]['县'];
-                }
-                if (merged.length) {
-                    data[province][province] = merged;
-                }
+                normalized[province] = cityMap;
             });
-            return data;
+            return normalized;
+        }
+
+        function setRegionLoadError(message) {
+            var provinceSelect = document.getElementById('province');
+            var citySelect = document.getElementById('city');
+            var districtSelect = document.getElementById('district');
+            var fallback = '<option value="">' + message + '</option>';
+            provinceSelect.innerHTML = fallback;
+            citySelect.innerHTML = fallback;
+            districtSelect.innerHTML = fallback;
+            provinceSelect.disabled = true;
+            citySelect.disabled = true;
+            districtSelect.disabled = true;
         }
 
         function initRegionData() {
             var provinceSelect = document.getElementById('province');
+            var citySelect = document.getElementById('city');
+            var districtSelect = document.getElementById('district');
             provinceSelect.innerHTML = '<option value="">选择省份</option>';
             fetch('/data/regions.json')
                 .then(function(response) { return response.json(); })
                 .then(function(data) {
-                    regionData = normalizeRegionData(data || {});
-                    Object.keys(regionData).forEach(function(province) {
+                    var normalized = normalizeRegionData(data || {});
+                    var provinces = Object.keys(normalized);
+                    if (!provinces.length) {
+                        setRegionLoadError('地区数据加载失败');
+                        return;
+                    }
+                    regionData = normalized;
+                    provinceSelect.disabled = false;
+                    citySelect.disabled = false;
+                    districtSelect.disabled = false;
+                    provinces.forEach(function(province) {
                         var option = document.createElement('option');
                         option.value = province;
                         option.textContent = province;
@@ -483,6 +511,7 @@
                 })
                 .catch(function(error) {
                     console.error('加载地区数据失败:', error);
+                    setRegionLoadError('地区数据加载失败');
                 });
         }
 
