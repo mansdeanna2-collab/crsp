@@ -24,7 +24,7 @@ body {
 }
 
 .app-container {
-    padding-bottom: 60px;
+    padding-bottom: 50px;
     min-height: 100vh;
 }
 
@@ -1234,7 +1234,7 @@ body {
     -webkit-backdrop-filter: blur(12px);
     display: flex;
     justify-content: space-around;
-    padding: 8px 8px 12px;
+    padding: 4px 8px 8px;
     border-top: none;
     z-index: 1000;
     box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.06);
@@ -1244,21 +1244,21 @@ body {
     display: flex;
     flex-direction: column;
     align-items: center;
-    gap: 4px;
+    gap: 2px;
     position: relative;
     cursor: pointer;
-    padding: 6px 16px;
+    padding: 4px 12px;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item i {
-    font-size: 22px;
+    font-size: 18px;
     color: #b0b0b0;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
 }
 
 .nav-item span {
-    font-size: 10px;
+    font-size: 9px;
     color: #b0b0b0;
     font-weight: 500;
     transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
