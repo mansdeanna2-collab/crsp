@@ -49,6 +49,12 @@ function initNavigation() {
                     window.scrollTo(0, 0);
                 }
             });
+
+            // 确保底部导航可见（从聊天详情页返回时）
+            const bottomNav = document.querySelector('.bottom-nav');
+            if (bottomNav) {
+                bottomNav.style.display = '';
+            }
         });
     });
 }
@@ -182,6 +188,7 @@ function updateCartTotal() {
 function initMessageTabs() {
     const tabs = document.querySelectorAll('.message-tab');
     const messageItems = document.querySelectorAll('.message-item');
+    const messageList = document.querySelector('.message-list');
 
     tabs.forEach(tab => {
         tab.addEventListener('click', function() {
@@ -189,13 +196,31 @@ function initMessageTabs() {
             this.classList.add('active');
 
             const category = this.getAttribute('data-category');
+            let visibleCount = 0;
             messageItems.forEach(function(item) {
                 if (category === 'all' || item.getAttribute('data-category') === category) {
                     item.classList.remove('hidden');
+                    visibleCount++;
                 } else {
                     item.classList.add('hidden');
                 }
             });
+
+            // 显示/隐藏空状态提示
+            let emptyTip = messageList.querySelector('.message-empty');
+            if (visibleCount === 0) {
+                if (!emptyTip) {
+                    emptyTip = document.createElement('div');
+                    emptyTip.className = 'message-empty';
+                    emptyTip.innerHTML = '<i class="fas fa-inbox"></i><p>暂无消息</p>';
+                    messageList.appendChild(emptyTip);
+                }
+                emptyTip.style.display = '';
+            } else {
+                if (emptyTip) {
+                    emptyTip.style.display = 'none';
+                }
+            }
         });
     });
 }
@@ -210,6 +235,11 @@ document.querySelectorAll('.message-item').forEach(item => {
         const msgType = this.getAttribute('data-msg-type');
         const avatarStyle = this.querySelector('.message-avatar').getAttribute('style');
         const avatarIcon = this.querySelector('.message-avatar i').className;
+        // 清除该消息的未读角标
+        const badge = this.querySelector('.message-badge');
+        if (badge) {
+            badge.remove();
+        }
         showChatDetail(title, msgType, avatarStyle, avatarIcon);
     });
 });
@@ -222,8 +252,13 @@ function showChatDetail(title, msgType, avatarStyle, avatarIcon) {
     const chatTitle = document.getElementById('chatDetailTitle');
     const chatBody = document.getElementById('chatDetailBody');
     const messagePage = document.getElementById('page-message');
+    const bottomNav = document.querySelector('.bottom-nav');
 
     if (!chatPage || !chatBody) return;
+
+    // 简单清理输入以防注入
+    const safeStyle = sanitizeStyleAttr(avatarStyle);
+    const safeIcon = sanitizeClassName(avatarIcon);
 
     chatTitle.textContent = title;
     chatBody.innerHTML = '';
@@ -235,9 +270,9 @@ function showChatDetail(title, msgType, avatarStyle, avatarIcon) {
     } else if (msgType === 'promo') {
         chatBody.innerHTML = renderPromoDetail();
     } else if (msgType === 'store') {
-        chatBody.innerHTML = renderStoreChatDetail(avatarStyle, avatarIcon);
+        chatBody.innerHTML = renderStoreChatDetail(safeStyle, safeIcon);
     } else if (msgType === 'service') {
-        chatBody.innerHTML = renderServiceChatDetail(avatarStyle, avatarIcon);
+        chatBody.innerHTML = renderServiceChatDetail(safeStyle, safeIcon);
     } else {
         chatBody.innerHTML = renderSystemDetail();
     }
@@ -245,7 +280,28 @@ function showChatDetail(title, msgType, avatarStyle, avatarIcon) {
     // 切换页面
     messagePage.classList.remove('active');
     chatPage.classList.add('active');
+    // 隐藏底部导航
+    if (bottomNav) {
+        bottomNav.style.display = 'none';
+    }
     window.scrollTo(0, 0);
+}
+
+/**
+ * 清理样式属性值，防止注入
+ */
+function sanitizeStyleAttr(style) {
+    if (!style) return '';
+    // 仅允许背景渐变相关的安全CSS属性
+    return style.replace(/[<>"'`;]/g, '');
+}
+
+/**
+ * 清理CSS类名，仅允许合法的类名字符
+ */
+function sanitizeClassName(className) {
+    if (!className) return '';
+    return className.replace(/[^a-zA-Z0-9\s\-_]/g, '');
 }
 
 /**
@@ -387,8 +443,13 @@ function initChatDetail() {
         backBtn.addEventListener('click', function() {
             const chatPage = document.getElementById('page-chat-detail');
             const messagePage = document.getElementById('page-message');
+            const bottomNav = document.querySelector('.bottom-nav');
             chatPage.classList.remove('active');
             messagePage.classList.add('active');
+            // 恢复底部导航
+            if (bottomNav) {
+                bottomNav.style.display = '';
+            }
         });
     }
 }
