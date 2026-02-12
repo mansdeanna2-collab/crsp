@@ -14,6 +14,15 @@ body {
     overflow-x: hidden;
 }
 
+:root {
+    --accent: #ff5722;
+    --badge-grad-start: #ff7a45;
+    --badge-grad-end: #ff3d68;
+    --accent-border-light: rgba(255, 87, 34, 0.08);
+    --accent-bg-start: rgba(255, 87, 34, 0.12);
+    --accent-bg-end: rgba(255, 87, 34, 0.02);
+}
+
 .app-container {
     padding-bottom: 60px;
     min-height: 100vh;
@@ -435,7 +444,7 @@ body {
 }
 
 .message-badge {
-    background: linear-gradient(135deg, #ff7a45, #ff3d68);
+    background: linear-gradient(135deg, var(--badge-grad-start), var(--badge-grad-end));
     color: #fff;
     font-size: 11px;
     font-weight: 600;
@@ -1135,7 +1144,7 @@ body {
     position: absolute;
     top: -2px;
     right: -2px;
-    background: linear-gradient(135deg, #ff7a45, #ff3d68);
+    background: linear-gradient(135deg, var(--badge-grad-start), var(--badge-grad-end));
     color: #fff;
     font-size: 10px;
     font-weight: 600;
@@ -1220,14 +1229,13 @@ body {
     bottom: 0;
     left: 0;
     right: 0;
-    background: rgba(255, 255, 255, 0.92);
+    background: #ffffff;
     display: flex;
     justify-content: space-around;
     padding: 10px 8px;
-    border-top: 1px solid rgba(255, 87, 34, 0.08);
+    border-top: 1px solid var(--accent-border-light);
     z-index: 1000;
     box-shadow: 0 -8px 24px rgba(0, 0, 0, 0.08);
-    backdrop-filter: blur(12px);
 }
 
 .nav-item {
@@ -1252,20 +1260,18 @@ body {
 
 .nav-item.active i,
 .nav-item.active span {
-    color: #ff5722;
+    color: var(--accent);
 }
 .nav-item.active {
-    background: linear-gradient(180deg, rgba(255, 87, 34, 0.12), rgba(255, 87, 34, 0.02));
+    background: linear-gradient(180deg, var(--accent-bg-start), var(--accent-bg-end));
     border-radius: 12px;
-    transform: translateY(-2px);
 }
 
 .nav-badge {
     position: absolute;
     top: -6px;
     right: 6px;
-    transform: translate(35%, -35%);
-    background: linear-gradient(135deg, #ff7a45, #ff3d68);
+    background: linear-gradient(135deg, var(--badge-grad-start), var(--badge-grad-end));
     color: #fff;
     font-size: 10px;
     font-weight: 600;
