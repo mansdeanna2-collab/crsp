@@ -484,6 +484,10 @@ public class AdminController {
         AdminEntity admin = (AdminEntity) session.getAttribute("admin");
         boolean success = adminService.changePassword(admin.getId(), oldPassword, newPassword);
         if (success) {
+            // 刷新session中的管理员信息
+            adminService.getAdminById(admin.getId()).ifPresent(
+                    updatedAdmin -> session.setAttribute("admin", updatedAdmin)
+            );
             redirectAttributes.addFlashAttribute("success", "密码修改成功");
         } else {
             redirectAttributes.addFlashAttribute("error", "原密码错误");

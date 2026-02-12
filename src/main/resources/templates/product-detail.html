@@ -83,7 +83,7 @@
             transition: transform 0.3s ease;
             height: 100%;
             will-change: transform;
-            touch-action: none;
+            touch-action: pan-y;
             -webkit-user-select: none;
             user-select: none;
         }
@@ -103,7 +103,7 @@
             object-fit: cover;
             -webkit-user-drag: none;
             user-select: none;
-            pointer-events: none;
+            cursor: pointer;
         }
         .media-slide video {
             width: 100%;
@@ -809,7 +809,7 @@
             left: 0;
             right: 0;
             bottom: 0;
-            background: rgba(0,0,0,0.9);
+            background: rgba(0,0,0,0.95);
             z-index: 300;
             align-items: center;
             justify-content: center;
@@ -818,10 +818,12 @@
             display: flex;
         }
         .image-preview-overlay img {
-            max-width: 90%;
-            max-height: 90%;
+            max-width: 95%;
+            max-height: 85%;
             object-fit: contain;
-            border-radius: 8px;
+            border-radius: 4px;
+            -webkit-user-select: none;
+            user-select: none;
         }
         .image-preview-close {
             position: absolute;
@@ -838,6 +840,17 @@
             display: flex;
             align-items: center;
             justify-content: center;
+        }
+        .image-preview-counter {
+            position: absolute;
+            bottom: 30px;
+            left: 50%;
+            transform: translateX(-50%);
+            color: rgba(255,255,255,0.8);
+            font-size: 14px;
+            background: rgba(0,0,0,0.4);
+            padding: 4px 12px;
+            border-radius: 12px;
         }
         .quantity-section {
             display: flex;
@@ -1140,11 +1153,12 @@
     <div class="toast-message" id="toastMessage">提示</div>
 
     <!-- 图片预览全屏弹窗 -->
-    <div class="image-preview-overlay" id="imagePreviewOverlay" onclick="closeImagePreview()">
+    <div class="image-preview-overlay" id="imagePreviewOverlay">
         <button class="image-preview-close" aria-label="关闭图片预览" onclick="closeImagePreview()">
             <i class="fas fa-times"></i>
         </button>
         <img id="imagePreviewImg" src="" alt="预览图片">
+        <div class="image-preview-counter" id="imagePreviewCounter" style="display:none;"></div>
     </div>
 
     <script th:inline="javascript">
@@ -1375,17 +1389,27 @@
         let isSwiping = false;
         let isDragging = false;
         let isVerticalScroll = false;
+        let touchStartTime = 0;
+
+        function resetTouchState() {
+            touchStartX = 0;
+            touchStartY = 0;
+            touchCurrentX = 0;
+            isSwiping = false;
+            isDragging = false;
+            isVerticalScroll = false;
+        }
 
         if (sliderContainer) {
             sliderContainer.addEventListener('touchstart', function(e) {
+                // 完全重置状态，确保每次触摸都从干净状态开始
+                resetTouchState();
                 touchStartX = e.touches[0].clientX;
                 touchStartY = e.touches[0].clientY;
                 touchCurrentX = touchStartX;
-                isSwiping = false;
                 isDragging = true;
-                isVerticalScroll = false;
+                touchStartTime = Date.now();
                 stopAutoSlide();
-                // 禁用transition以实现实时拖拽效果
                 sliderContainer.style.transition = 'none';
             }, { passive: true });
 
@@ -1399,7 +1423,7 @@
                 if (!isSwiping && diffX < 5 && diffY < 5) return;
                 
                 if (!isSwiping && diffY > diffX) {
-                    // 垂直滑动，放弃拦截，恢复状态
+                    // 垂直滑动，放弃拦截
                     isVerticalScroll = true;
                     isDragging = false;
                     sliderContainer.style.transition = 'transform 0.3s ease';
@@ -1410,7 +1434,6 @@
                 // 水平滑动
                 isSwiping = true;
                 e.preventDefault();
-                // 实时拖拽跟随
                 var offsetX = touchCurrentX - touchStartX;
                 var baseTranslate = -currentSlide * 100;
                 var dragPercent = (offsetX / sliderContainer.offsetWidth) * 100;
@@ -1418,36 +1441,78 @@
             }, { passive: false });
 
             sliderContainer.addEventListener('touchend', function(e) {
-                if (isVerticalScroll || (!isDragging && !isSwiping)) return;
-                isDragging = false;
-                // 恢复transition动画
-                sliderContainer.style.transition = 'transform 0.3s ease';
-                if (isSwiping) {
-                    var touchEndX = e.changedTouches[0].clientX;
-                    handleSwipe(touchStartX, touchEndX);
+                const wasDragging = isDragging;
+                const wasSwiping = isSwiping;
+                const wasVerticalScroll = isVerticalScroll;
+                const savedStartX = touchStartX;
+                const savedStartY = touchStartY;
+                const endX = e.changedTouches[0].clientX;
+                const endY = e.changedTouches[0].clientY;
+                const touchDuration = Date.now() - touchStartTime;
+
+                // 立即重置状态，确保下次触摸正常
+                resetTouchState();
+
+                if (wasVerticalScroll || !wasDragging) {
+                    if (!isAnyVideoPlaying()) resetAutoSlide();
+                    return;
                 }
-                isSwiping = false;
-                isVerticalScroll = false;
-                // 视频播放中不重启自动轮播
+
+                sliderContainer.style.transition = 'transform 0.3s ease';
+
+                if (wasSwiping) {
+                    handleSwipe(savedStartX, endX);
+                } else {
+                    // 短暂点击且未滑动 = 点击图片展开预览
+                    updateSlider();
+                    if (touchDuration < 300) {
+                        const totalMove = Math.abs(endX - savedStartX) + Math.abs(endY - savedStartY);
+                        if (totalMove < 10) {
+                            handleSlideImageClick();
+                        }
+                    }
+                }
+
                 if (!isAnyVideoPlaying()) {
                     resetAutoSlide();
                 }
             }, { passive: true });
 
             sliderContainer.addEventListener('touchcancel', function() {
-                isDragging = false;
-                isSwiping = false;
-                isVerticalScroll = false;
+                resetTouchState();
                 sliderContainer.style.transition = 'transform 0.3s ease';
                 updateSlider();
                 if (!isAnyVideoPlaying()) {
                     resetAutoSlide();
                 }
             }, { passive: true });
+
+            // 桌面端点击图片展开预览
+            sliderContainer.addEventListener('click', function(e) {
+                var slide = slides[currentSlide];
+                if (!slide || slide.getAttribute('data-type') === 'video') return;
+                var img = slide.querySelector('img');
+                if (img && img.src && img.style.display !== 'none') {
+                    openImagePreview(img.src, true);
+                }
+            });
+        }
+
+        // 点击轮播图片展开预览
+        function handleSlideImageClick() {
+            if (totalSlides <= 0) return;
+            var slide = slides[currentSlide];
+            if (!slide) return;
+            // 仅对图片类型的slide生效，视频不触发
+            if (slide.getAttribute('data-type') === 'video') return;
+            var img = slide.querySelector('img');
+            if (img && img.src && img.style.display !== 'none') {
+                openImagePreview(img.src, true);
+            }
         }
 
         function handleSwipe(startX, endX) {
-            const swipeThreshold = 50;
+            const swipeThreshold = 40;
             const diff = startX - endX;
             if (Math.abs(diff) > swipeThreshold) {
                 if (diff > 0) {
@@ -1456,7 +1521,6 @@
                     prevSlide();
                 }
             } else {
-                // Snap back to current slide when threshold not met
                 updateSlider();
             }
         }
@@ -1622,33 +1686,140 @@
         }
 
         // 图片预览功能
-        function openImagePreview(src) {
-            var overlay = document.getElementById('imagePreviewOverlay');
-            var img = document.getElementById('imagePreviewImg');
-            if (overlay && img && src && (src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/'))) {
-                img.src = src;
-                overlay.classList.add('active');
-                document.body.style.overflow = 'hidden';
+        let previewImages = [];
+        let previewCurrentIndex = 0;
+        let previewTouchStartX = 0;
+        let previewSwiping = false;
+
+        function collectSliderImages() {
+            const imgs = [];
+            if (slides && slides.length > 0) {
+                for (let i = 0; i < slides.length; i++) {
+                    if (slides[i].getAttribute('data-type') !== 'video') {
+                        const img = slides[i].querySelector('img');
+                        if (img && img.src && img.style.display !== 'none') {
+                            imgs.push({ src: img.src, slideIndex: i });
+                        }
+                    }
+                }
+            }
+            return imgs;
+        }
+
+        function openImagePreview(src, fromSlider) {
+            const overlay = document.getElementById('imagePreviewOverlay');
+            const img = document.getElementById('imagePreviewImg');
+            const counter = document.getElementById('imagePreviewCounter');
+            if (!overlay || !img || !src) return;
+            if (!(src.startsWith('http://') || src.startsWith('https://') || src.startsWith('/'))) return;
+
+            if (fromSlider) {
+                previewImages = collectSliderImages();
+                previewCurrentIndex = 0;
+                for (let i = 0; i < previewImages.length; i++) {
+                    if (previewImages[i].src === src) {
+                        previewCurrentIndex = i;
+                        break;
+                    }
+                }
+                if (counter && previewImages.length > 1) {
+                    counter.textContent = (previewCurrentIndex + 1) + ' / ' + previewImages.length;
+                    counter.style.display = 'block';
+                } else if (counter) {
+                    counter.style.display = 'none';
+                }
+            } else {
+                previewImages = [];
+                previewCurrentIndex = 0;
+                if (counter) counter.style.display = 'none';
+            }
+
+            img.src = src;
+            overlay.classList.add('active');
+            document.body.style.overflow = 'hidden';
+        }
+
+        function updatePreviewImage() {
+            const img = document.getElementById('imagePreviewImg');
+            const counter = document.getElementById('imagePreviewCounter');
+            if (img && previewImages.length > 0) {
+                img.src = previewImages[previewCurrentIndex].src;
+                if (counter && previewImages.length > 1) {
+                    counter.textContent = (previewCurrentIndex + 1) + ' / ' + previewImages.length;
+                }
             }
         }
+
+        // 预览弹窗触摸滑动切换图片
+        (function() {
+            const overlay = document.getElementById('imagePreviewOverlay');
+            if (!overlay) return;
+
+            overlay.addEventListener('touchstart', function(e) {
+                previewTouchStartX = e.touches[0].clientX;
+                previewSwiping = false;
+            }, { passive: true });
+
+            overlay.addEventListener('touchmove', function(e) {
+                if (previewImages.length <= 1) return;
+                const diff = Math.abs(e.touches[0].clientX - previewTouchStartX);
+                if (diff > 10) {
+                    previewSwiping = true;
+                    e.preventDefault();
+                }
+            }, { passive: false });
+
+            overlay.addEventListener('touchend', function(e) {
+                if (previewSwiping && previewImages.length > 1) {
+                    const endX = e.changedTouches[0].clientX;
+                    const diff = previewTouchStartX - endX;
+                    if (Math.abs(diff) > 40) {
+                        if (diff > 0 && previewCurrentIndex < previewImages.length - 1) {
+                            previewCurrentIndex++;
+                            updatePreviewImage();
+                        } else if (diff < 0 && previewCurrentIndex > 0) {
+                            previewCurrentIndex--;
+                            updatePreviewImage();
+                        }
+                    }
+                    previewSwiping = false;
+                    return;
+                }
+                // 点击关闭（非滑动时）
+                if (!previewSwiping) {
+                    closeImagePreview();
+                }
+                previewSwiping = false;
+            }, { passive: true });
+
+            // 桌面端点击关闭
+            overlay.addEventListener('click', function(e) {
+                if (e.target === overlay || e.target.tagName === 'IMG') {
+                    closeImagePreview();
+                }
+            });
+        })();
+
         // 规格弹窗头部图片展开预览
         function expandSpecImage(e) {
             e.stopPropagation();
-            var modalImageEl = document.getElementById('specModalImage');
+            const modalImageEl = document.getElementById('specModalImage');
             if (modalImageEl) {
-                var img = modalImageEl.querySelector('img');
+                const img = modalImageEl.querySelector('img');
                 if (img && img.src) {
-                    openImagePreview(img.src);
+                    openImagePreview(img.src, false);
                 }
             }
         }
         function closeImagePreview() {
-            var overlay = document.getElementById('imagePreviewOverlay');
+            const overlay = document.getElementById('imagePreviewOverlay');
             if (overlay) {
                 overlay.classList.remove('active');
+                previewImages = [];
+                previewCurrentIndex = 0;
                 // 如果规格弹窗未打开则恢复滚动
-                var specModal = document.getElementById('specModal');
-                if (!specModal || !specModal.classList.contains('active')) {
+                const specModalEl = document.getElementById('specModal');
+                if (!specModalEl || !specModalEl.classList.contains('active')) {
                     document.body.style.overflow = '';
                 }
             }

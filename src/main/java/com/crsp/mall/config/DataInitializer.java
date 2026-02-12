@@ -33,18 +33,34 @@ public class DataInitializer implements CommandLineRunner {
 
     @Override
     public void run(String... args) {
-        // 初始化默认管理员
-        adminService.initDefaultAdmin();
-        
-        // 初始化默认商品
-        productDbService.initDefaultProducts();
-        
-        // 初始化示例订单
-        orderService.initSampleOrders();
-        
-        // 初始化示例促销活动
-        promotionService.initSamplePromotions();
-        
+        try {
+            // 初始化默认管理员
+            adminService.initDefaultAdmin();
+        } catch (Exception e) {
+            log.error("初始化默认管理员失败: {}", e.getMessage(), e);
+        }
+
+        try {
+            // 初始化默认商品
+            productDbService.initDefaultProducts();
+        } catch (Exception e) {
+            log.error("初始化默认商品失败: {}", e.getMessage(), e);
+        }
+
+        try {
+            // 初始化示例订单
+            orderService.initSampleOrders();
+        } catch (Exception e) {
+            log.error("初始化示例订单失败: {}", e.getMessage(), e);
+        }
+
+        try {
+            // 初始化示例促销活动
+            promotionService.initSamplePromotions();
+        } catch (Exception e) {
+            log.error("初始化示例促销活动失败: {}", e.getMessage(), e);
+        }
+
         log.info("数据初始化完成！后台管理地址: http://localhost:8080/admin");
     }
 }
