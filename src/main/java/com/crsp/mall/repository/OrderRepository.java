@@ -25,6 +25,13 @@ public interface OrderRepository extends JpaRepository<OrderEntity, Long> {
 
     long countByUserId(Long userId);
 
+    long countByStatus(String status);
+
+    @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM OrderEntity o WHERE o.status IN :statuses")
+    double sumTotalAmountByStatusIn(@Param("statuses") java.util.Collection<String> statuses);
+
+    List<OrderEntity> findTop5ByOrderByCreatedAtDesc();
+
     @Query("SELECT COALESCE(SUM(o.totalAmount), 0) FROM OrderEntity o WHERE o.userId = :userId AND o.status <> 'cancelled'")
     double sumTotalAmountByUserIdExcludingCancelled(@Param("userId") Long userId);
 }

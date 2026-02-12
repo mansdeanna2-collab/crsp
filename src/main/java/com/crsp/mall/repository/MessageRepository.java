@@ -2,6 +2,7 @@ package com.crsp.mall.repository;
 
 import com.crsp.mall.entity.MessageEntity;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -42,4 +43,9 @@ public interface MessageRepository extends JpaRepository<MessageEntity, Long> {
     /** 获取所有有消息的用户ID及其最新消息时间（用于后台列表排序） */
     @Query("SELECT m.userId, MAX(m.createdAt) as latestTime FROM MessageEntity m GROUP BY m.userId ORDER BY latestTime DESC")
     List<Object[]> findUserIdsWithLatestMessageTime();
+
+    /** 批量标记某用户某聊天类型的管理员消息为已读 */
+    @Modifying
+    @Query("UPDATE MessageEntity m SET m.isRead = true WHERE m.userId = :userId AND m.chatType = :chatType AND m.senderType = 'admin' AND m.isRead = false")
+    int markAdminMessagesAsRead(@Param("userId") Long userId, @Param("chatType") String chatType);
 }

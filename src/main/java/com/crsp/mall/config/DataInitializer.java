@@ -6,6 +6,7 @@ import com.crsp.mall.service.PromotionService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.CommandLineRunner;
 import org.springframework.stereotype.Component;
 
@@ -26,6 +27,9 @@ public class DataInitializer implements CommandLineRunner {
 
     @Autowired
     private PromotionService promotionService;
+
+    @Value("${server.port:8080}")
+    private String serverPort;
 
     @Override
     public void run(String... args) {
@@ -50,6 +54,6 @@ public class DataInitializer implements CommandLineRunner {
             log.error("初始化示例促销活动失败: {}", e.getMessage(), e);
         }
 
-        log.info("数据初始化完成！后台管理地址: http://localhost:8080/admin");
+        log.info("数据初始化完成！后台管理地址: http://localhost:{}/admin", serverPort);
     }
 }

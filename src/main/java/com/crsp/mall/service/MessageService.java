@@ -78,17 +78,11 @@ public class MessageService {
     }
 
     /**
-     * 标记某聊天类型的消息为已读
+     * 标记某聊天类型的消息为已读（批量更新）
      */
     @Transactional
     public void markAsRead(Long userId, String chatType) {
-        List<MessageEntity> messages = messageRepository.findByUserIdAndChatTypeOrderByCreatedAtAsc(userId, chatType);
-        for (MessageEntity msg : messages) {
-            if ("admin".equals(msg.getSenderType()) && !Boolean.TRUE.equals(msg.getIsRead())) {
-                msg.setIsRead(true);
-                messageRepository.save(msg);
-            }
-        }
+        messageRepository.markAdminMessagesAsRead(userId, chatType);
     }
 
     /**
