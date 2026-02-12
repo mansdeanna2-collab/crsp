@@ -29,6 +29,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initChatSwipePrevention();
     // 初始化订单页面
     initOrderPage();
+    // 初始化底部角标状态
+    refreshBottomNavBadges();
 });
 
 /**
@@ -63,6 +65,61 @@ function initNavigation() {
             }
         });
     });
+}
+
+/**
+ * 统一的角标展示
+ */
+function setBadgeValue(badgeEl, count) {
+    if (!badgeEl) return;
+    if (count > 0) {
+        badgeEl.style.display = 'inline-flex';
+        badgeEl.textContent = count > 99 ? '99+' : count;
+    } else {
+        badgeEl.style.display = 'none';
+    }
+}
+
+/**
+ * 未读消息总数 -> 底部导航
+ */
+function updateMessageNavBadge() {
+    const messageBadges = document.querySelectorAll('.message-item .message-badge');
+    let total = 0;
+    messageBadges.forEach(badge => {
+        const val = parseInt(badge.textContent, 10);
+        total += isNaN(val) ? 1 : val;
+    });
+    const navBadge = document.querySelector('.nav-item[data-page=\"message\"] .nav-badge');
+    setBadgeValue(navBadge, total);
+}
+
+/**
+ * 购物车选中数量 -> 底部导航
+ */
+function getSelectedCartCount() {
+    const cartItems = document.querySelectorAll('.cart-item');
+    let count = 0;
+    cartItems.forEach(item => {
+        const checkbox = item.querySelector('.item-checkbox');
+        if (checkbox && checkbox.checked) {
+            const qtyEl = item.querySelector('.qty-num');
+            const qty = parseInt(qtyEl ? qtyEl.textContent : '0', 10);
+            count += isNaN(qty) ? 0 : qty;
+        }
+    });
+    return count;
+}
+
+function updateCartNavBadge(precomputedCount) {
+    const navBadge = document.querySelector('.nav-item[data-page=\"cart\"] .nav-badge');
+    const count = typeof precomputedCount === 'number' ? precomputedCount : getSelectedCartCount();
+    setBadgeValue(navBadge, count);
+}
+
+function refreshBottomNavBadges() {
+    updateMessageNavBadge();
+    updateCartNavBadge();
 }
 
 /**
@@ -186,6 +243,8 @@ function updateCartTotal() {
     if (checkoutBtn) {
         checkoutBtn.textContent = `结算(${count})`;
     }
+
+    updateCartNavBadge(count);
 }
 
 /**
@@ -251,6 +310,7 @@ document.querySelectorAll('.message-item').forEach(item => {
         if (badge) {
             badge.remove();
         }
+        updateMessageNavBadge();
         showChatDetail(title, msgType, avatarStyle, avatarIcon);
     });
 });
