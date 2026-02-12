@@ -433,7 +433,7 @@ public class UserApiController {
         if (remark.length() > 500) {
             return ResponseEntity.badRequest().body(Map.of("error", "备注长度不能超过500个字符"));
         }
-        if (!paymentMethod.isEmpty() && !paymentMethod.equals("wechat") && !paymentMethod.equals("alipay")) {
+        if (!paymentMethod.equals("wechat") && !paymentMethod.equals("alipay")) {
             return ResponseEntity.badRequest().body(Map.of("error", "请选择有效的支付方式"));
         }
 
@@ -507,7 +507,7 @@ public class UserApiController {
         order.setTotalAmount(totalAmount);
         order.setProductCount(totalCount);
         order.setRemark(remark);
-        order.setPaymentMethod(paymentMethod.isEmpty() ? "wechat" : paymentMethod);
+        order.setPaymentMethod(paymentMethod);
         order.setStatus("pending");
         
         OrderEntity savedOrder = orderService.saveOrder(order);
