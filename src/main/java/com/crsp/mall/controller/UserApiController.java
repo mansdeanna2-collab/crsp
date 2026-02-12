@@ -411,6 +411,7 @@ public class UserApiController {
         String userPhone = body.get("userPhone") != null ? body.get("userPhone").toString().trim() : "";
         String shippingAddress = body.get("shippingAddress") != null ? body.get("shippingAddress").toString().trim() : "";
         String remark = body.get("remark") != null ? body.get("remark").toString().trim() : "";
+        String paymentMethod = body.get("paymentMethod") != null ? body.get("paymentMethod").toString().trim() : "";
 
         // 输入验证
         if (userName.isEmpty()) {
@@ -431,6 +432,9 @@ public class UserApiController {
         }
         if (remark.length() > 500) {
             return ResponseEntity.badRequest().body(Map.of("error", "备注长度不能超过500个字符"));
+        }
+        if (!paymentMethod.isEmpty() && !paymentMethod.equals("wechat") && !paymentMethod.equals("alipay")) {
+            return ResponseEntity.badRequest().body(Map.of("error", "请选择有效的支付方式"));
         }
 
         // 获取选中的购物车商品
@@ -503,6 +507,7 @@ public class UserApiController {
         order.setTotalAmount(totalAmount);
         order.setProductCount(totalCount);
         order.setRemark(remark);
+        order.setPaymentMethod(paymentMethod.isEmpty() ? "wechat" : paymentMethod);
         order.setStatus("pending");
         
         OrderEntity savedOrder = orderService.saveOrder(order);
