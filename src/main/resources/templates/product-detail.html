@@ -74,7 +74,7 @@
             position: relative;
             height: 75vw;
             max-height: 350px;
-            margin-top: 55px;
+            margin-top: calc(55px + env(safe-area-inset-top));
             background: #f5f5f5;
             overflow: hidden;
         }
@@ -104,7 +104,7 @@
             -webkit-user-drag: none;
             user-select: none;
             cursor: pointer;
-            touch-action: none;
+            touch-action: pan-x;
         }
         .media-slide video {
             width: 100%;
@@ -1166,8 +1166,10 @@
         // 轮播图功能
         let currentSlide = 0;
         const sliderContainer = document.getElementById('sliderContainer');
+        const mediaSlider = document.getElementById('mediaSlider');
+        const hasRequiredSliderElements = sliderContainer && mediaSlider;
         const indicators = document.querySelectorAll('.media-indicator');
-        const slides = sliderContainer ? sliderContainer.querySelectorAll('.media-slide') : [];
+        const slides = hasRequiredSliderElements ? mediaSlider.querySelectorAll('.media-slide') : [];
         const totalSlides = slides.length;
 
         function updateSlider() {
@@ -1402,8 +1404,9 @@
             isVerticalScroll = false;
         }
 
-        if (sliderContainer) {
-            sliderContainer.addEventListener('touchstart', function(e) {
+        // Touch events bound to mediaSlider to avoid media elements blocking gestures; updates stay on the inner track.
+        if (hasRequiredSliderElements) {
+            mediaSlider.addEventListener('touchstart', function(e) {
                 // 完全重置状态，确保每次触摸都从干净状态开始
                 resetTouchState();
                 touchStartX = e.touches[0].clientX;
@@ -1415,7 +1418,7 @@
                 sliderContainer.style.transition = 'none';
             }, { passive: true });
 
-            sliderContainer.addEventListener('touchmove', function(e) {
+            mediaSlider.addEventListener('touchmove', function(e) {
                 if (!isDragging || isVerticalScroll) return;
                 touchCurrentX = e.touches[0].clientX;
                 var diffX = Math.abs(touchCurrentX - touchStartX);
@@ -1442,7 +1445,7 @@
                 sliderContainer.style.transform = 'translateX(' + (baseTranslate + dragPercent) + '%)';
             }, { passive: false });
 
-            sliderContainer.addEventListener('touchend', function(e) {
+            mediaSlider.addEventListener('touchend', function(e) {
                 const wasDragging = isDragging;
                 const wasSwiping = isSwiping;
                 const wasVerticalScroll = isVerticalScroll;
@@ -1483,7 +1486,7 @@
                 }
             }, { passive: true });
 
-            sliderContainer.addEventListener('touchcancel', function() {
+            mediaSlider.addEventListener('touchcancel', function() {
                 resetTouchState();
                 sliderContainer.style.transition = 'transform 0.3s ease';
                 updateSlider();
