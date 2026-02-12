@@ -813,7 +813,7 @@ function reverseGeocode(lat, lng) {
  * 根据坐标估算城市（备用方案）
  */
 function estimateCityFromCoords(lat, lng) {
-    // 主要省市坐标范围
+    // 主要省市（省会/首府）坐标范围
     const cities = [
         { name: '北京', lat: 39.9042, lng: 116.4074, range: 1 },
         { name: '天津', lat: 39.3434, lng: 117.3616, range: 1 },
