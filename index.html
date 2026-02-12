@@ -299,6 +299,12 @@
             <div class="chat-detail-body" id="chatDetailBody">
                 <!-- 聊天内容将动态生成 -->
             </div>
+            <div class="chat-input-bar" id="chatInputBar">
+                <input type="text" class="chat-input" id="chatInput" placeholder="输入消息...">
+                <button class="chat-send-btn" id="chatSendBtn">
+                    <i class="fas fa-paper-plane"></i>
+                </button>
+            </div>
         </div>
 
         <!-- 购物车页面 -->
@@ -459,6 +465,23 @@
                         <i class="fas fa-qrcode"></i>
                     </div>
                 </div>
+                <div class="user-extra-info">
+                    <div class="user-extra-item">
+                        <i class="fas fa-calendar-alt"></i>
+                        <span class="user-extra-label">注册时间</span>
+                        <span class="user-extra-value" id="userRegTime">2023-06-15</span>
+                    </div>
+                    <div class="user-extra-item">
+                        <i class="fas fa-clock"></i>
+                        <span class="user-extra-label">最近访问</span>
+                        <span class="user-extra-value" id="userLastVisit">刚刚</span>
+                    </div>
+                    <div class="user-extra-item">
+                        <i class="fas fa-user-shield"></i>
+                        <span class="user-extra-label">账号类型</span>
+                        <span class="user-extra-value" id="userAccountType">个人账户</span>
+                    </div>
+                </div>
             </div>
 
             <!-- 订单入口 -->
@@ -570,6 +593,29 @@
                 </div>
             </div>
         </div>
+
+        <!-- 订单列表页面 -->
+        <div id="page-orders" class="page">
+            <div class="header">
+                <div class="orders-back-btn" id="ordersBackBtn">
+                    <i class="fas fa-arrow-left"></i>
+                </div>
+                <h1 id="ordersPageTitle">我的订单</h1>
+                <div class="header-right">
+                    <i class="fas fa-search"></i>
+                </div>
+            </div>
+            <div class="order-filter-tabs" id="orderFilterTabs">
+                <div class="order-filter-tab active" data-status="all">全部</div>
+                <div class="order-filter-tab" data-status="pending-payment">待付款</div>
+                <div class="order-filter-tab" data-status="pending-ship">待发货</div>
+                <div class="order-filter-tab" data-status="pending-receive">待收货</div>
+                <div class="order-filter-tab" data-status="pending-review">待评价</div>
+            </div>
+            <div class="order-list" id="orderList">
+                <!-- 订单列表将动态生成 -->
+            </div>
+        </div>
     </div>
 
     <!-- 底部导航栏 -->
@@ -602,8 +648,23 @@
                 <span class="close-modal">&times;</span>
             </div>
             <div class="modal-body">
-                <div class="detail-image" id="detail-image">
-                    <i class="fas fa-shopping-bag"></i>
+                <div class="detail-image-slider" id="detail-image-slider">
+                    <div class="detail-image-track" id="detail-image-track">
+                        <div class="detail-image" id="detail-image">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="detail-image" id="detail-image-2">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                        <div class="detail-image" id="detail-image-3">
+                            <i class="fas fa-shopping-bag"></i>
+                        </div>
+                    </div>
+                    <div class="detail-image-indicators" id="detail-image-indicators">
+                        <span class="detail-dot active"></span>
+                        <span class="detail-dot"></span>
+                        <span class="detail-dot"></span>
+                    </div>
                 </div>
                 <div class="detail-info">
                     <h3 id="detail-title">商品名称</h3>

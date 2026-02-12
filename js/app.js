@@ -23,6 +23,14 @@ document.addEventListener('DOMContentLoaded', function() {
     initBannerSlider();
     // 初始化聊天详情返回
     initChatDetail();
+    // 初始化聊天输入
+    initChatInput();
+    // 初始化聊天页面滑动防护
+    initChatSwipePrevention();
+    // 初始化用户信息
+    initUserProfile();
+    // 初始化订单页面
+    initOrderPage();
 });
 
 /**
@@ -471,17 +479,6 @@ document.querySelectorAll('.menu-item').forEach(item => {
         const title = this.querySelector('span').textContent;
         // 实际项目中这里会跳转到对应功能页面
         alert(`打开: ${title}`);
-    });
-});
-
-/**
- * 订单Tab点击
- */
-document.querySelectorAll('.order-tab').forEach(tab => {
-    tab.addEventListener('click', function() {
-        const title = this.querySelector('span').textContent;
-        // 实际项目中这里会跳转到对应订单列表
-        alert(`查看: ${title}`);
     });
 });
 
@@ -1059,10 +1056,13 @@ function initProductDetail() {
  */
 function showProductDetail(productData) {
     const detailImage = document.getElementById('detail-image');
+    const detailImage2 = document.getElementById('detail-image-2');
+    const detailImage3 = document.getElementById('detail-image-3');
     const detailTitle = document.getElementById('detail-title');
     const detailPrice = document.getElementById('detail-price');
     const detailOriginalPrice = document.getElementById('detail-original-price');
     const detailSales = document.getElementById('detail-sales');
+    const detailTrack = document.getElementById('detail-image-track');
 
     if (detailImage) {
         // 解析背景样式
@@ -1072,6 +1072,15 @@ function showProductDetail(productData) {
         }
         detailImage.style.background = bgStyle;
         detailImage.innerHTML = `<i class="fas ${productData.icon}"></i>`;
+        // 为其他图片设置不同的展示样式
+        if (detailImage2) {
+            detailImage2.style.background = bgStyle;
+            detailImage2.innerHTML = `<i class="fas ${productData.icon}"></i>`;
+        }
+        if (detailImage3) {
+            detailImage3.style.background = bgStyle;
+            detailImage3.innerHTML = `<i class="fas ${productData.icon}"></i>`;
+        }
     }
 
     if (detailTitle) detailTitle.textContent = productData.title;
@@ -1079,7 +1088,16 @@ function showProductDetail(productData) {
     if (detailOriginalPrice) detailOriginalPrice.textContent = productData.originalPrice;
     if (detailSales) detailSales.textContent = productData.sales;
 
+    // 重置图片滑块位置
+    if (detailTrack) {
+        detailTrack.style.transition = 'none';
+        detailTrack.style.transform = 'translateX(0)';
+    }
+    var dots = document.querySelectorAll('#detail-image-indicators .detail-dot');
+    dots.forEach(function(d, i) { d.classList.toggle('active', i === 0); });
+
     openModal('product-detail-modal');
+    initDetailImageSlider();
 }
 
 /**
@@ -1217,4 +1235,396 @@ function initBannerSlider() {
     });
 
     startAutoPlay();
+}
+
+/**
+ * 商品详情图片滑动器
+ */
+function initDetailImageSlider() {
+    var track = document.getElementById('detail-image-track');
+    var dots = document.querySelectorAll('#detail-image-indicators .detail-dot');
+    if (!track || dots.length === 0) return;
+    var items = track.querySelectorAll('.detail-image');
+    var total = items.length;
+    if (total <= 0) return;
+    var current = 0;
+
+    function goTo(index) {
+        current = ((index % total) + total) % total;
+        track.style.transition = 'transform 0.4s ease';
+        track.style.transform = 'translateX(-' + (current * 100) + '%)';
+        dots.forEach(function(d, i) { d.classList.toggle('active', i === current); });
+    }
+
+    dots.forEach(function(dot, i) {
+        dot.addEventListener('click', function() { goTo(i); });
+    });
+
+    // 触摸滑动
+    var startX = 0;
+    var startY = 0;
+    var isDragging = false;
+    var directionLocked = false;
+    var isHorizontal = false;
+
+    track.addEventListener('touchstart', function(e) {
+        startX = e.touches[0].clientX;
+        startY = e.touches[0].clientY;
+        isDragging = true;
+        directionLocked = false;
+        isHorizontal = false;
+        track.style.transition = 'none';
+    }, { passive: true });
+
+    track.addEventListener('touchmove', function(e) {
+        if (!isDragging) return;
+        var diffX = e.touches[0].clientX - startX;
+        var diffY = e.touches[0].clientY - startY;
+
+        if (!directionLocked && (Math.abs(diffX) > 5 || Math.abs(diffY) > 5)) {
+            directionLocked = true;
+            isHorizontal = Math.abs(diffX) > Math.abs(diffY);
+        }
+
+        if (!directionLocked || !isHorizontal) return;
+        e.preventDefault();
+
+        var atStart = current === 0 && diffX > 0;
+        var atEnd = current === total - 1 && diffX < 0;
+        if (atStart || atEnd) {
+            diffX = diffX * 0.3;
+        }
+
+        var baseTranslate = -current * 100;
+        var dragPercent = (diffX / track.offsetWidth) * 100;
+        track.style.transform = 'translateX(' + (baseTranslate + dragPercent) + '%)';
+    }, { passive: false });
+
+    track.addEventListener('touchend', function(e) {
+        if (!isDragging) return;
+        isDragging = false;
+        directionLocked = false;
+        track.style.transition = 'transform 0.4s ease';
+        var diff = startX - e.changedTouches[0].clientX;
+        if (Math.abs(diff) > 40) {
+            diff > 0 ? goTo(current + 1) : goTo(current - 1);
+        } else {
+            goTo(current);
+        }
+    }, { passive: true });
+}
+
+/**
+ * 初始化聊天输入功能
+ */
+function initChatInput() {
+    var chatInput = document.getElementById('chatInput');
+    var chatSendBtn = document.getElementById('chatSendBtn');
+
+    if (!chatInput || !chatSendBtn) return;
+
+    // 阻止输入框的点击和焦点事件冒泡
+    chatInput.addEventListener('click', function(e) {
+        e.stopPropagation();
+    });
+
+    chatInput.addEventListener('focus', function(e) {
+        e.stopPropagation();
+        // 防止移动端键盘弹出导致页面变化
+        setTimeout(function() {
+            window.scrollTo(0, document.body.scrollHeight);
+        }, 300);
+    });
+
+    chatInput.addEventListener('touchstart', function(e) {
+        e.stopPropagation();
+    });
+
+    // 发送消息
+    chatSendBtn.addEventListener('click', function() {
+        sendChatMessage();
+    });
+
+    chatInput.addEventListener('keypress', function(e) {
+        if (e.key === 'Enter') {
+            e.preventDefault();
+            sendChatMessage();
+        }
+    });
+}
+
+/**
+ * 发送聊天消息
+ */
+function sendChatMessage() {
+    var chatInput = document.getElementById('chatInput');
+    var chatBody = document.getElementById('chatDetailBody');
+    var msg = chatInput.value.trim();
+    if (!msg || !chatBody) return;
+
+    var msgDiv = document.createElement('div');
+    msgDiv.className = 'chat-message';
+    msgDiv.innerHTML = '<div class="chat-bubble-row from-self">' +
+        '<div class="chat-bubble-avatar" style="background: linear-gradient(135deg, #ff6b35, #ff5722);"><i class="fas fa-user"></i></div>' +
+        '<div class="chat-bubble">' + escapeHtml(msg) + '</div>' +
+        '</div>';
+    chatBody.appendChild(msgDiv);
+    chatInput.value = '';
+    chatBody.scrollTop = chatBody.scrollHeight;
+}
+
+/**
+ * HTML转义防止XSS
+ */
+function escapeHtml(text) {
+    var div = document.createElement('div');
+    div.appendChild(document.createTextNode(text));
+    return div.innerHTML;
+}
+
+/**
+ * 初始化聊天页面滑动防护
+ */
+function initChatSwipePrevention() {
+    var chatPage = document.getElementById('page-chat-detail');
+    if (!chatPage) return;
+
+    var touchStartX = 0;
+    var touchStartY = 0;
+
+    chatPage.addEventListener('touchstart', function(e) {
+        touchStartX = e.touches[0].clientX;
+        touchStartY = e.touches[0].clientY;
+    }, { passive: true });
+
+    chatPage.addEventListener('touchmove', function(e) {
+        var diffX = e.touches[0].clientX - touchStartX;
+        var diffY = e.touches[0].clientY - touchStartY;
+        // 如果是水平滑动，阻止默认行为以防止页面切换
+        if (Math.abs(diffX) > Math.abs(diffY) && Math.abs(diffX) > 10) {
+            e.preventDefault();
+        }
+    }, { passive: false });
+}
+
+/**
+ * 初始化用户信息
+ */
+function initUserProfile() {
+    var lastVisitEl = document.getElementById('userLastVisit');
+    if (lastVisitEl) {
+        var now = new Date();
+        var hours = now.getHours().toString().padStart(2, '0');
+        var minutes = now.getMinutes().toString().padStart(2, '0');
+        lastVisitEl.textContent = '今天 ' + hours + ':' + minutes;
+    }
+}
+
+/**
+ * 初始化订单页面
+ */
+function initOrderPage() {
+    // 订单Tab点击 - 覆盖原有alert行为
+    document.querySelectorAll('.order-tab').forEach(function(tab) {
+        // 移除原有的click事件（通过克隆节点）
+        var newTab = tab.cloneNode(true);
+        tab.parentNode.replaceChild(newTab, tab);
+        newTab.addEventListener('click', function() {
+            var title = this.querySelector('span:not(.tab-badge)').textContent;
+            openOrderPage(title);
+        });
+    });
+
+    // 查看全部订单
+    var viewAllBtn = document.querySelector('.view-all');
+    if (viewAllBtn) {
+        var newBtn = viewAllBtn.cloneNode(true);
+        viewAllBtn.parentNode.replaceChild(newBtn, viewAllBtn);
+        newBtn.addEventListener('click', function() {
+            openOrderPage('全部');
+        });
+    }
+
+    // 订单页面返回按钮
+    var backBtn = document.getElementById('ordersBackBtn');
+    if (backBtn) {
+        backBtn.addEventListener('click', function() {
+            var orderPage = document.getElementById('page-orders');
+            var profilePage = document.getElementById('page-profile');
+            var bottomNav = document.querySelector('.bottom-nav');
+            orderPage.classList.remove('active');
+            profilePage.classList.add('active');
+            if (bottomNav) {
+                bottomNav.style.display = '';
+            }
+        });
+    }
+
+    // 订单筛选Tab切换
+    var filterTabs = document.querySelectorAll('.order-filter-tab');
+    filterTabs.forEach(function(tab) {
+        tab.addEventListener('click', function() {
+            filterTabs.forEach(function(t) { t.classList.remove('active'); });
+            this.classList.add('active');
+            var status = this.getAttribute('data-status');
+            renderOrderList(status);
+        });
+    });
+}
+
+/**
+ * 打开订单页面
+ */
+function openOrderPage(tabName) {
+    var profilePage = document.getElementById('page-profile');
+    var orderPage = document.getElementById('page-orders');
+    var bottomNav = document.querySelector('.bottom-nav');
+
+    if (!orderPage) return;
+
+    profilePage.classList.remove('active');
+    orderPage.classList.add('active');
+    if (bottomNav) {
+        bottomNav.style.display = 'none';
+    }
+
+    // 设置对应的筛选tab
+    var statusMap = {
+        '全部': 'all',
+        '待付款': 'pending-payment',
+        '待发货': 'pending-ship',
+        '待收货': 'pending-receive',
+        '待评价': 'pending-review',
+        '退换/售后': 'all'
+    };
+    var status = statusMap[tabName] || 'all';
+    var filterTabs = document.querySelectorAll('.order-filter-tab');
+    filterTabs.forEach(function(t) {
+        t.classList.toggle('active', t.getAttribute('data-status') === status);
+    });
+
+    renderOrderList(status);
+    window.scrollTo(0, 0);
+}
+
+/**
+ * 模拟订单数据
+ */
+var mockOrders = [
+    {
+        id: '2024021200001',
+        shop: '品牌官方旗舰店',
+        status: 'pending-receive',
+        statusText: '待收货',
+        product: '时尚女装夏季新款连衣裙 修身显瘦',
+        spec: '颜色：粉色 尺码：M',
+        price: '¥128.00',
+        qty: 1,
+        total: '¥128.00',
+        icon: 'fa-tshirt',
+        bg: 'linear-gradient(135deg, #ffecd2, #fcb69f)',
+        actions: ['查看物流', '确认收货']
+    },
+    {
+        id: '2024021100002',
+        shop: '数码旗舰店',
+        status: 'pending-payment',
+        statusText: '待付款',
+        product: '新款智能手机 5G全网通',
+        spec: '颜色：黑色 存储：128GB',
+        price: '¥2,999.00',
+        qty: 1,
+        total: '¥2,999.00',
+        icon: 'fa-mobile-alt',
+        bg: 'linear-gradient(135deg, #a1c4fd, #c2e9fb)',
+        actions: ['取消订单', '立即付款']
+    },
+    {
+        id: '2024020800003',
+        shop: '运动专营店',
+        status: 'pending-ship',
+        statusText: '待发货',
+        product: '休闲运动鞋 透气舒适 跑步鞋',
+        spec: '颜色：白色 尺码：42',
+        price: '¥168.00',
+        qty: 1,
+        total: '¥168.00',
+        icon: 'fa-shoe-prints',
+        bg: 'linear-gradient(135deg, #667eea, #764ba2)',
+        actions: ['催发货', '退款']
+    },
+    {
+        id: '2024020500004',
+        shop: '美妆旗舰店',
+        status: 'pending-review',
+        statusText: '待评价',
+        product: '护肤套装补水保湿 面霜精华套装',
+        spec: '规格：标准套装',
+        price: '¥89.00',
+        qty: 2,
+        total: '¥178.00',
+        icon: 'fa-pump-soap',
+        bg: 'linear-gradient(135deg, #d299c2, #fef9d7)',
+        actions: ['评价', '再次购买']
+    },
+    {
+        id: '2024020100005',
+        shop: '品牌官方旗舰店',
+        status: 'pending-receive',
+        statusText: '待收货',
+        product: '无线蓝牙耳机 降噪入耳式',
+        spec: '颜色：白色',
+        price: '¥199.00',
+        qty: 1,
+        total: '¥199.00',
+        icon: 'fa-headphones',
+        bg: 'linear-gradient(135deg, #f5f7fa, #c3cfe2)',
+        actions: ['查看物流', '确认收货']
+    }
+];
+
+/**
+ * 渲染订单列表
+ */
+function renderOrderList(status) {
+    var orderListEl = document.getElementById('orderList');
+    if (!orderListEl) return;
+
+    var filtered = status === 'all' ? mockOrders : mockOrders.filter(function(o) { return o.status === status; });
+
+    if (filtered.length === 0) {
+        orderListEl.innerHTML = '<div class="order-empty"><i class="fas fa-inbox"></i><p>暂无相关订单</p></div>';
+        return;
+    }
+
+    orderListEl.innerHTML = filtered.map(function(order) {
+        var actionBtns = order.actions.map(function(action, i) {
+            var cls = i === order.actions.length - 1 ? 'order-action-btn primary' : 'order-action-btn';
+            return '<button class="' + cls + '">' + action + '</button>';
+        }).join('');
+
+        return '<div class="order-card">' +
+            '<div class="order-card-header">' +
+                '<div class="order-shop-name"><i class="fas fa-store"></i>' + order.shop + '</div>' +
+                '<div class="order-status">' + order.statusText + '</div>' +
+            '</div>' +
+            '<div class="order-product">' +
+                '<div class="order-product-image" style="background: ' + order.bg + ';">' +
+                    '<i class="fas ' + order.icon + '"></i>' +
+                '</div>' +
+                '<div class="order-product-info">' +
+                    '<div class="order-product-title">' + order.product + '</div>' +
+                    '<div class="order-product-spec">' + order.spec + '</div>' +
+                    '<div class="order-product-price">' +
+                        '<span class="price">' + order.price + '</span>' +
+                        '<span class="qty">x' + order.qty + '</span>' +
+                    '</div>' +
+                '</div>' +
+            '</div>' +
+            '<div class="order-card-footer">' +
+                '<div class="order-total">合计: <span class="total-price">' + order.total + '</span></div>' +
+                '<div class="order-actions">' + actionBtns + '</div>' +
+            '</div>' +
+        '</div>';
+    }).join('');
 }
