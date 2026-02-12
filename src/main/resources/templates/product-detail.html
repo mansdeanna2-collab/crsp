@@ -85,7 +85,7 @@
             transition: transform 0.3s ease;
             height: 100%;
             will-change: transform;
-            touch-action: pan-x pan-y;
+            touch-action: pan-x pan-y pinch-zoom;
             -webkit-user-select: none;
             user-select: none;
         }
@@ -1529,11 +1529,11 @@
                     prevSlide();
                 }
             } else {
+                // Ensure index stays within valid range to avoid rare out-of-bounds lockups
+                if (currentSlide < 0) currentSlide = 0;
+                if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
                 updateSlider();
             }
-            // Ensure index stays within valid range to avoid rare out-of-bounds lockups
-            if (currentSlide < 0) currentSlide = 0;
-            if (currentSlide >= totalSlides) currentSlide = totalSlides - 1;
         }
 
         // 规格选择弹窗功能
