@@ -215,7 +215,7 @@
                             </select>
                         </div>
                         <div>
-                            <a id="goToChatBtn" href="#" class="btn btn-primary" style="pointer-events: none; opacity: 0.5;" onclick="return false;">
+                            <a id="goToChatBtn" href="#" class="btn btn-primary" style="pointer-events: none; opacity: 0.5;">
                                 <i class="fas fa-comments"></i> 发送消息
                             </a>
                         </div>
@@ -268,12 +268,10 @@
                 btn.href = '/admin/messages/chat/' + userId;
                 btn.style.pointerEvents = '';
                 btn.style.opacity = '1';
-                btn.onclick = null;
             } else {
                 btn.href = '#';
                 btn.style.pointerEvents = 'none';
                 btn.style.opacity = '0.5';
-                btn.onclick = function() { return false; };
             }
         });
     </script>
