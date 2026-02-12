@@ -191,7 +191,7 @@
         var currentChat = null;
 
         // 初始化用户
-        fetch('/api/user/init', { method: 'POST' }).catch(function() {});
+        fetch('/api/user/init', { method: 'POST' }).catch(function(err) { console.error('User init failed:', err); });
 
         // 加载未读消息数
         function loadUnreadCounts() {
@@ -211,7 +211,7 @@
                         }
                     });
                 })
-                .catch(function() {});
+                .catch(function(err) { console.error('Failed to load unread counts:', err); });
         }
 
         // 页面加载时获取未读消息
@@ -316,7 +316,8 @@
                     var badge = document.getElementById('badge-' + chatId);
                     if (badge) badge.style.display = 'none';
                 })
-                .catch(function() {
+                .catch(function(err) {
+                    console.error('Failed to load chat history:', err);
                     body.innerHTML = '<div class="msg-empty"><i class="fas fa-exclamation-circle"></i>加载失败，请重试</div>';
                 });
         }
@@ -397,7 +398,8 @@
                 var timeEl = document.getElementById('time-' + currentChat);
                 if (timeEl) timeEl.textContent = timeStr;
             })
-            .catch(function() {
+            .catch(function(err) {
+                console.error('Message send failed:', err);
                 appendBubble('received', '网络错误，消息发送失败', formatTime(new Date()));
             });
         }
