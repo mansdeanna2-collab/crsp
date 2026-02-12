@@ -1818,39 +1818,6 @@ body {
     padding-bottom: 70px;
 }
 
-/* ==================== 用户信息扩展 ==================== */
-.user-extra-info {
-    position: relative;
-    display: flex;
-    justify-content: space-around;
-    background: rgba(255, 255, 255, 0.15);
-    border-radius: 10px;
-    padding: 12px 10px;
-    margin-top: 15px;
-}
-
-.user-extra-item {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    gap: 4px;
-    color: white;
-}
-
-.user-extra-item i {
-    font-size: 14px;
-    opacity: 0.8;
-}
-
-.user-extra-label {
-    font-size: 11px;
-    opacity: 0.8;
-}
-
-.user-extra-value {
-    font-size: 12px;
-    font-weight: 600;
-}
 
 /* ==================== 订单列表页面 ==================== */
 #page-orders .header {

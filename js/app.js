@@ -27,8 +27,6 @@ document.addEventListener('DOMContentLoaded', function() {
     initChatInput();
     // 初始化聊天页面滑动防护
     initChatSwipePrevention();
-    // 初始化用户信息
-    initUserProfile();
     // 初始化订单页面
     initOrderPage();
 });
@@ -1405,19 +1403,6 @@ function initChatSwipePrevention() {
             e.preventDefault();
         }
     }, { passive: false });
-}
-
-/**
- * 初始化用户信息
- */
-function initUserProfile() {
-    var lastVisitEl = document.getElementById('userLastVisit');
-    if (lastVisitEl) {
-        var now = new Date();
-        var hours = now.getHours().toString().padStart(2, '0');
-        var minutes = now.getMinutes().toString().padStart(2, '0');
-        lastVisitEl.textContent = '今天 ' + hours + ':' + minutes;
-    }
 }
 
 /**
