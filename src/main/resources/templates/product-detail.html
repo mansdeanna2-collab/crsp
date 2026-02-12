@@ -104,7 +104,7 @@
             -webkit-user-drag: none;
             user-select: none;
             cursor: pointer;
-            touch-action: pan-y;
+            touch-action: pan-x pan-y;
         }
         .media-slide video {
             width: 100%;
@@ -1439,7 +1439,7 @@
                 e.preventDefault();
                 var offsetX = touchCurrentX - touchStartX;
                 var baseTranslate = -currentSlide * 100;
-                var dragPercent = (offsetX / mediaSlider.offsetWidth) * 100;
+                var dragPercent = (offsetX / sliderContainer.offsetWidth) * 100;
                 sliderContainer.style.transform = 'translateX(' + (baseTranslate + dragPercent) + '%)';
             }, { passive: false });
 
