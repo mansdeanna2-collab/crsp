@@ -408,6 +408,15 @@
         document.getElementById('chatInput').addEventListener('keypress', function(e) {
             if (e.key === 'Enter') { e.preventDefault(); sendMessage(); }
         });
+
+        // 支持从URL参数自动打开指定聊天
+        (function() {
+            var params = new URLSearchParams(window.location.search);
+            var chatParam = params.get('chat');
+            if (chatParam && chatNames[chatParam]) {
+                openChat(chatParam);
+            }
+        })();
     </script>
 </body>
 </html>

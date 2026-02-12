@@ -74,7 +74,7 @@
             position: relative;
             height: 75vw;
             max-height: 350px;
-            margin-top: calc(55px + env(safe-area-inset-top));
+            margin-top: calc(75px + env(safe-area-inset-top));
             background: #f5f5f5;
             overflow: hidden;
         }
@@ -1014,28 +1014,11 @@
                         <div class="shop-name">成人用品旗舰店</div>
                         <div class="shop-rating">⭐ 4.9分 | 好评率98%</div>
                     </div>
-                    <button class="shop-btn">进店</button>
+                    <button class="shop-btn" onclick="window.location.href='/'">进店</button>
                 </div>
             </div>
 
-            <!-- 规格选择 -->
-            <div class="spec-section">
-                <div class="spec-row">
-                    <span class="spec-label">规格</span>
-                    <span class="spec-value" th:text="${product.spec}">默认规格</span>
-                    <i class="fas fa-chevron-right spec-arrow"></i>
-                </div>
-                <div class="spec-row">
-                    <span class="spec-label">配送</span>
-                    <span class="spec-value">北京 顺丰快递</span>
-                    <i class="fas fa-chevron-right spec-arrow"></i>
-                </div>
-                <div class="spec-row">
-                    <span class="spec-label">服务</span>
-                    <span class="spec-value">7天无理由退换 · 隐私包装</span>
-                    <i class="fas fa-chevron-right spec-arrow"></i>
-                </div>
-            </div>
+            <!-- 规格选择（已隐藏） -->
 
 
 
@@ -1132,11 +1115,11 @@
     <!-- 底部操作栏 -->
     <div class="detail-footer">
         <div class="footer-icons">
-            <a href="#" class="footer-icon">
+            <a href="/" class="footer-icon">
                 <i class="fas fa-store"></i>
                 <span>店铺</span>
             </a>
-            <a href="#" class="footer-icon">
+            <a href="/message?chat=store" class="footer-icon">
                 <i class="fas fa-comment-dots"></i>
                 <span>客服</span>
             </a>
