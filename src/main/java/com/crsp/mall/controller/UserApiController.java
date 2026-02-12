@@ -1,6 +1,7 @@
 package com.crsp.mall.controller;
 
 import com.crsp.mall.entity.*;
+import com.crsp.mall.service.MessageService;
 import com.crsp.mall.service.OrderService;
 import com.crsp.mall.service.ProductDbService;
 import com.crsp.mall.service.UserService;
@@ -33,6 +34,9 @@ public class UserApiController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private MessageService messageService;
 
     @Value("${server.cookie.secure:false}")
     private boolean secureCookie;
@@ -578,6 +582,85 @@ public class UserApiController {
             return ResponseEntity.badRequest().body(Map.of("error", statusError));
         }
         return null;
+    }
+
+    // ===== 消息 =====
+
+    /**
+     * 发送消息
+     */
+    @PostMapping("/message/send")
+    public ResponseEntity<?> sendMessage(@RequestBody Map<String, Object> body, HttpServletRequest request, HttpServletResponse response) {
+        UserEntity user = getOrInitUser(request, response);
+
+        String chatType = body.get("chatType") != null ? body.get("chatType").toString().trim() : "";
+        String content = body.get("content") != null ? body.get("content").toString().trim() : "";
+
+        if (chatType.isEmpty() || content.isEmpty()) {
+            return ResponseEntity.badRequest().body(Map.of("error", "聊天类型和消息内容不能为空"));
+        }
+        if (!messageService.isValidChatType(chatType)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "无效的聊天类型"));
+        }
+        if (content.length() > 500) {
+            return ResponseEntity.badRequest().body(Map.of("error", "消息内容不能超过500个字符"));
+        }
+
+        MessageEntity message = messageService.sendUserMessage(user.getId(), chatType, content);
+        if (message == null) {
+            return ResponseEntity.badRequest().body(Map.of("error", "消息发送失败"));
+        }
+
+        Map<String, Object> result = new HashMap<>();
+        result.put("success", true);
+        result.put("id", message.getId());
+        result.put("createdAt", message.getCreatedAt().toString());
+        return ResponseEntity.ok(result);
+    }
+
+    /**
+     * 获取聊天历史记录
+     */
+    @GetMapping("/message/history/{chatType}")
+    public ResponseEntity<?> getChatHistory(@PathVariable String chatType, HttpServletRequest request) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.ok(List.of());
+        }
+        if (!messageService.isValidChatType(chatType)) {
+            return ResponseEntity.badRequest().body(Map.of("error", "无效的聊天类型"));
+        }
+
+        // 标记为已读
+        messageService.markAsRead(user.getId(), chatType);
+
+        List<MessageEntity> messages = messageService.getChatHistory(user.getId(), chatType);
+        return ResponseEntity.ok(messages.stream().map(msg -> {
+            Map<String, Object> m = new HashMap<>();
+            m.put("id", msg.getId());
+            m.put("type", "user".equals(msg.getSenderType()) ? "sent" : "received");
+            m.put("text", msg.getContent());
+            m.put("senderName", msg.getSenderName());
+            m.put("time", msg.getCreatedAt() != null ? msg.getCreatedAt().toString() : "");
+            return m;
+        }).toList());
+    }
+
+    /**
+     * 获取未读消息数
+     */
+    @GetMapping("/message/unread")
+    public ResponseEntity<?> getUnreadCounts(HttpServletRequest request) {
+        UserEntity user = getCurrentUser(request);
+        if (user == null) {
+            return ResponseEntity.ok(Map.of("total", 0));
+        }
+        Map<String, Object> result = new HashMap<>();
+        result.put("total", messageService.getTotalUnreadCount(user.getId()));
+        for (String type : messageService.getValidChatTypes()) {
+            result.put(type, messageService.getUnreadCount(user.getId(), type));
+        }
+        return ResponseEntity.ok(result);
     }
 
     // ===== 辅助方法 =====

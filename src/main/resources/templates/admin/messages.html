@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>商品管理 - 成人玩具商城后台</title>
+    <title>消息管理 - 成人玩具商城后台</title>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -50,7 +50,11 @@
             border-left: 3px solid transparent;
         }
         .menu-item:hover { background: rgba(102, 126, 234, 0.1); color: white; }
-        .menu-item.active { background: rgba(102, 126, 234, 0.15); color: white; border-left-color: #667eea; }
+        .menu-item.active {
+            background: rgba(102, 126, 234, 0.15);
+            color: white;
+            border-left-color: #667eea;
+        }
         .menu-item i { width: 20px; font-size: 16px; }
         .main-content { flex: 1; margin-left: 250px; }
         .top-header {
@@ -74,6 +78,7 @@
             font-size: 14px;
             text-decoration: none;
         }
+        .logout-btn:hover { background: #eee; }
         .content-area { padding: 30px; }
         .card {
             background: white;
@@ -89,57 +94,42 @@
             align-items: center;
         }
         .card-title { font-size: 16px; font-weight: 600; color: #333; }
+        .table { width: 100%; border-collapse: collapse; }
+        .table th, .table td {
+            padding: 15px 20px;
+            text-align: left;
+            border-bottom: 1px solid #eee;
+        }
+        .table th { background: #f8f9fa; font-weight: 600; color: #333; font-size: 13px; }
+        .table td { color: #666; font-size: 14px; }
         .btn {
-            display: inline-flex;
-            align-items: center;
-            gap: 6px;
-            padding: 10px 20px;
-            border-radius: 8px;
-            font-size: 14px;
+            display: inline-block;
+            padding: 6px 16px;
+            border-radius: 6px;
+            font-size: 13px;
             text-decoration: none;
             border: none;
             cursor: pointer;
             transition: all 0.3s;
         }
-        .btn-primary { background: linear-gradient(135deg, #667eea, #764ba2); color: white; }
-        .btn-primary:hover { transform: translateY(-2px); box-shadow: 0 5px 20px rgba(102, 126, 234, 0.3); }
-        .btn-danger { background: #dc3545; color: white; }
-        .btn-sm { padding: 6px 12px; font-size: 12px; }
-        .table { width: 100%; border-collapse: collapse; }
-        .table th, .table td { padding: 15px 20px; text-align: left; border-bottom: 1px solid #eee; }
-        .table th { background: #f8f9fa; font-weight: 600; color: #333; font-size: 13px; }
-        .table td { color: #666; font-size: 14px; }
-        .product-image {
-            width: 60px;
-            height: 60px;
-            border-radius: 8px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-        .product-image i { font-size: 24px; color: white; }
-        .product-tag {
-            display: inline-block;
-            padding: 3px 10px;
-            border-radius: 12px;
-            font-size: 11px;
-            font-weight: 500;
-            background: #e9ecef;
-            color: #495057;
-        }
-        .actions { display: flex; gap: 8px; }
+        .btn-primary { background: #667eea; color: white; }
+        .btn-primary:hover { background: #5a6fd6; }
+        .empty-state { text-align: center; padding: 60px 20px; color: #999; }
+        .empty-state i { font-size: 48px; margin-bottom: 12px; display: block; color: #ddd; }
         .alert {
-            padding: 15px 20px;
+            padding: 12px 20px;
             border-radius: 8px;
             margin-bottom: 20px;
-            display: flex;
-            align-items: center;
-            gap: 10px;
+            font-size: 14px;
         }
-        .alert-success { background: #d4edda; color: #155724; }
+        .alert-success { background: #d1e7dd; color: #0f5132; }
         .alert-error { background: #f8d7da; color: #721c24; }
-        .status-active { color: #28a745; }
-        .status-inactive { color: #dc3545; }
+        .message-preview {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
     </style>
 </head>
 <body>
@@ -198,7 +188,7 @@
         <!-- 主内容区 -->
         <div class="main-content">
             <div class="top-header">
-                <h1 class="page-title">商品管理</h1>
+                <h1 class="page-title">消息管理</h1>
                 <div class="user-info">
                     <span><i class="fas fa-user"></i> <span th:text="${session.admin.name}">管理员</span></span>
                     <a th:href="@{/admin/logout}" class="logout-btn">
@@ -208,77 +198,43 @@
             </div>
 
             <div class="content-area">
-                <!-- 提示消息 -->
-                <div th:if="${success}" class="alert alert-success">
-                    <i class="fas fa-check-circle"></i> <span th:text="${success}">操作成功</span>
-                </div>
+                <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
+                <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
                 <div class="card">
                     <div class="card-header">
-                        <h3 class="card-title">商品列表</h3>
-                        <a th:href="@{/admin/products/add}" class="btn btn-primary">
-                            <i class="fas fa-plus"></i> 添加商品
-                        </a>
+                        <h3 class="card-title">用户消息列表</h3>
                     </div>
-                    <table class="table">
+                    <table class="table" th:if="${!#lists.isEmpty(userList)}">
                         <thead>
                             <tr>
-                                <th>ID</th>
-                                <th>图片</th>
-                                <th>商品名称</th>
-                                <th>价格</th>
-                                <th>标签</th>
-                                <th>状态</th>
+                                <th>用户ID</th>
+                                <th>昵称</th>
+                                <th>用户类型</th>
+                                <th>最新消息</th>
+                                <th>时间</th>
                                 <th>操作</th>
                             </tr>
                         </thead>
                         <tbody>
-                            <tr th:each="product : ${products}">
-                                <td th:text="${product.id}">1</td>
+                            <tr th:each="item : ${userList}">
+                                <td th:text="${item.user.id}">1</td>
+                                <td th:text="${item.user.nickname}">用户</td>
+                                <td th:text="${item.user.userTypeText}">游客</td>
+                                <td class="message-preview" th:text="${item.latestMessage}">消息内容</td>
+                                <td th:text="${item.latestTime != null} ? ${#temporals.format(item.latestTime, 'yyyy-MM-dd HH:mm')} : ''">时间</td>
                                 <td>
-                                    <div class="product-image" style="background: #f5f5f5; overflow: hidden;">
-                                        <th:block th:if="${product.hasDisplayMedia() and product.firstImageUrl != null}">
-                                            <img th:src="${product.firstImageUrl}" th:alt="${product.title}" style="width: 100%; height: 100%; object-fit: cover; border-radius: 8px;"
-                                                 onerror="this.style.display='none'; var fb=this.nextElementSibling; if(fb) fb.style.display='block';">
-                                            <i class="fas fa-box" style="display: none;"></i>
-                                        </th:block>
-                                        <th:block th:unless="${product.hasDisplayMedia() and product.firstImageUrl != null}">
-                                            <i class="fas fa-box"></i>
-                                        </th:block>
-                                    </div>
+                                    <a th:href="@{/admin/messages/chat/{id}(id=${item.user.id})}" class="btn btn-primary">
+                                        <i class="fas fa-comments"></i> 查看/回复
+                                    </a>
                                 </td>
-                                <td th:text="${product.title}">商品名称</td>
-                                <td>
-                                    <span style="color: #ff5722; font-weight: 600;" th:text="'¥' + ${product.price}">¥0</span>
-                                </td>
-                                <td><span class="product-tag" th:text="${product.tag}">标签</span></td>
-                                <td>
-                                    <span th:if="${product.active}" class="status-active">
-                                        <i class="fas fa-check-circle"></i> 上架
-                                    </span>
-                                    <span th:unless="${product.active}" class="status-inactive">
-                                        <i class="fas fa-times-circle"></i> 下架
-                                    </span>
-                                </td>
-                                <td>
-                                    <div class="actions">
-                                        <a th:href="@{/admin/products/edit/{id}(id=${product.id})}" class="btn btn-primary btn-sm">
-                                            <i class="fas fa-edit"></i> 编辑
-                                        </a>
-                                        <form th:action="@{/admin/products/delete/{id}(id=${product.id})}" method="post" style="display: inline;" 
-                                              onsubmit="return confirm('确定要删除这个商品吗？');">
-                                            <button type="submit" class="btn btn-danger btn-sm">
-                                                <i class="fas fa-trash"></i> 删除
-                                            </button>
-                                        </form>
-                                    </div>
-                                </td>
-                            </tr>
-                            <tr th:if="${#lists.isEmpty(products)}">
-                                <td colspan="7" style="text-align: center; color: #999; padding: 50px;">暂无商品数据</td>
                             </tr>
                         </tbody>
                     </table>
+                    <div th:if="${#lists.isEmpty(userList)}" class="empty-state">
+                        <i class="fas fa-inbox"></i>
+                        <p>暂无用户消息</p>
+                    </div>
                 </div>
             </div>
         </div>

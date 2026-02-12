@@ -31,6 +31,9 @@ public class UserService {
     @Autowired
     private OrderRepository orderRepository;
 
+    @Autowired
+    private MessageRepository messageRepository;
+
     // ===== 用户管理 =====
 
     /**
@@ -138,6 +141,7 @@ public class UserService {
         browsingHistoryRepository.deleteByUserId(id);
         favoriteRepository.deleteByUserId(id);
         cartItemRepository.deleteByUserId(id);
+        messageRepository.deleteByUserId(id);
         userRepository.deleteById(id);
     }
 
