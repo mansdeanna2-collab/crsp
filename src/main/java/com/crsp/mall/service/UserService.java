@@ -63,7 +63,23 @@ public class UserService {
         if (ipAddress != null && !ipAddress.isEmpty()) {
             user.setRegisterIp(ipAddress);
         }
-        return userRepository.save(user);
+        UserEntity savedUser = userRepository.save(user);
+
+        // 自动发送注册欢迎系统通知
+        try {
+            MessageEntity welcomeMsg = new MessageEntity();
+            welcomeMsg.setUserId(savedUser.getId());
+            welcomeMsg.setChatType("system");
+            welcomeMsg.setSenderType("admin");
+            welcomeMsg.setSenderName("系统通知");
+            welcomeMsg.setContent("欢迎注册成人玩具商城！您的账户已创建成功，祝您购物愉快~");
+            welcomeMsg.setIsRead(false);
+            messageRepository.save(welcomeMsg);
+        } catch (Exception e) {
+            // 发送欢迎消息失败不影响用户注册
+        }
+
+        return savedUser;
     }
 
     public Optional<UserEntity> getUserByToken(String token) {

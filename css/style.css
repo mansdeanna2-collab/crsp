@@ -1408,7 +1408,8 @@ body {
     position: relative;
     overflow: hidden;
     border-radius: 8px;
-    margin-bottom: 15px;
+    margin-bottom: 10px;
+    margin-top: -5px;
     touch-action: pan-y;
 }
 

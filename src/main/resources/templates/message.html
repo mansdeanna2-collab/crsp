@@ -57,7 +57,7 @@
             <!-- 消息列表视图 -->
             <div class="msg-list-view" id="msgListView">
                 <div class="message-list" id="messageList">
-                    <div class="message-item" data-chat="logistics" data-type="order">
+                    <div class="message-item" data-chat="logistics" data-type="order" id="item-logistics" style="display:none;">
                         <div class="message-avatar" style="background: linear-gradient(135deg, #ff6b6b, #ff8e53);">
                             <i class="fas fa-truck"></i>
                         </div>
@@ -83,7 +83,7 @@
                         </div>
                         <span class="message-badge" id="badge-store" style="display:none;">0</span>
                     </div>
-                    <div class="message-item" data-chat="promo" data-type="promo">
+                    <div class="message-item" data-chat="promo" data-type="promo" id="item-promo" style="display:none;">
                         <div class="message-avatar" style="background: linear-gradient(135deg, #43e97b, #38f9d7);">
                             <i class="fas fa-percent"></i>
                         </div>
@@ -217,15 +217,46 @@
         // 页面加载时获取未读消息
         loadUnreadCounts();
 
+        // 检查物流通知和优惠活动是否有消息，有消息时才显示
+        function checkAndShowMessageItems() {
+            ['logistics', 'promo'].forEach(function(type) {
+                fetch('/api/user/message/history/' + type)
+                    .then(function(r) { return r.json(); })
+                    .then(function(messages) {
+                        var item = document.getElementById('item-' + type);
+                        if (item && messages.length > 0) {
+                            item.style.display = '';
+                            item.setAttribute('data-has-messages', 'true');
+                            // 更新预览信息
+                            var lastMsg = messages[messages.length - 1];
+                            var preview = document.getElementById('preview-' + type);
+                            if (preview && lastMsg.text) preview.textContent = lastMsg.text;
+                            var timeEl = document.getElementById('time-' + type);
+                            if (timeEl && lastMsg.time) timeEl.textContent = formatMessageTime(lastMsg.time);
+                        }
+                    })
+                    .catch(function() {});
+            });
+        }
+        checkAndShowMessageItems();
+
         // Tab切换过滤
+        var hiddenByDefaultTypes = ['logistics', 'promo'];
         document.querySelectorAll('#messageTabs .message-tab').forEach(function(tab) {
             tab.addEventListener('click', function() {
                 document.querySelectorAll('#messageTabs .message-tab').forEach(function(t) { t.classList.remove('active'); });
                 this.classList.add('active');
                 var type = this.getAttribute('data-type');
                 document.querySelectorAll('#messageList .message-item').forEach(function(item) {
+                    var chatId = item.getAttribute('data-chat');
+                    var isHiddenByDefault = hiddenByDefaultTypes.indexOf(chatId) !== -1;
+                    var hasMessages = item.getAttribute('data-has-messages') === 'true';
                     if (type === 'all' || item.getAttribute('data-type') === type) {
-                        item.style.display = '';
+                        if (isHiddenByDefault && !hasMessages) {
+                            item.style.display = 'none';
+                        } else {
+                            item.style.display = '';
+                        }
                     } else {
                         item.style.display = 'none';
                     }

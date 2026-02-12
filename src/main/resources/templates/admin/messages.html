@@ -201,6 +201,27 @@
                 <div th:if="${success}" class="alert alert-success" th:text="${success}"></div>
                 <div th:if="${error}" class="alert alert-error" th:text="${error}"></div>
 
+                <!-- 选择用户发送消息 -->
+                <div class="card" style="margin-bottom: 20px;">
+                    <div class="card-header">
+                        <h3 class="card-title">选择用户发送消息</h3>
+                    </div>
+                    <div style="padding: 20px; display: flex; gap: 15px; align-items: flex-end; flex-wrap: wrap;">
+                        <div style="flex: 1; min-width: 200px;">
+                            <label style="display: block; font-size: 13px; font-weight: 600; color: #333; margin-bottom: 6px;">选择用户</label>
+                            <select id="userSelect" style="width: 100%; padding: 10px 14px; border: 1px solid #e0e0e0; border-radius: 8px; font-size: 14px; outline: none;">
+                                <option value="">-- 请选择用户 --</option>
+                                <option th:each="u : ${allUsers}" th:value="${u.id}" th:text="'ID:' + ${u.id} + ' - ' + ${u.nickname} + ' (' + ${u.userTypeText} + ')'">用户</option>
+                            </select>
+                        </div>
+                        <div>
+                            <a id="goToChatBtn" href="#" class="btn btn-primary" style="pointer-events: none; opacity: 0.5;" onclick="return false;">
+                                <i class="fas fa-comments"></i> 发送消息
+                            </a>
+                        </div>
+                    </div>
+                </div>
+
                 <div class="card">
                     <div class="card-header">
                         <h3 class="card-title">用户消息列表</h3>
@@ -239,5 +260,22 @@
             </div>
         </div>
     </div>
+    <script>
+        document.getElementById('userSelect').addEventListener('change', function() {
+            var btn = document.getElementById('goToChatBtn');
+            var userId = this.value;
+            if (userId) {
+                btn.href = '/admin/messages/chat/' + userId;
+                btn.style.pointerEvents = '';
+                btn.style.opacity = '1';
+                btn.onclick = null;
+            } else {
+                btn.href = '#';
+                btn.style.pointerEvents = 'none';
+                btn.style.opacity = '0.5';
+                btn.onclick = function() { return false; };
+            }
+        });
+    </script>
 </body>
 </html>
