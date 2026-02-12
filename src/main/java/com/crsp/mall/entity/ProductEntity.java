@@ -5,6 +5,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.time.LocalDateTime;
+import java.util.List;
+import java.util.Map;
+import java.util.regex.Matcher;
+import java.util.regex.Pattern;
 
 /**
  * 商品实体类
@@ -152,6 +156,43 @@ public class ProductEntity {
     
     public String getSpecifications() { return specifications; }
     public void setSpecifications(String specifications) { this.specifications = specifications; }
+
+    /**
+     * 根据规格名称获取对应价格（若存在）
+     * @param specName 规格名称
+     * @return 规格价格，若未找到或解析失败返回null
+     */
+    public Double getSpecPrice(String specName) {
+        if (specName == null || specName.trim().isEmpty()) {
+            return null;
+        }
+        if (specifications == null || specifications.trim().isEmpty()) {
+            return null;
+        }
+        try {
+            List<Map<String, Object>> specs = OBJECT_MAPPER.readValue(
+                specifications,
+                new com.fasterxml.jackson.core.type.TypeReference<List<Map<String, Object>>>() {}
+            );
+            for (Map<String, Object> spec : specs) {
+                Object nameObj = spec.get("name");
+                if (nameObj != null && specName.equals(nameObj.toString())) {
+                    Object priceObj = spec.get("price");
+                    if (priceObj == null) {
+                        return null;
+                    }
+                    Matcher matcher = PRICE_PATTERN.matcher(priceObj.toString());
+                    if (matcher.find()) {
+                        return Double.valueOf(matcher.group());
+                    }
+                    return null;
+                }
+            }
+        } catch (Exception e) {
+            LOGGER.warn("商品ID={}的规格价格解析失败: {}", id, e.getMessage());
+        }
+        return null;
+    }
     
     /**
      * 获取第一个展示图片的URL（用于商品列表显示）
@@ -205,6 +246,7 @@ public class ProductEntity {
     
     // 静态ObjectMapper实例，线程安全可复用
     private static final com.fasterxml.jackson.databind.ObjectMapper OBJECT_MAPPER = new com.fasterxml.jackson.databind.ObjectMapper();
+    private static final Pattern PRICE_PATTERN = Pattern.compile("[+-]?\\d+(?:\\.\\d+)?");
     
     /**
      * 检查是否有展示媒体（图片或视频）

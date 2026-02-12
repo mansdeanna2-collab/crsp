@@ -238,12 +238,15 @@ public class UserService {
     public CartItemEntity addToCart(Long userId, ProductEntity product, String specName, Integer quantity) {
         String spec = (specName != null) ? specName : "";
         int qty = (quantity != null && quantity >= 1) ? Math.min(quantity, 999) : 1;
+        Double specPrice = product.getSpecPrice(spec);
+        double priceToUse = specPrice != null ? specPrice : product.getPrice();
         Optional<CartItemEntity> existing = cartItemRepository.findByUserIdAndProductIdAndSpecName(userId, product.getId(), spec);
         
         if (existing.isPresent()) {
             CartItemEntity item = existing.get();
             int newQty = Math.min(item.getQuantity() + qty, 999);
             item.setQuantity(newQty);
+            item.setProductPrice(priceToUse);
             return cartItemRepository.save(item);
         }
         
@@ -251,7 +254,7 @@ public class UserService {
         item.setUserId(userId);
         item.setProductId(product.getId());
         item.setProductTitle(product.getTitle());
-        item.setProductPrice(product.getPrice());
+        item.setProductPrice(priceToUse);
         item.setProductImage(product.getFirstImageUrl());
         item.setSpecName(spec);
         item.setQuantity(qty);
