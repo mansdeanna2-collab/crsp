@@ -25,6 +25,13 @@ public class ProductDbService {
     }
 
     /**
+     * 获取商品总数
+     */
+    public long getProductCount() {
+        return productRepository.count();
+    }
+
+    /**
      * 获取所有上架商品
      */
     public List<ProductEntity> getActiveProducts() {

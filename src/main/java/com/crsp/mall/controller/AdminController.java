@@ -103,18 +103,14 @@ public class AdminController {
             return "redirect:/admin/login";
         }
         
-        // 统计数据
-        long productCount = productDbService.getAllProducts().size();
-        List<OrderEntity> allOrders = orderService.getAllOrders();
-        long orderCount = allOrders.size();
-        long pendingOrders = allOrders.stream().filter(o -> "pending".equals(o.getStatus())).count();
+        // 统计数据 - 使用count查询避免加载全部实体
+        long productCount = productDbService.getProductCount();
+        long orderCount = orderService.getOrderCount();
+        long pendingOrders = orderService.getOrderCountByStatus("pending");
         long userCount = userService.getUserCount();
         long registeredCount = userService.getRegisteredCount();
         long activeUserCount = userService.getActiveCount();
-        double totalRevenue = allOrders.stream()
-                .filter(o -> REVENUE_STATUSES.contains(o.getStatus()))
-                .mapToDouble(OrderEntity::getTotalAmount)
-                .sum();
+        double totalRevenue = orderService.getTotalRevenueByStatuses(REVENUE_STATUSES);
         
         model.addAttribute("productCount", productCount);
         model.addAttribute("orderCount", orderCount);
@@ -123,7 +119,7 @@ public class AdminController {
         model.addAttribute("registeredCount", registeredCount);
         model.addAttribute("activeUserCount", activeUserCount);
         model.addAttribute("totalRevenue", totalRevenue);
-        model.addAttribute("recentOrders", allOrders.stream().limit(5).toList());
+        model.addAttribute("recentOrders", orderService.getRecentOrders());
         model.addAttribute("currentPage", "dashboard");
         model.addAttribute("promotionCounts", promotionService.getPromotionCounts());
         

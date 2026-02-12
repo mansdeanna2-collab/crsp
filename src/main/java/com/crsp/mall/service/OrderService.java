@@ -2,6 +2,8 @@ package com.crsp.mall.service;
 
 import com.crsp.mall.entity.OrderEntity;
 import com.crsp.mall.repository.OrderRepository;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -18,8 +20,38 @@ import java.util.Set;
 @Service
 public class OrderService {
 
+    private static final Logger log = LoggerFactory.getLogger(OrderService.class);
+
     @Autowired
     private OrderRepository orderRepository;
+
+    /**
+     * 获取订单总数
+     */
+    public long getOrderCount() {
+        return orderRepository.count();
+    }
+
+    /**
+     * 获取指定状态的订单数
+     */
+    public long getOrderCountByStatus(String status) {
+        return orderRepository.countByStatus(status);
+    }
+
+    /**
+     * 获取指定状态集合的总收入
+     */
+    public double getTotalRevenueByStatuses(java.util.Collection<String> statuses) {
+        return orderRepository.sumTotalAmountByStatusIn(statuses);
+    }
+
+    /**
+     * 获取最近的订单（限制数量）
+     */
+    public List<OrderEntity> getRecentOrders() {
+        return orderRepository.findTop5ByOrderByCreatedAtDesc();
+    }
 
     /**
      * 获取所有订单
@@ -80,6 +112,7 @@ public class OrderService {
     @Transactional
     public OrderEntity updateOrderStatus(Long id, String status) {
         if (status == null || !VALID_STATUSES.contains(status)) {
+            log.warn("无效的订单状态: {}", status);
             return null;
         }
         Optional<OrderEntity> optionalOrder = orderRepository.findById(id);
@@ -88,6 +121,7 @@ public class OrderService {
             // Validate state transition
             Set<String> allowedNextStatuses = VALID_TRANSITIONS.getOrDefault(order.getStatus(), Set.of());
             if (!allowedNextStatuses.contains(status)) {
+                log.warn("非法状态转换: 订单ID={}, 当前状态={}, 目标状态={}", id, order.getStatus(), status);
                 return null;
             }
             order.setStatus(status);
@@ -102,6 +136,7 @@ public class OrderService {
             
             return orderRepository.save(order);
         }
+        log.warn("订单不存在: ID={}", id);
         return null;
     }
 

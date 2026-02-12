@@ -25,7 +25,7 @@ public class WebMvcConfig implements WebMvcConfigurer {
         // 将/uploads/**路径映射到上传目录
         File dir = new File(uploadDir);
         if (!dir.exists() && !dir.mkdirs()) {
-            log.warn("无法创建上传目录: {}", uploadDir);
+            log.error("无法创建上传目录: {}，文件上传功能可能不可用", uploadDir);
         }
         registry.addResourceHandler("/uploads/**")
                 .addResourceLocations("file:" + uploadDir + "/");

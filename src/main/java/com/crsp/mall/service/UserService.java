@@ -2,6 +2,8 @@ package com.crsp.mall.service;
 
 import com.crsp.mall.entity.*;
 import com.crsp.mall.repository.*;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -15,6 +17,8 @@ import java.util.Optional;
  */
 @Service
 public class UserService {
+
+    private static final Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
     private UserRepository userRepository;
@@ -76,7 +80,7 @@ public class UserService {
             welcomeMsg.setIsRead(false);
             messageRepository.save(welcomeMsg);
         } catch (Exception e) {
-            // 发送欢迎消息失败不影响用户注册
+            log.warn("发送欢迎消息失败，用户ID: {}: {}", savedUser.getId(), e.getMessage());
         }
 
         return savedUser;
@@ -262,6 +266,9 @@ public class UserService {
     }
 
     public CartItemEntity updateCartItemQuantity(Long itemId, Integer quantity, Long userId) {
+        if (quantity == null || quantity < 1 || quantity > 999) {
+            return null;
+        }
         Optional<CartItemEntity> itemOpt = cartItemRepository.findById(itemId);
         if (itemOpt.isPresent()) {
             CartItemEntity item = itemOpt.get();
