@@ -271,17 +271,23 @@ body {
 }
 
 .product-image {
-    height: 160px;
+    height: 0;
+    padding-bottom: 85%;
     display: flex;
     align-items: center;
     justify-content: center;
     position: relative;
+    overflow: hidden;
 }
 
 .product-image i {
     font-size: 50px;
     color: white;
     opacity: 0.8;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
 }
 
 .product-tag {
@@ -969,6 +975,171 @@ body {
 }
 
 /* ==================== 响应式适配 ==================== */
+/* 小屏幕手机适配 (320px - 360px) */
+@media (max-width: 360px) {
+    .category-nav {
+        gap: 8px;
+        padding: 12px 10px;
+    }
+    
+    .category-icon {
+        width: 42px;
+        height: 42px;
+        font-size: 17px;
+    }
+    
+    .category-item span {
+        font-size: 11px;
+    }
+    
+    .activity-section {
+        gap: 6px;
+        padding: 8px;
+        margin: 8px;
+    }
+    
+    .activity-item {
+        padding: 10px 4px;
+    }
+    
+    .activity-item i {
+        font-size: 17px;
+    }
+    
+    .activity-item span {
+        font-size: 11px;
+    }
+    
+    .product-grid {
+        gap: 6px;
+        padding: 6px;
+    }
+    
+    .product-image {
+        padding-bottom: 80%;
+    }
+    
+    .product-info {
+        padding: 8px;
+    }
+    
+    .product-title {
+        font-size: 12px;
+        height: 32px;
+    }
+    
+    .price {
+        font-size: 14px;
+    }
+    
+    .order-icon {
+        width: 38px;
+        height: 38px;
+    }
+    
+    .order-icon i {
+        font-size: 18px;
+    }
+    
+    .order-tab span {
+        font-size: 11px;
+    }
+    
+    .menu-icon {
+        width: 32px;
+        height: 32px;
+        font-size: 14px;
+    }
+    
+    .menu-item {
+        padding: 10px 12px;
+        gap: 10px;
+    }
+    
+    .menu-item span {
+        font-size: 13px;
+    }
+    
+    .avatar {
+        width: 60px;
+        height: 60px;
+    }
+    
+    .avatar i {
+        font-size: 28px;
+    }
+    
+    .user-details h2 {
+        font-size: 16px;
+    }
+    
+    .assets-section {
+        padding: 12px 8px;
+    }
+    
+    .assets-value {
+        font-size: 14px;
+    }
+    
+    .assets-label {
+        font-size: 11px;
+    }
+    
+    .checkout-btn {
+        padding: 8px 18px;
+        font-size: 13px;
+    }
+    
+    .total-price {
+        font-size: 16px;
+    }
+    
+    .nav-item {
+        padding: 0 10px;
+    }
+    
+    .nav-item i {
+        font-size: 18px;
+    }
+    
+    .nav-item span {
+        font-size: 10px;
+    }
+}
+
+/* 中等手机屏幕 (361px - 480px) */
+@media (max-width: 480px) {
+    .app-container {
+        max-width: 100%;
+    }
+    
+    .search-bar input {
+        font-size: 14px;
+    }
+    
+    .banner-item {
+        height: 130px;
+    }
+    
+    .banner-content h2 {
+        font-size: 20px;
+    }
+    
+    .banner-content p {
+        font-size: 13px;
+    }
+    
+    .modal-content {
+        width: 92%;
+        max-width: none;
+    }
+    
+    .cart-footer {
+        padding: 8px 12px;
+    }
+}
+
+/* 桌面端适配 */
 @media (min-width: 768px) {
     .app-container {
         max-width: 480px;
