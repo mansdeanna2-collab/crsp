@@ -87,7 +87,7 @@ public class AdminController {
      */
     @GetMapping("/logout")
     public String logout(HttpSession session) {
-        session.removeAttribute("admin");
+        session.invalidate();
         return "redirect:/admin/login";
     }
 
@@ -672,12 +672,26 @@ public class AdminController {
             return "redirect:/admin/login";
         }
 
+        if (!messageService.isValidChatType(chatType)) {
+            redirectAttributes.addFlashAttribute("error", "无效的聊天类型");
+            return "redirect:/admin/messages";
+        }
+
+        if (senderName == null || senderName.trim().isEmpty()) {
+            redirectAttributes.addFlashAttribute("error", "发送者名称不能为空");
+            return "redirect:/admin/messages/chat/" + userId + "?chatType=" + chatType;
+        }
+        String trimmedSenderName = senderName.trim();
+        if (trimmedSenderName.length() > 50) {
+            trimmedSenderName = trimmedSenderName.substring(0, 50);
+        }
+
         if (content == null || content.trim().isEmpty()) {
             redirectAttributes.addFlashAttribute("error", "消息内容不能为空");
             return "redirect:/admin/messages/chat/" + userId + "?chatType=" + chatType;
         }
 
-        messageService.sendAdminMessage(userId, chatType, senderName, content.trim());
+        messageService.sendAdminMessage(userId, chatType, trimmedSenderName, content.trim());
         redirectAttributes.addFlashAttribute("success", "消息发送成功");
         return "redirect:/admin/messages/chat/" + userId + "?chatType=" + chatType;
     }

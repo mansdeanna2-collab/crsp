@@ -80,6 +80,18 @@ public class UploadController {
         }
 
         try {
+            // 验证文件内容的魔术字节（防止伪造Content-Type）
+            byte[] header = new byte[12];
+            try (InputStream is = file.getInputStream()) {
+                int bytesRead = is.read(header);
+                if (bytesRead < 4) {
+                    return ResponseEntity.badRequest().body(Map.of("error", "文件内容无效"));
+                }
+            }
+            if (!isValidFileContent(header, mediaType)) {
+                return ResponseEntity.badRequest().body(Map.of("error", "文件内容与声明的类型不匹配"));
+            }
+
             // 确保上传目录存在
             File dir = new File(uploadDir);
             if (!dir.exists() && !dir.mkdirs()) {
@@ -388,6 +400,37 @@ public class UploadController {
                 return second >= min && second <= max;
             }
         } catch (NumberFormatException ignored) {}
+        return false;
+    }
+
+    /**
+     * 验证文件内容的魔术字节是否匹配声明的媒体类型
+     */
+    private static boolean isValidFileContent(byte[] header, String mediaType) {
+        if (header == null || header.length < 4) return false;
+        if ("image".equals(mediaType)) {
+            // JPEG: FF D8 FF
+            if (header[0] == (byte) 0xFF && header[1] == (byte) 0xD8 && header[2] == (byte) 0xFF) return true;
+            // PNG: 89 50 4E 47
+            if (header[0] == (byte) 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47) return true;
+            // GIF: 47 49 46 38
+            if (header[0] == 0x47 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x38) return true;
+            // WEBP: RIFF....WEBP
+            if (header.length >= 12 && header[0] == 0x52 && header[1] == 0x49 && header[2] == 0x46 && header[3] == 0x46
+                    && header[8] == 0x57 && header[9] == 0x45 && header[10] == 0x42 && header[11] == 0x50) return true;
+            return false;
+        } else if ("video".equals(mediaType)) {
+            // MP4/MOV: ....ftyp or ....moov or ....mdat
+            if (header.length >= 8) {
+                String box = new String(header, 4, 4, java.nio.charset.StandardCharsets.US_ASCII);
+                if ("ftyp".equals(box) || "moov".equals(box) || "mdat".equals(box)) return true;
+            }
+            // WEBM/MKV: 1A 45 DF A3
+            if (header[0] == 0x1A && header[1] == 0x45 && header[2] == (byte) 0xDF && header[3] == (byte) 0xA3) return true;
+            // OGG: OggS
+            if (header[0] == 0x4F && header[1] == 0x67 && header[2] == 0x67 && header[3] == 0x53) return true;
+            return false;
+        }
         return false;
     }
 }
