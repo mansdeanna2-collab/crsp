@@ -30,6 +30,9 @@ class DockerDeployer:
         self.image_name = "crsp-mall"
         self.container_name = "crsp-mall-container"
         
+        # 设置Docker API版本
+        os.environ["DOCKER_API_VERSION"] = "1.42"
+        
     def check_docker_installed(self):
         """检查Docker是否已安装"""
         print("🔍 检查Docker是否已安装...")
@@ -357,6 +360,7 @@ docker-compose.yml
         print("🐳 Docker自动部署脚本")
         print(f"   项目目录: {self.project_dir}")
         print(f"   前端端口: {self.frontend_port}")
+        print(f"   DOCKER_API_VERSION: {os.environ.get('DOCKER_API_VERSION', 'not set')}")
         print("=" * 60)
         
         # 1. 检查Docker

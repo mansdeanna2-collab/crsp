@@ -1,0 +1,141 @@
+#!/bin/bash
+#
+# sz - 部署脚本
+# 配置域名 www.wuzikali.com 和 SSL 证书，并使用 Docker 部署应用
+#
+
+set -e
+
+# 设置 Docker API 版本
+export DOCKER_API_VERSION=1.42
+
+# 域名配置
+DOMAIN="www.wuzikali.com"
+
+# SSL 证书目录
+SSL_DIR="$(cd "$(dirname "$0")" && pwd)/ssl"
+
+echo "=============================================="
+echo "🚀 部署脚本 - ${DOMAIN}"
+echo "   DOCKER_API_VERSION=${DOCKER_API_VERSION}"
+echo "=============================================="
+
+# 创建 SSL 证书目录
+mkdir -p "${SSL_DIR}"
+
+# 写入 SSL 证书（fullchain）
+cat > "${SSL_DIR}/fullchain.pem" << 'CERT_EOF'
+-----BEGIN CERTIFICATE-----
+MIIE/DCCA+SgAwIBAgISBXJ0tDrfxir9GVjW250e5Qe4MA0GCSqGSIb3DQEBCwUA
+MDMxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBFbmNyeXB0MQwwCgYDVQQD
+EwNSMTMwHhcNMjYwMjEzMDkyMjM1WhcNMjYwNTE0MDkyMjM0WjAbMRkwFwYDVQQD
+ExB3d3cud3V6aWthbGkuY29tMIIBIjANBgkqhkiG9w0BAQEFAAOCAQ8AMIIBCgKC
+AQEAsFuXNQm1xIJSBflgrVhSGxA03vVdlNILb2XBshVMb7ecjek6Y6Bjwja1UTqu
+2B6foqrBlt3+Y+yhZffsywanZ0g61IjLKYsqNtIScuaujnMoyuKLu0AxzycSagRT
+PZ3oRJUNutehFMsK1Mbdt+NplJm7uL0iriuDtjeMJsXVnzGsDf3Ege7jlTn+eyFB
+V0q85jQUDA6CrgdWe6/nD+/kwzKW8+v0Pl1MAN3cmsbFuz9P+zRz/eebU+BotwEW
+HoAjbuJpINplkyNHWhPfXleCWgqIzZRdY8bZmAsnRaql7yASiV0WY5mGJoxT6VoN
+7EoD1ItgLOwKxjInz8RDuUiTmQIDAQABo4ICIDCCAhwwDgYDVR0PAQH/BAQDAgWg
+MBMGA1UdJQQMMAoGCCsGAQUFBwMBMAwGA1UdEwEB/wQCMAAwHQYDVR0OBBYEFN0b
+/tPqbvgu0Xu+cljBmTTYpZlXMB8GA1UdIwQYMBaAFOernw8sM6BT015PeMiyhA47
+1pIzMDMGCCsGAQUFBwEBBCcwJTAjBggrBgEFBQcwAoYXaHR0cDovL3IxMy5pLmxl
+bmNyLm9yZy8wGwYDVR0RBBQwEoIQd3d3Lnd1emlrYWxpLmNvbTATBgNVHSAEDDAK
+MAgGBmeBDAECATAuBgNVHR8EJzAlMCOgIaAfhh1odHRwOi8vcjEzLmMubGVuY3Iu
+b3JnLzU3LmNybDCCAQ4GCisGAQQB1nkCBAIEgf8EgfwA+gB3AMs49xWJfIShRF9b
+wd37yW7ymlnNRwppBYWwyxTDFFjnAAABnFaEvXEAAAQDAEgwRgIhAOV/IL3v0nmo
+/t2eLs3Wzm8+tukTerExLmRQPeGW/XafAiEA/f00pxUJPmsUHj5G0ep6eMWeEVyw
+33C7ZpjHNCz4alkAfwClyXiSXVdGF4KHDdiJZgtcVWSLfQBA8uwHaFHRiGkZ9wAA
+AZxWhL9tAAgAAAUAMhQX2wQDAEgwRgIhAJAwIRt+YWaQPUQo6wOnGyOrca81fJjo
+PQAqL/Z59Q3UAiEAlx6R2zM8bc4WzI8vk6wEUwlio5qF1ITr5EkxkLnX2y8wDQYJ
+KoZIhvcNAQELBQADggEBAAJ3ofpUcogKlVuZ34kuWaRvOlXMLMp/NjM+f0Z2X7H0
+xi280u3iHJ3rfgE5rK7n+m0+ln2oP2ph5xNqGUxc3i3siFeSPHx2i/gZUPMSSv2R
+tk7WQW6FgSw/endA2l8XGquW7b1emtelSY/sXCucxYXjFGBUqumjbL3tRmNU0Kjc
+SpsEgNgncnNpsVFjA8qLzk1g6Z1GDJbOXhYnlbkA5iSoD1pxUo8tMfzO/wyiuAUS
+Bi9t2lOVAswtynVBW2hcZ2STKJO715A8Avii0X8xmxWfVcAvgmBkconFAfrqz8rr
+iLR7FJ+0L1qFfCStbqh4m3jD1reeHRp+bEss2D6OrN8=
+-----END CERTIFICATE-----
+-----BEGIN CERTIFICATE-----
+MIIFBTCCAu2gAwIBAgIQWgDyEtjUtIDzkkFX6imDBTANBgkqhkiG9w0BAQsFADBP
+MQswCQYDVQQGEwJVUzEpMCcGA1UEChMgSW50ZXJuZXQgU2VjdXJpdHkgUmVzZWFy
+Y2ggR3JvdXAxFTATBgNVBAMTDElTUkcgUm9vdCBYMTAeFw0yNDAzMTMwMDAwMDBa
+Fw0yNzAzMTIyMzU5NTlaMDMxCzAJBgNVBAYTAlVTMRYwFAYDVQQKEw1MZXQncyBF
+bmNyeXB0MQwwCgYDVQQDEwNSMTMwggEiMA0GCSqGSIb3DQEBAQUAA4IBDwAwggEK
+AoIBAQClZ3CN0FaBZBUXYc25BtStGZCMJlA3mBZjklTb2cyEBZPs0+wIG6BgUUNI
+fSvHSJaetC3ancgnO1ehn6vw1g7UDjDKb5ux0daknTI+WE41b0VYaHEX/D7YXYKg
+L7JRbLAaXbhZzjVlyIuhrxA3/+OcXcJJFzT/jCuLjfC8cSyTDB0FxLrHzarJXnzR
+yQH3nAP2/Apd9Np75tt2QnDr9E0i2gB3b9bJXxf92nUupVcM9upctuBzpWjPoXTi
+dYJ+EJ/B9aLrAek4sQpEzNPCifVJNYIKNLMc6YjCR06CDgo28EdPivEpBHXazeGa
+XP9enZiVuppD0EqiFwUBBDDTMrOPAgMBAAGjgfgwgfUwDgYDVR0PAQH/BAQDAgGG
+MB0GA1UdJQQWMBQGCCsGAQUFBwMCBggrBgEFBQcDATASBgNVHRMBAf8ECDAGAQH/
+AgEAMB0GA1UdDgQWBBTnq58PLDOgU9NeT3jIsoQOO9aSMzAfBgNVHSMEGDAWgBR5
+tFnme7bl5AFzgAiIyBpY9umbbjAyBggrBgEFBQcBAQQmMCQwIgYIKwYBBQUHMAKG
+Fmh0dHA6Ly94MS5pLmxlbmNyLm9yZy8wEwYDVR0gBAwwCjAIBgZngQwBAgEwJwYD
+VR0fBCAwHjAcoBqgGIYWaHR0cDovL3gxLmMubGVuY3Iub3JnLzANBgkqhkiG9w0B
+AQsFAAOCAgEAUTdYUqEimzW7TbrOypLqCfL7VOwYf/Q79OH5cHLCZeggfQhDconl
+k7Kgh8b0vi+/XuWu7CN8n/UPeg1vo3G+taXirrytthQinAHGwc/UdbOygJa9zuBc
+VyqoH3CXTXDInT+8a+c3aEVMJ2St+pSn4ed+WkDp8ijsijvEyFwE47hulW0Ltzjg
+9fOV5Pmrg/zxWbRuL+k0DBDHEJennCsAen7c35Pmx7jpmJ/HtgRhcnz0yjSBvyIw
+6L1QIupkCv2SBODT/xDD3gfQQyKv6roV4G2EhfEyAsWpmojxjCUCGiyg97FvDtm/
+NK2LSc9lybKxB73I2+P2G3CaWpvvpAiHCVu30jW8GCxKdfhsXtnIy2imskQqVZ2m
+0Pmxobb28Tucr7xBK7CtwvPrb79os7u2XP3O5f9b/H66GNyRrglRXlrYjI1oGYL/
+f4I1n/Sgusda6WvA6C190kxjU15Y12mHU4+BxyR9cx2hhGS9fAjMZKJss28qxvz6
+Axu4CaDmRNZpK/pQrXF17yXCXkmEWgvSOEZy6Z9pcbLIVEGckV/iVeq0AOo2pkg9
+p4QRIy0tK2diRENLSF2KysFwbY6B26BFeFs3v1sYVRhFW9nLkOrQVporCS0KyZmf
+wVD89qSTlnctLcZnIavjKsKUu1nA1iU0yYMdYepKR7lWbnwhdx3ewok=
+-----END CERTIFICATE-----
+CERT_EOF
+
+# 写入 SSL 私钥
+cat > "${SSL_DIR}/privkey.pem" << 'KEY_EOF'
+-----BEGIN RSA PRIVATE KEY-----
+MIIEpAIBAAKCAQEAsFuXNQm1xIJSBflgrVhSGxA03vVdlNILb2XBshVMb7ecjek6
+Y6Bjwja1UTqu2B6foqrBlt3+Y+yhZffsywanZ0g61IjLKYsqNtIScuaujnMoyuKL
+u0AxzycSagRTPZ3oRJUNutehFMsK1Mbdt+NplJm7uL0iriuDtjeMJsXVnzGsDf3E
+ge7jlTn+eyFBV0q85jQUDA6CrgdWe6/nD+/kwzKW8+v0Pl1MAN3cmsbFuz9P+zRz
+/eebU+BotwEWHoAjbuJpINplkyNHWhPfXleCWgqIzZRdY8bZmAsnRaql7yASiV0W
+Y5mGJoxT6VoN7EoD1ItgLOwKxjInz8RDuUiTmQIDAQABAoIBAANTb4l2PIr0p2Sa
+CIJYZNsCY3GJfdQbdnr+4lK6v1lo2cSyNMdRzD5/9DaFwBakFDVihEUKvHw+B2iy
+LrwWTOmqxW5CQqzuxT3prg6j7lU8039TsK2C50roH8XR/U+6DBogAqq8MTs1yDy3
+9TuSsr2U/SLy+9s+R5fUBMUAlzfkdUgdB4NBE29loUks7jFcJyLwVJgAzuLNi8/l
+whCAvyMBDNwOloGeFZ1VaUaQQFHP/cl7uPtCqUylXdGTh0RWU0WQ+cWgdf72V0ep
+/JepPKXCUil5612sO9ofSJJ4d6oSde6b/6x4ztFVEnaeSFldvsRA/Xit06W0gVAW
+kMZN11ECgYEA2JHmrUqS84ma12Er2TKmY4OpTba19D0p+N72+v1YTPPpp8oz1MUA
+/I9Igg2Ozgml7/laO16Ag/ZSopn3e04OucA1ecck4J5E6UmReqbqlUhhymJrUAdr
+RqvYnrcCQnV+3tl8Qe3AiycO1VXwtQbD3QSMBB/T+2tBNNgiXnGEJQkCgYEA0Hdx
+bqa7VznbnPZW/aMZUyBR9qd98tBdO+WQjIh8hEvm5YbQ+UKBRwvPTy6iQaRdash3
+uyi/+roYsbb0qmcH62r66sooEc0kiIHWt/NqV5N7fFgSEWOn0TqD15nlExxCOYy7
+mcWak0jnqc8BIn63xiu6M54mf/lK4+EokKcmrhECgYEAp80sedrNT8uv4O/WhLzc
+9UA/fwpxoyN9EOrZXRHNSBq5URu320UlhYsTeEk++9+35d9DjbqkQxspXfmEKtMJ
+T91g0dF+flfDNyqcgPcxzac+tgxZ77E/6oseFaPhKVNWkR7cS00HIgqKULv8/JaY
+TfjG8C8lFao95M8OmjTEWdkCgYEAtz+XpaXI3ncMlqBwfYrGcyzg/8nhy/TfUAyP
+EQnVMtIpyK/GuKV+UH6QIFGk7cDXIUvQ++NpRrQZivaBgd0JuCaVJJjJukQzDg/c
+OF0vqIYLMZWVZFXOqfwe8wHjvPXFPSN5sUVjiH64ras6myD62KeNiVxHCY2RCFnf
+N7DHLpECgYBQbaGqkH9K1Wk5xN2ozSuU5WPXBG0d80BzYXnw1mKLuf/Tz0fx4Vr0
+gSqotNk+e+ZlyTnLpOP9yMkxxwUnWGPA0MnZpW0pt+PYsXGDD2Yd0Xv+XAm3/2RB
+QDBtoHPEb98XyVKuY1FEli7Ns8HpZj0wVk9AZuZI7hxOONrl7gg55w==
+-----END RSA PRIVATE KEY-----
+KEY_EOF
+
+# 设置私钥权限
+chmod 600 "${SSL_DIR}/privkey.pem"
+chmod 644 "${SSL_DIR}/fullchain.pem"
+
+echo "✅ SSL 证书已配置到 ${SSL_DIR}"
+
+# 使用 docker compose 部署
+echo ""
+echo "🐳 开始 Docker 部署..."
+echo "   域名: ${DOMAIN}"
+echo "   DOCKER_API_VERSION: ${DOCKER_API_VERSION}"
+
+# 停止旧容器
+docker compose down 2>/dev/null || true
+
+# 构建并启动
+docker compose up -d --build
+
+echo ""
+echo "=============================================="
+echo "✅ 部署完成!"
+echo "🌐 访问地址: https://${DOMAIN}"
+echo "=============================================="
