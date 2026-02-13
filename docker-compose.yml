@@ -9,7 +9,6 @@ services:
     restart: unless-stopped
     environment:
       - JAVA_OPTS=-Xms256m -Xmx512m
-      - DOCKER_API_VERSION=1.42
     volumes:
       # Mount persistent volume for database to preserve data across restarts
       - mall-data:/data
