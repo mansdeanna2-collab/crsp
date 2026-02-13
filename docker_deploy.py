@@ -20,7 +20,7 @@ class DockerDeployer:
     
     STANDARD_HTTPS_PORT = 443
     
-    def __init__(self, project_dir=None, frontend_port=1000, ssl_port=8443, http_port=80):
+    def __init__(self, project_dir=None, frontend_port=1000, ssl_port=8443, http_port=8080):
         """
         初始化部署器
         
@@ -28,7 +28,7 @@ class DockerDeployer:
             project_dir: 项目目录路径，默认为当前目录
             frontend_port: 前端端口，默认1000
             ssl_port: HTTPS端口(宿主机映射)，默认8443，避免与其他服务的443冲突
-            http_port: HTTP端口(宿主机映射)，默认80
+            http_port: HTTP端口(宿主机映射)，默认8080，避免与其他服务的80冲突
         """
         self.project_dir = Path(project_dir) if project_dir else Path.cwd()
         self.frontend_port = frontend_port
@@ -640,7 +640,7 @@ Docker自动部署脚本使用说明
     -p, --port PORT         指定前端端口 (默认: 1000)
     -d, --dir DIR           指定项目目录 (默认: 当前目录)
     --ssl-port PORT         指定HTTPS端口 (默认: 8443，避免与其他服务的443冲突)
-    --http-port PORT        指定HTTP端口 (默认: 80)
+    --http-port PORT        指定HTTP端口 (默认: 8080，避免与其他服务的80冲突)
     -h, --help              显示此帮助信息
 
 示例:
@@ -691,8 +691,8 @@ def main():
     parser.add_argument(
         "--http-port",
         type=int,
-        default=80,
-        help="HTTP端口，宿主机映射 (默认: 80)"
+        default=8080,
+        help="HTTP端口，宿主机映射 (默认: 8080，避免与其他服务的80冲突)"
     )
     
     args = parser.parse_args()
