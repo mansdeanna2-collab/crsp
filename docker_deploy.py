@@ -18,16 +18,22 @@ from pathlib import Path
 class DockerDeployer:
     """Docker自动部署器"""
     
-    def __init__(self, project_dir=None, frontend_port=1000):
+    STANDARD_HTTPS_PORT = 443
+    
+    def __init__(self, project_dir=None, frontend_port=1000, ssl_port=8443, http_port=80):
         """
         初始化部署器
         
         Args:
             project_dir: 项目目录路径，默认为当前目录
             frontend_port: 前端端口，默认1000
+            ssl_port: HTTPS端口(宿主机映射)，默认8443，避免与其他服务的443冲突
+            http_port: HTTP端口(宿主机映射)，默认80
         """
         self.project_dir = Path(project_dir) if project_dir else Path.cwd()
         self.frontend_port = frontend_port
+        self.ssl_port = ssl_port
+        self.http_port = http_port
         self.app_port = 8080  # Spring Boot默认端口
         self.image_name = "crsp-mall"
         self.container_name = "crsp-mall-container"
@@ -136,6 +142,51 @@ server {{
 """
         nginx_conf_path.write_text(nginx_conf_content, encoding="utf-8")
         print(f"✅ nginx.conf已生成 (域名: {self.domain})")
+        return True
+    
+    def generate_compose_file(self):
+        """生成docker-compose.yml，使用配置的端口映射"""
+        compose_path = self.project_dir / "docker-compose.yml"
+        compose_content = f"""services:
+  crsp-mall:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: crsp-mall-container
+    expose:
+      - "8080"
+    restart: unless-stopped
+    environment:
+      - JAVA_OPTS=-Xms256m -Xmx512m
+    volumes:
+      # Mount persistent volume for database to preserve data across restarts
+      - mall-data:/data
+    healthcheck:
+      test: ["CMD-SHELL", "wget --no-verbose --tries=1 --spider http://localhost:8080/ || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+  nginx:
+    image: nginx:alpine
+    container_name: crsp-nginx
+    ports:
+      - "{self.http_port}:80"
+      - "{self.ssl_port}:443"
+    restart: unless-stopped
+    volumes:
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+      - ./ssl:/etc/nginx/ssl:ro
+    depends_on:
+      - crsp-mall
+
+volumes:
+  mall-data:
+    driver: local
+"""
+        compose_path.write_text(compose_content, encoding="utf-8")
+        print(f"✅ docker-compose.yml已生成 (HTTP端口: {self.http_port}, HTTPS端口: {self.ssl_port})")
         return True
     
     def check_docker_installed(self):
@@ -506,6 +557,8 @@ docker-compose.yml
         print(f"   DOCKER_API_VERSION: {os.environ.get('DOCKER_API_VERSION', 'not set')}")
         if self.domain:
             print(f"   域名: {self.domain}")
+            print(f"   HTTP端口: {self.http_port}")
+            print(f"   HTTPS端口: {self.ssl_port}")
         print("=" * 60)
         
         # 1. 检查Docker
@@ -534,6 +587,7 @@ docker-compose.yml
             print("\n🔒 配置域名和SSL...")
             self.setup_ssl()
             self.generate_nginx_conf()
+            self.generate_compose_file()
             
             # 6. 使用docker compose部署（含nginx + SSL）
             if not self.deploy_with_compose():
@@ -564,7 +618,8 @@ docker-compose.yml
         print("\n" + "=" * 60)
         print("✅ 部署完成!")
         if self.domain:
-            print(f"🌐 请访问: https://{self.domain}")
+            port_suffix = f":{self.ssl_port}" if self.ssl_port != self.STANDARD_HTTPS_PORT else ""
+            print(f"🌐 请访问: https://{self.domain}{port_suffix}")
         else:
             print(f"🌐 请访问: http://localhost:{self.frontend_port}")
         print("=" * 60)
@@ -582,13 +637,17 @@ Docker自动部署脚本使用说明
     python docker_deploy.py [选项]
 
 选项:
-    -p, --port PORT     指定前端端口 (默认: 1000)
-    -d, --dir DIR       指定项目目录 (默认: 当前目录)
-    -h, --help          显示此帮助信息
+    -p, --port PORT         指定前端端口 (默认: 1000)
+    -d, --dir DIR           指定项目目录 (默认: 当前目录)
+    --ssl-port PORT         指定HTTPS端口 (默认: 8443，避免与其他服务的443冲突)
+    --http-port PORT        指定HTTP端口 (默认: 80)
+    -h, --help              显示此帮助信息
 
 示例:
     python docker_deploy.py                    # 使用默认配置
     python docker_deploy.py -p 8000            # 使用端口8000
+    python docker_deploy.py --ssl-port 443     # 使用标准443端口
+    python docker_deploy.py --ssl-port 8443    # 使用8443端口避免冲突
     python docker_deploy.py -d /path/to/project -p 3000
 
 管理命令:
@@ -622,12 +681,28 @@ def main():
         help="项目目录 (默认: 当前目录)"
     )
     
+    parser.add_argument(
+        "--ssl-port",
+        type=int,
+        default=8443,
+        help="HTTPS端口，宿主机映射 (默认: 8443，避免与其他服务的443冲突)"
+    )
+    
+    parser.add_argument(
+        "--http-port",
+        type=int,
+        default=80,
+        help="HTTP端口，宿主机映射 (默认: 80)"
+    )
+    
     args = parser.parse_args()
     
     # 创建部署器并执行
     deployer = DockerDeployer(
         project_dir=args.dir,
-        frontend_port=args.port
+        frontend_port=args.port,
+        ssl_port=args.ssl_port,
+        http_port=args.http_port
     )
     
     success = deployer.deploy()
