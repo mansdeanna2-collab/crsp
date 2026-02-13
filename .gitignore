@@ -21,3 +21,6 @@ __pycache__/
 
 # Docker (不跟踪运行时生成的文件)
 .dockerignore
+
+# SSL certificates (generated at deploy time by sz script)
+ssl/

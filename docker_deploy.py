@@ -2,13 +2,15 @@
 """
 Docker自动部署脚本
 自动检测项目依赖并打包到Docker环境运行
-前端端口: 1000
+从sz文件读取域名和SSL证书配置
 """
 
 import os
+import re
 import subprocess
 import sys
 import shutil
+import stat
 import time
 from pathlib import Path
 
@@ -30,6 +32,112 @@ class DockerDeployer:
         self.image_name = "crsp-mall"
         self.container_name = "crsp-mall-container"
         
+        # 从sz文件读取配置
+        self.domain = None
+        self.ssl_fullchain = None
+        self.ssl_privkey = None
+        self._load_sz_config()
+        
+        # 设置Docker API版本
+        os.environ["DOCKER_API_VERSION"] = "1.42"
+        
+    def _load_sz_config(self):
+        """从sz文件读取域名和SSL证书配置"""
+        sz_path = self.project_dir / "sz"
+        if not sz_path.exists():
+            print("⚠️  sz配置文件不存在，跳过域名和SSL配置")
+            return
+        
+        print("📄 从sz文件读取域名和SSL配置...")
+        sz_content = sz_path.read_text(encoding="utf-8")
+        
+        # 提取域名 (DOMAIN="...")
+        domain_match = re.search(r'DOMAIN="([^"]+)"', sz_content)
+        if domain_match:
+            self.domain = domain_match.group(1)
+            print(f"✅ 域名: {self.domain}")
+        
+        # 提取SSL fullchain证书 (在CERT_EOF heredoc中)
+        cert_match = re.search(
+            r"cat\s*>\s*\S+fullchain\.pem\S*\s*<<\s*'CERT_EOF'\s*\n(.*?)\nCERT_EOF",
+            sz_content, re.DOTALL
+        )
+        if cert_match:
+            self.ssl_fullchain = cert_match.group(1).strip()
+            print("✅ SSL证书(fullchain)已读取")
+        
+        # 提取SSL私钥 (在KEY_EOF heredoc中)
+        key_match = re.search(
+            r"cat\s*>\s*\S+privkey\.pem\S*\s*<<\s*'KEY_EOF'\s*\n(.*?)\nKEY_EOF",
+            sz_content, re.DOTALL
+        )
+        if key_match:
+            self.ssl_privkey = key_match.group(1).strip()
+            print("✅ SSL私钥已读取")
+    
+    def setup_ssl(self):
+        """将从sz文件读取的SSL证书写入ssl目录"""
+        if not self.ssl_fullchain or not self.ssl_privkey:
+            print("⚠️  SSL证书或私钥未配置，跳过SSL设置")
+            return False
+        
+        ssl_dir = self.project_dir / "ssl"
+        ssl_dir.mkdir(exist_ok=True)
+        
+        # 写入fullchain证书
+        fullchain_path = ssl_dir / "fullchain.pem"
+        fullchain_path.write_text(self.ssl_fullchain + "\n", encoding="utf-8")
+        fullchain_path.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)  # chmod 644
+        
+        # 写入私钥并设置权限
+        privkey_path = ssl_dir / "privkey.pem"
+        privkey_path.write_text(self.ssl_privkey + "\n", encoding="utf-8")
+        privkey_path.chmod(stat.S_IRUSR | stat.S_IWUSR)  # chmod 600
+        
+        print(f"✅ SSL证书已写入: {ssl_dir}")
+        return True
+    
+    def generate_nginx_conf(self):
+        """根据从sz文件读取的域名生成nginx.conf"""
+        if not self.domain:
+            print("⚠️  域名未配置，跳过nginx.conf生成")
+            return False
+        
+        nginx_conf_path = self.project_dir / "nginx.conf"
+        nginx_conf_content = f"""server {{
+    listen 80;
+    server_name {self.domain};
+
+    # Redirect all HTTP requests to HTTPS
+    return 301 https://$host$request_uri;
+}}
+
+server {{
+    listen 443 ssl;
+    server_name {self.domain};
+
+    ssl_certificate /etc/nginx/ssl/fullchain.pem;
+    ssl_certificate_key /etc/nginx/ssl/privkey.pem;
+
+    ssl_protocols TLSv1.2 TLSv1.3;
+    ssl_ciphers HIGH:!aNULL:!MD5;
+    ssl_prefer_server_ciphers on;
+    ssl_session_cache shared:SSL:10m;
+    ssl_session_timeout 10m;
+
+    location / {{
+        proxy_pass http://{self.image_name}:{self.app_port};
+        proxy_set_header Host $host;
+        proxy_set_header X-Real-IP $remote_addr;
+        proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+        proxy_set_header X-Forwarded-Proto $scheme;
+    }}
+}}
+"""
+        nginx_conf_path.write_text(nginx_conf_content, encoding="utf-8")
+        print(f"✅ nginx.conf已生成 (域名: {self.domain})")
+        return True
+    
     def check_docker_installed(self):
         """检查Docker是否已安装"""
         print("🔍 检查Docker是否已安装...")
@@ -351,12 +459,53 @@ docker-compose.yml
             print(f"无法获取状态: {e}")
             return False
     
+    def deploy_with_compose(self):
+        """使用docker compose部署（含域名和SSL配置）"""
+        print(f"\n🚀 使用docker compose部署...")
+        
+        # 停止旧容器
+        subprocess.run(
+            ["docker", "compose", "down"],
+            cwd=self.project_dir,
+            capture_output=True,
+            text=True
+        )
+        
+        # 构建并启动
+        try:
+            process = subprocess.Popen(
+                ["docker", "compose", "up", "-d", "--build"],
+                cwd=self.project_dir,
+                stdout=subprocess.PIPE,
+                stderr=subprocess.STDOUT,
+                text=True
+            )
+            
+            for line in process.stdout:
+                print(f"   {line}", end="")
+            
+            process.wait()
+            
+            if process.returncode == 0:
+                print("\n✅ docker compose部署成功!")
+                return True
+            else:
+                print(f"\n❌ docker compose部署失败，返回码: {process.returncode}")
+                return False
+                
+        except Exception as e:
+            print(f"❌ 部署过程出错: {e}")
+            return False
+    
     def deploy(self):
         """执行完整的部署流程"""
         print("=" * 60)
         print("🐳 Docker自动部署脚本")
         print(f"   项目目录: {self.project_dir}")
         print(f"   前端端口: {self.frontend_port}")
+        print(f"   DOCKER_API_VERSION: {os.environ.get('DOCKER_API_VERSION', 'not set')}")
+        if self.domain:
+            print(f"   域名: {self.domain}")
         print("=" * 60)
         
         # 1. 检查Docker
@@ -380,16 +529,27 @@ docker-compose.yml
         # 4. 生成.dockerignore
         self.generate_dockerignore()
         
-        # 5. 构建镜像
-        if not self.build_image():
-            return False
-        
-        # 6. 停止已存在的容器
-        self.stop_existing_container()
-        
-        # 7. 运行新容器
-        if not self.run_container():
-            return False
+        # 5. 从sz文件配置SSL证书和nginx
+        if self.domain and self.ssl_fullchain and self.ssl_privkey:
+            print("\n🔒 配置域名和SSL...")
+            self.setup_ssl()
+            self.generate_nginx_conf()
+            
+            # 6. 使用docker compose部署（含nginx + SSL）
+            if not self.deploy_with_compose():
+                return False
+        else:
+            # 回退：无域名/SSL时使用直接docker运行
+            # 5b. 构建镜像
+            if not self.build_image():
+                return False
+            
+            # 6b. 停止已存在的容器
+            self.stop_existing_container()
+            
+            # 7b. 运行新容器
+            if not self.run_container():
+                return False
         
         # 8. 等待应用启动
         print("\n⏳ 等待应用启动 (约10秒)...")
@@ -403,7 +563,10 @@ docker-compose.yml
         
         print("\n" + "=" * 60)
         print("✅ 部署完成!")
-        print(f"🌐 请访问: http://localhost:{self.frontend_port}")
+        if self.domain:
+            print(f"🌐 请访问: https://{self.domain}")
+        else:
+            print(f"🌐 请访问: http://localhost:{self.frontend_port}")
         print("=" * 60)
         
         return True
