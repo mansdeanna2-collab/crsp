@@ -59,7 +59,7 @@ class DockerDeployer:
         
         # 提取SSL fullchain证书 (在CERT_EOF heredoc中)
         cert_match = re.search(
-            r"cat\s*>\s*.*fullchain\.pem.*<<\s*'CERT_EOF'\s*\n(.*?)\nCERT_EOF",
+            r"cat\s*>\s*\S+fullchain\.pem\S*\s*<<\s*'CERT_EOF'\s*\n(.*?)\nCERT_EOF",
             sz_content, re.DOTALL
         )
         if cert_match:
@@ -68,7 +68,7 @@ class DockerDeployer:
         
         # 提取SSL私钥 (在KEY_EOF heredoc中)
         key_match = re.search(
-            r"cat\s*>\s*.*privkey\.pem.*<<\s*'KEY_EOF'\s*\n(.*?)\nKEY_EOF",
+            r"cat\s*>\s*\S+privkey\.pem\S*\s*<<\s*'KEY_EOF'\s*\n(.*?)\nKEY_EOF",
             sz_content, re.DOTALL
         )
         if key_match:
@@ -87,6 +87,7 @@ class DockerDeployer:
         # 写入fullchain证书
         fullchain_path = ssl_dir / "fullchain.pem"
         fullchain_path.write_text(self.ssl_fullchain + "\n", encoding="utf-8")
+        fullchain_path.chmod(stat.S_IRUSR | stat.S_IWUSR | stat.S_IRGRP | stat.S_IROTH)  # chmod 644
         
         # 写入私钥并设置权限
         privkey_path = ssl_dir / "privkey.pem"
@@ -125,7 +126,7 @@ server {{
     ssl_session_timeout 10m;
 
     location / {{
-        proxy_pass http://crsp-mall:8080;
+        proxy_pass http://{self.image_name}:{self.app_port};
         proxy_set_header Host $host;
         proxy_set_header X-Real-IP $remote_addr;
         proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
