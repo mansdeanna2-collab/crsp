@@ -18,6 +18,8 @@ from pathlib import Path
 class DockerDeployer:
     """Docker自动部署器"""
     
+    STANDARD_HTTPS_PORT = 443
+    
     def __init__(self, project_dir=None, frontend_port=1000, ssl_port=8443, http_port=80):
         """
         初始化部署器
@@ -616,7 +618,7 @@ docker-compose.yml
         print("\n" + "=" * 60)
         print("✅ 部署完成!")
         if self.domain:
-            port_suffix = f":{self.ssl_port}" if self.ssl_port != 443 else ""
+            port_suffix = f":{self.ssl_port}" if self.ssl_port != self.STANDARD_HTTPS_PORT else ""
             print(f"🌐 请访问: https://{self.domain}{port_suffix}")
         else:
             print(f"🌐 请访问: http://localhost:{self.frontend_port}")
