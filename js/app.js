@@ -11,6 +11,8 @@ document.addEventListener('DOMContentLoaded', function() {
     initCart();
     // 初始化消息Tab切换
     initMessageTabs();
+    // 初始化消息项点击
+    initMessageItemClick();
     // 初始化定位功能
     initLocation();
     // 初始化拍照搜索功能
@@ -335,21 +337,23 @@ function initMessageTabs() {
 /**
  * 消息项点击 - 打开聊天详情页
  */
-document.querySelectorAll('.message-item').forEach(item => {
-    item.addEventListener('click', function() {
-        const title = this.querySelector('.message-title').textContent;
-        const msgType = this.getAttribute('data-msg-type');
-        const avatarStyle = this.querySelector('.message-avatar').getAttribute('style');
-        const avatarIcon = this.querySelector('.message-avatar i').className;
-        // 清除该消息的未读角标
-        const badge = this.querySelector('.message-badge');
-        if (badge) {
-            badge.remove();
-        }
-        updateMessageNavBadge();
-        showChatDetail(title, msgType, avatarStyle, avatarIcon);
+function initMessageItemClick() {
+    document.querySelectorAll('.message-item').forEach(item => {
+        item.addEventListener('click', function() {
+            const title = this.querySelector('.message-title').textContent;
+            const msgType = this.getAttribute('data-msg-type');
+            const avatarStyle = this.querySelector('.message-avatar').getAttribute('style');
+            const avatarIcon = this.querySelector('.message-avatar i').className;
+            // 清除该消息的未读角标
+            const badge = this.querySelector('.message-badge');
+            if (badge) {
+                badge.remove();
+            }
+            updateMessageNavBadge();
+            showChatDetail(title, msgType, avatarStyle, avatarIcon);
+        });
     });
-});
+}
 
 /**
  * 显示聊天详情页
